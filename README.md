@@ -17,7 +17,7 @@ There are pros and cons to these differences and we welcome you to discuss these
 
 **The contracts have not been audited and are not finalized.**
 
-(NiftyswapExchange.sol)[https://github.com/niftyswap/niftyswap/blob/master/contracts/exchange/NiftyswapExchange.sol] is the main exchange contract.
+[NiftyswapExchange.sol](https://github.com/niftyswap/niftyswap/blob/master/contracts/exchange/NiftyswapExchange.sol) is the main exchange contract.
 
 ## To Install
 1. Git clone this repository
