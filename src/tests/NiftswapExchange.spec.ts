@@ -137,7 +137,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     await ownerBaseTokenContract.functions.mintMock(operatorAddress, baseTokenID, baseTokenAmount, [])
     await ownerBaseTokenContract.functions.mintMock(userAddress, baseTokenID, baseTokenAmount, [])
 
-    // Authorize uniswap to transfer funds on your behalf for addLiquidity & transfers
+    // Authorize Niftyswap to transfer funds on your behalf for addLiquidity & transfers
     await operatorBaseTokenContract.functions.setApprovalForAll(niftyswapExchangeContract.address, true)
     await operatorERC1155Contract.functions.setApprovalForAll(niftyswapExchangeContract.address, true)
     await userBaseTokenContract.functions.setApprovalForAll(niftyswapExchangeContract.address, true)

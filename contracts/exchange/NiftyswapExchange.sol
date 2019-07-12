@@ -9,7 +9,7 @@ import "multi-token-standard/contracts/tokens/ERC1155/ERC1155Metadata.sol";
 
 
 /**
- * This Uniswap implementation supports ERC-1155 standard tokens
+ * This Uniswap-like implementation supports ERC-1155 standard tokens
  * with Base Tokens as a base currency instead of Ether. Dai is automatically
  * converted to Base Tokens when transferred, but wrapper methods exists to
  * wrap or unwrap DAI for every trade.
@@ -39,9 +39,6 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
   |__________________________________*/
 
   // Variables
-  // bytes32 public name;      // Uniswap V1
-  // bytes32 public symbol;    // UNI-V1
-  // uint256 public decimals;  // 18
   IERC1155 token;              // address of the ERC-1155 token contract
   IERC1155 baseToken;          // address of the ERC-1155 base token traded on this contract
   INiftyswapFactory factory;   // interface for the factory that created this contract
@@ -161,7 +158,7 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
   {
     // This function assumes that the ERC-1155 token contract can
     // only call `onERC1155BatchReceived()` via a valid token transfer.
-    // Users must be responsible and only use this Uniswap1155
+    // Users must be responsible and only use this Niftyswap exchange
     // contract with ERC-1155 compliant token contracts.
 
     // Obtain method to call via object signature
@@ -289,8 +286,8 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
     uint256 totalRefundBaseTokens = _maxBaseTokens;
 
     // Input validation
-    require(_deadline >= block.number, "UniswapExchange#_baseToToken: DEADLINE_EXCEEDED");
-    require(nTokens == _tokenAmounts.length, "UniswapExchange#_baseToToken: INVALID_LENGTH_FOR_IDS_AMOUNTS");
+    require(_deadline >= block.number, "NiftyswapExchange#_baseToToken: DEADLINE_EXCEEDED");
+    require(nTokens == _tokenAmounts.length, "NiftyswapExchange#_baseToToken: INVALID_LENGTH_FOR_IDS_AMOUNTS");
 
     // Amount of base tokens sold per ID
     uint256[] memory baseTokensSold = new uint256[](nTokens);
@@ -304,7 +301,7 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
       uint256 idBought = _tokenIds[i];
       uint256 amountBought = _tokenAmounts[i];
 
-      require(amountBought >= 0, "UniswapExchange#_baseToToken: NULL_TOKENS_BOUGHT");
+      require(amountBought >= 0, "NiftyswapExchange#_baseToToken: NULL_TOKENS_BOUGHT");
 
       // Load Base Token and Token _id reserves
       uint256 tokenReserve = token.balanceOf(address(this), idBought);
@@ -350,7 +347,7 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
     public view returns (uint256)
   {
     //Reserves must not be empty
-    require(_assetSoldReserve > 0 && _assetBoughtReserve > 0, "UniswapExchange#getBuyPrice: EMPTY_RESERVE");
+    require(_assetSoldReserve > 0 && _assetBoughtReserve > 0, "NiftyswapExchange#getBuyPrice: EMPTY_RESERVE");
 
     // Calculate price with fee
     uint256 numerator = _assetSoldReserve.mul(_assetBoughtAmount).mul(1000);
@@ -381,8 +378,8 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
     uint256 nTokens = _tokenIds.length;
 
     // Input validation
-    require(_deadline >= block.number, "UniswapExchange#_tokenToBase: DEADLINE_EXCEEDED");
-    require(nTokens == _tokensSoldAmounts.length, "UniswapExchange#_tokenToBase: INVALID_LENGTH_FOR_IDS_AMOUNTS");
+    require(_deadline >= block.number, "NiftyswapExchange#_tokenToBase: DEADLINE_EXCEEDED");
+    require(nTokens == _tokensSoldAmounts.length, "NiftyswapExchange#_tokenToBase: INVALID_LENGTH_FOR_IDS_AMOUNTS");
 
     // Initialize variables
     uint256 totalBaseTokens = 0; // Total amount of Base tokens to transfer
@@ -398,7 +395,7 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
       uint256 amountSold = _tokensSoldAmounts[i];
 
       // If 0 tokens send for this ID, revert
-      require(amountSold >= 0, "UniswapExchange#_tokenToBase: NULL_TOKENS_SOLD");
+      require(amountSold >= 0, "NiftyswapExchange#_tokenToBase: NULL_TOKENS_SOLD");
 
       // Load Base Token and Token _id reserves
       uint256 tokenReserve = token.balanceOf(address(this), idSold);
@@ -420,7 +417,7 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
     }
 
     // If minBaseTokens is not met
-    require(totalBaseTokens >= _minBaseTokens, "UniswapExchange#_tokenToBase: INSUFFICIENT_BASE_TOKENS");
+    require(totalBaseTokens >= _minBaseTokens, "NiftyswapExchange#_tokenToBase: INSUFFICIENT_BASE_TOKENS");
 
     // Transfer baseTokens here
     baseToken.safeTransferFrom(address(this), _recipient, baseTokenID, totalBaseTokens, "");
@@ -434,7 +431,7 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
    * @param _assetSoldAmount    Amount of Base Tokens or Tokens being sold.
    * @param _assetSoldReserve   Amount of Base Tokens or Tokens (output type) in exchange reserves.
    * @param _assetBoughtReserve Amount of Base Tokens or Tokens (input type) in exchange reserves.
-   * @return Amount of Base Tokens or Tokens to receive from Uniswap.
+   * @return Amount of Base Tokens or Tokens to receive from Niftyswap.
    */
   function getSellPrice(
     uint256 _assetSoldAmount,
@@ -443,7 +440,7 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
     public view returns (uint256)
   {
     //Reserves must not be empty
-    require(_assetSoldReserve > 0 && _assetBoughtReserve > 0, "UniswapExchange#getSellPrice: EMPTY_RESERVE");
+    require(_assetSoldReserve > 0 && _assetBoughtReserve > 0, "NiftyswapExchange#getSellPrice: EMPTY_RESERVE");
 
     // Calculate amount to receive (with fee)
     uint256 _assetSoldAmount_withFee = _assetSoldAmount.mul(feeMultiplier);
@@ -492,9 +489,9 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
     uint256[] memory liquiditiesToMind = new uint256[](nTokens);
 
     //Requirements
-    require(_deadline >= block.number, "UniswapExchange#_addLiquidity: DEADLINE_EXCEEDED");
-    require(nTokens == _tokenAmounts.length, "UniswapExchange#_addLiquidity: INVALID_LENGTH_FOR_IDS_AMOUNTS");
-    require(nTokens == _maxBaseTokens.length, "UniswapExchange#_addLiquidity: INVALID_LENGTH_FOR_MAXBASETOKENS");
+    require(_deadline >= block.number, "NiftyswapExchange#_addLiquidity: DEADLINE_EXCEEDED");
+    require(nTokens == _tokenAmounts.length, "NiftyswapExchange#_addLiquidity: INVALID_LENGTH_FOR_IDS_AMOUNTS");
+    require(nTokens == _maxBaseTokens.length, "NiftyswapExchange#_addLiquidity: INVALID_LENGTH_FOR_MAXBASETOKENS");
 
     // Assumes tokens _ids are deposited already, but not Base Tokens
     // as this is calculated and executed below.
@@ -506,8 +503,8 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
       uint256 amount = _tokenAmounts[i];
 
       // Check if input values are acceptable
-      require(_maxBaseTokens[i] > 0, "UniswapExchange#_addLiquidity: NULL_MAX_BASE_TOKEN");
-      require(amount > 0, "UniswapExchange#_addLiquidity: INVALID_TOKENS_AMOUNT");
+      require(_maxBaseTokens[i] > 0, "NiftyswapExchange#_addLiquidity: NULL_MAX_BASE_TOKEN");
+      require(amount > 0, "NiftyswapExchange#_addLiquidity: INVALID_TOKENS_AMOUNT");
 
       // Current total liquidity calculated in base token
       uint256 totalLiquidity = totalSupplies[id];
@@ -530,7 +527,7 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
         *   dx: Amount of base token to deposit
         */
         uint256 baseTokenAmount = (amount.mul(baseReserve) / tokenReserve).add(1);
-        require(_maxBaseTokens[i] >= baseTokenAmount, "UniswapExchange#_addLiquidity: MAX_BASE_TOKENS_EXCEEDED");
+        require(_maxBaseTokens[i] >= baseTokenAmount, "NiftyswapExchange#_addLiquidity: MAX_BASE_TOKENS_EXCEEDED");
 
         // Update Base Token reserve size for Token id before transfer
         baseTokenReserve[id] = baseReserve.add(baseTokenAmount);
@@ -550,7 +547,7 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
         uint256 maxBaseToken = _maxBaseTokens[i];
 
         // Verify if all parameters and variables are valid
-        require(maxBaseToken >= 1000000000, "UniswapExchange#_addLiquidity: INVALID_BASE_TOKEN_AMOUNT"); // Prevent dust problems
+        require(maxBaseToken >= 1000000000, "NiftyswapExchange#_addLiquidity: INVALID_BASE_TOKEN_AMOUNT"); // Prevent dust problems
 
         // Update Base Token reserve size for Token id before transfer
         baseTokenReserve[id] = maxBaseToken;
@@ -604,10 +601,10 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
     // the Base Tokens nor the Tokens Ids
 
     // Input validation
-    require(_deadline > block.number, "UniswapExchange#_removeLiquidity: DEADLINE_EXCEEDED");
-    require(_tokenIds.length == _UNItokenAmounts.length, "UniswapExchange#_removeLiquidity: INVALID_LENGTH_FOR_IDS_AMOUNTS");
-    require(_tokenIds.length == _minBaseTokens.length, "UniswapExchange#_removeLiquidity: INVALID_LENGTH_FOR_MINBASETOKENS");
-    require(_tokenIds.length == _minTokens.length, "UniswapExchange#_removeLiquidity: INVALID_LENGTH_FOR__MINTOKENS");
+    require(_deadline > block.number, "NiftyswapExchange#_removeLiquidity: DEADLINE_EXCEEDED");
+    require(_tokenIds.length == _UNItokenAmounts.length, "NiftyswapExchange#_removeLiquidity: INVALID_LENGTH_FOR_IDS_AMOUNTS");
+    require(_tokenIds.length == _minBaseTokens.length, "NiftyswapExchange#_removeLiquidity: INVALID_LENGTH_FOR_MINBASETOKENS");
+    require(_tokenIds.length == _minTokens.length, "NiftyswapExchange#_removeLiquidity: INVALID_LENGTH_FOR__MINTOKENS");
 
     // Remove liquidity for each Token ID in _tokenIds
     for (uint256 i = 0; i < nTokens; i++) {
@@ -616,11 +613,11 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
       uint256 amountUNI = _UNItokenAmounts[i];
 
       // Arrays input validation
-      require(amountUNI > 0, "UniswapExchange#_removeLiquidity: INVALID_UNI_TOKENS_AMOUNT");
+      require(amountUNI > 0, "NiftyswapExchange#_removeLiquidity: INVALID_UNI_TOKENS_AMOUNT");
 
       // Load total UNI supply for Token _id
       uint256 totalLiquidity = totalSupplies[id];
-      require(totalLiquidity > 0, "UniswapExchange#_removeLiquidity: NULL_TOTAL_LIQUIDITY");
+      require(totalLiquidity > 0, "NiftyswapExchange#_removeLiquidity: NULL_TOTAL_LIQUIDITY");
 
       // Load Base Token and Token reserve's supply of Token id
       uint256 tokenReserve = token.balanceOf(address(this), id);
@@ -631,8 +628,8 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
       uint256 tokenAmount = amountUNI.mul(tokenReserve) / totalLiquidity;
 
       // Verify if amounts to withdraw respect minimums specified
-      require(baseTokenAmount >= _minBaseTokens[i], "UniswapExchange#_removeLiquidity: INSUFFICIENT_BASE_TOKENS");
-      require(tokenAmount >= _minTokens[i], "UniswapExchange#_removeLiquidity: INSUFFICIENT_TOKENS");
+      require(baseTokenAmount >= _minBaseTokens[i], "NiftyswapExchange#_removeLiquidity: INSUFFICIENT_BASE_TOKENS");
+      require(tokenAmount >= _minTokens[i], "NiftyswapExchange#_removeLiquidity: INSUFFICIENT_TOKENS");
 
       // Update total UNI supply of Token _id
       totalSupplies[id] = totalLiquidity.sub(amountUNI);
