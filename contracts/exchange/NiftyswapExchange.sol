@@ -16,6 +16,10 @@ import "multi-token-standard/contracts/tokens/ERC1155/ERC1155Metadata.sol";
  *
  * See https://github.com/horizon-games/ERC20-meta-wrapper for explanation
  * on meta 'Base Tokens'.
+ *
+ * Liquidity tokens are also ERC-1155 tokens you can find the ERC-1155 
+ * implementation used here:
+ *    https://github.com/horizon-games/multi-token-standard/tree/master/contracts/tokens/ERC1155
  */
 contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
 
