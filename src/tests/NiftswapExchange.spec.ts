@@ -80,7 +80,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
 
   // Token Param
   let types: any[] = [], values: any[] = []
-  const nTokenTypes    = 100 //560
+  const nTokenTypes    = 400 //560
   const nTokensPerType = 500000
 
   // Base Token Param
@@ -166,7 +166,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
 
     it('should pass when balances are sufficient', async () => {
       const tx = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityData,
-        {gasLimit: 30000000}
+        {gasLimit: 50000000}
       )
       await expect(tx).to.be.fulfilled
     })
@@ -174,7 +174,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     describe('When liquidity > 0', () => {
       beforeEach(async () => {
         await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityData,
-          {gasLimit: 30000000}
+          {gasLimit: 8000000}
         )
       })
 
@@ -194,7 +194,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
           ['bytes4', AddLiquidityType], [methodsSignature.ADDLIQUIDITY, addLiquidityObj]) 
 
         const tx = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityData,
-          {gasLimit: 30000000}
+          {gasLimit: 8000000}
         )
         await expect(tx).to.be.fulfilled
       })
@@ -254,7 +254,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
 
     it('should sell tokens when balances are sufficient', async () => {
       const tx = userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, types, tokensAmountsToSell, sellTokenData,
-        {gasLimit: 30000000}
+        {gasLimit: 8000000}
       )
       await expect(tx).to.be.fulfilled
     })
@@ -325,9 +325,9 @@ contract('NiftyswapExchange', (accounts: string[]) => {
 
       buyTokenData = ethers.utils.defaultAbiCoder.encode(
         ['bytes4', BuyTokensType], [methodsSignature.BUYTOKENS, buyTokenObj])
-
+      
       const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
-        {gasLimit: 30000000}
+        {gasLimit: 8000000}
       )
       await expect(tx).to.be.fulfilled
     })
@@ -345,7 +345,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
         ['bytes4', BuyTokensType], [methodsSignature.BUYTOKENS, buyTokenObj])
 
       const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
-        {gasLimit: 30000000}
+        {gasLimit: 8000000}
       )
       await expect(tx).to.be.fulfilled
     })
@@ -363,7 +363,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
         ['bytes4', BuyTokensType], [methodsSignature.BUYTOKENS, buyTokenObj])
 
       const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
-        {gasLimit: 30000000}
+        {gasLimit: 8000000}
       )
       await expect(tx).to.be.fulfilled
     })
@@ -382,7 +382,25 @@ contract('NiftyswapExchange', (accounts: string[]) => {
         ['bytes4', BuyTokensType], [methodsSignature.BUYTOKENS, buyTokenObj])
 
       const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
-        {gasLimit: 30000000}
+        {gasLimit: 8000000}
+      )
+      await expect(tx).to.be.fulfilled
+    })
+
+    it('buy 400 tokens should pass', async () => {
+      cost = cost.div(nTokenTypes).mul(400)
+      const buyTokenObj = {
+        tokensBoughtIDs: new Array(400).fill('').map((a, i) => getBig(i)),
+        tokensBoughtAmounts: new Array(400).fill('').map((a, i) => getBig(1)),
+        deadline: 10000000
+      } as BuyTokensObj
+
+
+      buyTokenData = ethers.utils.defaultAbiCoder.encode(
+        ['bytes4', BuyTokensType], [methodsSignature.BUYTOKENS, buyTokenObj])
+
+      const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
+        {gasLimit: 8000000}
       )
       await expect(tx).to.be.fulfilled
     })

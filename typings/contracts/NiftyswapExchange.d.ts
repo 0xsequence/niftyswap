@@ -109,9 +109,9 @@ interface NiftyswapExchangeInterface extends Interface {
     }>;
 
     AddLiquidity: TypedEventDescription<{
-      encodeTopics([provider, tokenId, baseTokenAmount, tokenAmount]: [
+      encodeTopics([provider, tokenIds, tokenAmounts, baseTokenAmounts]: [
         string | null,
-        BigNumberish | null,
+        null,
         null,
         null
       ]): string[];
@@ -210,6 +210,8 @@ export class NiftyswapExchange extends Contract {
       _assetSoldReserve: BigNumberish,
       _assetBoughtReserve: BigNumberish
     ): Promise<BigNumber>;
+
+    getBaseTokenReserve(_id: BigNumberish): Promise<BigNumber>;
 
     getPrice_baseToToken(
       _id: BigNumberish,
@@ -313,9 +315,9 @@ export class NiftyswapExchange extends Contract {
 
     AddLiquidity(
       provider: string | null,
-      tokenId: BigNumberish | null,
-      baseTokenAmount: null,
-      tokenAmount: null
+      tokenIds: null,
+      tokenAmounts: null,
+      baseTokenAmounts: null
     ): EventFilter;
 
     RemoveLiquidity(
