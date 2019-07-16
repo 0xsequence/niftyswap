@@ -118,7 +118,7 @@ interface NiftyswapExchangeInterface extends Interface {
     }>;
 
     RemoveLiquidity: TypedEventDescription<{
-      encodeTopics([provider, tokenIds, baseTokenAmounts, tokenAmounts]: [
+      encodeTopics([provider, tokenIds, tokenAmounts, baseTokenAmounts]: [
         string | null,
         null,
         null,
@@ -179,8 +179,6 @@ export class NiftyswapExchange extends Contract {
   functions: {
     balanceOf(_owner: string, _id: BigNumberish): Promise<BigNumber>;
 
-    supportsInterface(_interfaceID: Arrayish): Promise<boolean>;
-
     uri(_id: BigNumberish): Promise<string>;
 
     getNonce(_signer: string): Promise<BigNumber>;
@@ -222,6 +220,8 @@ export class NiftyswapExchange extends Contract {
       _id: BigNumberish,
       _tokensSold: BigNumberish
     ): Promise<BigNumber>;
+
+    supportsInterface(interfaceID: Arrayish): Promise<boolean>;
 
     safeBatchTransferFrom(
       _from: string,
@@ -323,8 +323,8 @@ export class NiftyswapExchange extends Contract {
     RemoveLiquidity(
       provider: string | null,
       tokenIds: null,
-      baseTokenAmounts: null,
-      tokenAmounts: null
+      tokenAmounts: null,
+      baseTokenAmounts: null
     ): EventFilter;
 
     TransferSingle(

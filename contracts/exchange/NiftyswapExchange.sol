@@ -17,7 +17,7 @@ import "multi-token-standard/contracts/tokens/ERC1155/ERC1155Metadata.sol";
  * See https://github.com/horizon-games/ERC20-meta-wrapper for explanation
  * on meta 'Base Tokens'.
  *
- * Liquidity tokens are also ERC-1155 tokens you can find the ERC-1155 
+ * Liquidity tokens are also ERC-1155 tokens you can find the ERC-1155
  * implementation used here:
  *    https://github.com/horizon-games/multi-token-standard/tree/master/contracts/tokens/ERC1155
  */
@@ -43,7 +43,7 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
   IERC1155 baseToken;          // address of the ERC-1155 base token traded on this contract
   INiftyswapFactory factory;   // interface for the factory that created this contract
   uint256 baseTokenID;         // ID of base token in ERC-1155 base contract
-  uint256 feeMultiplier = 993; // Multiplier that calculates the fee (0.7%)
+  uint256 feeMultiplier = 995; // Multiplier that calculates the fee (0.7%)
 
   // OnReceive Objects
   struct BuyTokensObj {
@@ -99,7 +99,7 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
   event TokensPurchase(address indexed buyer, uint256[] tokensBoughtIds, uint256[] tokensBoughtAmounts, uint256[] baseTokensSoldAmounts);
   event BaseTokenPurchase(address indexed buyer, uint256[] tokensSoldIds, uint256[] tokensSoldAmounts, uint256[] baseTokensBoughtAmounts);
   event AddLiquidity(address indexed provider, uint256[] tokenIds, uint256[] tokenAmounts, uint256[] baseTokenAmounts);
-  event RemoveLiquidity(address indexed provider, uint256[] tokenIds, uint256[] baseTokenAmounts, uint256[] tokenAmounts);
+  event RemoveLiquidity(address indexed provider, uint256[] tokenIds, uint256[] tokenAmounts, uint256[] baseTokenAmounts);
 
 
   /***********************************|
@@ -304,7 +304,7 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
       uint256 amountBought = _tokenAmounts[i];
       uint256 tokenReserve = tokenReserves[i];
 
-      require(amountBought >= 0, "NiftyswapExchange#_baseToToken: NULL_TOKENS_BOUGHT");
+      require(amountBought > 0, "NiftyswapExchange#_baseToToken: NULL_TOKENS_BOUGHT");
 
       // Load Base Token and Token _id reserves
       uint256 baseReserve = baseTokenReserve[idBought];
@@ -400,7 +400,7 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
       uint256 tokenReserve = tokenReserves[i];
 
       // If 0 tokens send for this ID, revert
-      require(amountSold >= 0, "NiftyswapExchange#_tokenToBase: NULL_TOKENS_SOLD");
+      require(amountSold > 0, "NiftyswapExchange#_tokenToBase: NULL_TOKENS_SOLD");
 
       // Load Base Token and Token _id reserves
       uint256 baseReserve = baseTokenReserve[idSold];
@@ -564,14 +564,14 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
         baseTokenAmounts[i] = maxBaseToken;
       }
     }
-    // Emit event
-    emit AddLiquidity(_provider, _tokenIds, _tokenAmounts, baseTokenAmounts);
-
-    // // Mint UNI tokens
+    // Mint UNI tokens
     _batchMint(_provider, _tokenIds, liquiditiesToMint, "");
 
     // Transfer all Base Tokens to this contract
     baseToken.safeTransferFrom(_provider, address(this), baseTokenID, totalBaseTokens, abi.encodePacked(DEPOSIT_SIG));
+
+    // Emit event
+    emit AddLiquidity(_provider, _tokenIds, _tokenAmounts, baseTokenAmounts);
   }
 
   /**
@@ -643,9 +643,7 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
       totalBaseTokens = totalBaseTokens.add(baseTokenAmount);
       tokenAmounts[i] = tokenAmount;
       baseTokenAmounts[i] = baseTokenAmount;
-
     }
-    emit RemoveLiquidity(_provider, _tokenIds, baseTokenAmounts, tokenAmounts);
 
     // Burn UNI tokens for offchain supplies
     _batchBurn(address(this), _tokenIds, _UNItokenAmounts);
@@ -653,6 +651,9 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
     // Transfer total Base Tokens and all Tokens ids
     baseToken.safeTransferFrom(address(this), _provider, baseTokenID, totalBaseTokens, "");
     token.safeBatchTransferFrom(address(this), _provider, _tokenIds, tokenAmounts, "");
+
+    // Emit event
+    emit RemoveLiquidity(_provider, _tokenIds, tokenAmounts, baseTokenAmounts);
   }
 
 

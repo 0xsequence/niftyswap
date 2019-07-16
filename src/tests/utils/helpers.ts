@@ -4,6 +4,14 @@ export const UNIT_ETH = ethers.utils.parseEther('1')
 export const HIGH_GAS_LIMIT = { gasLimit: 6e9 }
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
+import { 
+  BuyTokensObj, 
+  SellTokensObj, 
+  AddLiquidityObj, 
+  RemoveLiquidityObj 
+} from 'typings/txTypes';
+import { BigNumber } from 'ethers/utils';
+
 // createTestWallet creates a new wallet
 export const createTestWallet = (web3: any, addressIndex: number = 0) => {
   const provider = new Web3DebugProvider(web3.currentProvider)
@@ -58,6 +66,40 @@ export interface JSONRPCRequest {
   method: any
   params: any
 }
+
+export const getBuyTokenData = (types: any[], tokensAmountsToBuy: ethers.utils.BigNumber[], deadline: number) => {
+  const buyTokenObj = {
+    tokensBoughtIDs: types,
+    tokensBoughtAmounts: tokensAmountsToBuy,
+    deadline: deadline
+  } as BuyTokensObj
+
+
+  return ethers.utils.defaultAbiCoder.encode(
+    ['bytes4', BuyTokensType], [methodsSignature.BUYTOKENS, buyTokenObj])
+}
+
+export const getSellTokenData = (cost: BigNumber, deadline: number) => {
+  const sellTokenObj = {
+    minBaseTokens: cost,
+    deadline: deadline
+  } as SellTokensObj
+
+  return ethers.utils.defaultAbiCoder.encode(
+    ['bytes4', SellTokensType], [methodsSignature.SELLTOKENS, sellTokenObj])
+}
+
+export const getAddLiquidityData = (baseAmountsToAdd: ethers.utils.BigNumber[], deadline: number) => {
+  const addLiquidityObj = {
+    maxBaseTokens: baseAmountsToAdd,
+    deadline: deadline
+  } as AddLiquidityObj
+
+  return ethers.utils.defaultAbiCoder.encode(
+    ['bytes4', AddLiquidityType], [methodsSignature.ADDLIQUIDITY, addLiquidityObj])
+}
+
+
 
 export class Web3DebugProvider extends ethers.providers.JsonRpcProvider {
 

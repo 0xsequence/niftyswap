@@ -5,17 +5,16 @@ import {
   expect, 
   BigNumber, 
   RevertError,
-  BuyTokensType,
+  getBuyTokenData,
+  getSellTokenData,
+  getAddLiquidityData,
   SellTokensType,
-  AddLiquidityType, 
   RemoveLiquidityType,
   methodsSignature
 } from './utils'
 
 import { 
-  BuyTokensObj, 
   SellTokensObj, 
-  AddLiquidityObj, 
   RemoveLiquidityObj 
 } from 'typings/txTypes';
 
@@ -79,8 +78,9 @@ contract('NiftyswapExchange', (accounts: string[]) => {
   let niftyswapExchangeContract: NiftyswapExchange
 
   // Token Param
-  let types: any[] = [], values: any[] = []
-  const nTokenTypes    = 400 //560
+  let types: number[] = []
+  let values: number[]  = []
+  const nTokenTypes    = 30 //560
   const nTokensPerType = 500000
 
   // Base Token Param
@@ -155,13 +155,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     let addLiquidityData: string;
 
     before(async () => {
-      const addLiquidityObj = {
-        maxBaseTokens: baseAmountsToAdd,
-        deadline: 10000000
-      } as AddLiquidityObj
-
-      addLiquidityData = ethers.utils.defaultAbiCoder.encode(
-        ['bytes4', AddLiquidityType], [methodsSignature.ADDLIQUIDITY, addLiquidityObj]) 
+      addLiquidityData = getAddLiquidityData(baseAmountsToAdd, 10000000)
     })
 
     it('should pass when balances are sufficient', async () => {
@@ -184,14 +178,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
         for (let i = 0; i < nTypesToAdd; i++) {
           maxBaseTokens.push(baseAmountToAdd.mul(2))
         }
-
-        const addLiquidityObj = {
-          maxBaseTokens: maxBaseTokens,
-          deadline: 10000000
-        } as AddLiquidityObj
-  
-        addLiquidityData = ethers.utils.defaultAbiCoder.encode(
-          ['bytes4', AddLiquidityType], [methodsSignature.ADDLIQUIDITY, addLiquidityObj]) 
+        addLiquidityData = getAddLiquidityData(maxBaseTokens, 10000000)
 
         const tx = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityData,
           {gasLimit: 8000000}
@@ -222,16 +209,8 @@ contract('NiftyswapExchange', (accounts: string[]) => {
         tokenAmountsToAdd.push(tokenAmountToAdd)
         tokensAmountsToSell.push(tokenAmountToSell)
       }
-
       // Liquidity
-      const addLiquidityObj = {
-        maxBaseTokens: baseAmountsToAdd,
-        deadline: 10000000
-      } as AddLiquidityObj
-
-      addLiquidityData = ethers.utils.defaultAbiCoder.encode(
-        ['bytes4', AddLiquidityType], [methodsSignature.ADDLIQUIDITY, addLiquidityObj])
-    
+      addLiquidityData = getAddLiquidityData(baseAmountsToAdd, 10000000) 
     })
 
     beforeEach(async () => {
@@ -240,16 +219,62 @@ contract('NiftyswapExchange', (accounts: string[]) => {
         {gasLimit: 30000000}
       )
       
-
       // Sell
       const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase(0, tokenAmountToSell);
-      const sellTokenObj = {
-        minBaseTokens: price.mul(nTokenTypes),
-        deadline: 10000000
-      } as SellTokensObj
+      sellTokenData = getSellTokenData(price.mul(nTokenTypes), 10000000)
+    })
 
-      sellTokenData = ethers.utils.defaultAbiCoder.encode(
-        ['bytes4', SellTokensType], [methodsSignature.SELLTOKENS, sellTokenObj])
+    it('should fail if token balance is insufficient', async () => {
+      await userERC1155Contract.functions.safeTransferFrom(userAddress, ownerAddress, types[0], nTokensPerType, [])
+      const tx = userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, types, tokensAmountsToSell, sellTokenData,
+        {gasLimit: 8000000}
+      )
+      await expect(tx).to.be.rejectedWith( RevertError("ERC1155PackedBalance#_viewUpdateIDBalance: UNDERFLOW") )
+    })
+
+    it('should fail if token sent is 0', async () => {
+      let tokensAmountsToSellCopy = [...tokensAmountsToSell]
+      tokensAmountsToSellCopy[0] = new BigNumber(0)
+      
+      const tx = userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, types, tokensAmountsToSellCopy, sellTokenData,
+        {gasLimit: 8000000}
+      )
+      await expect(tx).to.be.rejectedWith( RevertError("NiftyswapExchange#_tokenToBase: NULL_TOKENS_SOLD") )
+    })
+
+    it('should fail if deadline is passed', async () => {
+      let blocknumber = await userProvider.getBlockNumber()
+      const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase(0, tokenAmountToSell);
+      let sellTokenData = getSellTokenData(price.mul(nTokenTypes), blocknumber)
+
+      const tx = userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, types, tokensAmountsToSell, sellTokenData,
+        {gasLimit: 8000000}
+      )
+      await expect(tx).to.be.rejectedWith( RevertError("NiftyswapExchange#_tokenToBase: DEADLINE_EXCEEDED") )
+    })
+
+    it('should pass if base token balance is equal to cost', async () => {
+      const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase(0, tokenAmountToSell);
+      let cost = price.mul(nTokenTypes)
+
+      let sellTokenData = getSellTokenData(cost, 10000000)
+
+      const tx = userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, types, tokensAmountsToSell, sellTokenData,
+        {gasLimit: 8000000}
+      )
+      await expect(tx).to.be.fulfilled
+    })
+
+    it('should fail if base token balance is lower than cost', async () => {
+      const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase(0, tokenAmountToSell);
+      let cost = price.mul(nTokenTypes)
+
+      let sellTokenData = getSellTokenData(cost.add(1), 10000000)
+
+      const tx = userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, types, tokensAmountsToSell, sellTokenData,
+        {gasLimit: 8000000}
+      )
+      await expect(tx).to.be.rejectedWith( RevertError("NiftyswapExchange#_tokenToBase: INSUFFICIENT_BASE_TOKENS") )
     })
 
     it('should sell tokens when balances are sufficient', async () => {
@@ -259,6 +284,55 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       await expect(tx).to.be.fulfilled
     })
 
+    describe('When trade is successful', async () => {
+      let cost;
+
+      beforeEach(async () => {
+        const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase(0, tokenAmountToSell);
+        cost = price.mul(nTokenTypes)
+
+        await userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, types, tokensAmountsToSell, sellTokenData,
+          {gasLimit: 8000000}
+        )
+      })
+
+      it('should update Tokens balances if it passes', async () => {
+        for (let i = 0; i < types.length; i++) {
+          const exchangeBalance = await userERC1155Contract.functions.balanceOf(niftyswapExchangeContract.address, types[i])
+          const userBalance = await userERC1155Contract.functions.balanceOf(userAddress, types[i])
+
+          expect(exchangeBalance).to.be.eql(tokenAmountToAdd.add(tokenAmountToSell))
+          expect(userBalance).to.be.eql(new BigNumber(nTokensPerType).sub(tokenAmountToSell))
+        }
+      })
+  
+      it('should update Base Tokens balances if it passes', async () => {
+        const exchangeBalance = await userBaseTokenContract.functions.balanceOf(niftyswapExchangeContract.address, baseTokenID)
+        const userBalance = await userBaseTokenContract.functions.balanceOf(userAddress, baseTokenID)
+
+        expect(exchangeBalance).to.be.eql(baseAmountToAdd.mul(nTokenTypes).sub(cost))
+        expect(userBalance).to.be.eql(baseTokenAmount.add(cost))
+      })
+
+      it('should update the Base Tokens per token reserve', async () => {
+        for (let i = 0; i < types.length; i++) {
+          const reserve = await niftyswapExchangeContract.functions.getBaseTokenReserve(types[i])
+          expect(reserve).to.be.eql(baseAmountToAdd.sub(cost.div(nTokenTypes)))
+        }
+      })
+
+      it('should have token sell price adjusted', async () => {
+        const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase(0, tokenAmountToSell);
+
+        let soldAmountWithFee = tokenAmountToSell.mul(995)
+        let baseReserve = baseAmountToAdd.sub(cost.div(nTokenTypes))
+        let numerator = soldAmountWithFee.mul(baseReserve)
+        let tokenReserveWithFee = (tokenAmountToAdd.add(tokenAmountToSell)).mul(1000)
+        let denominator = tokenReserveWithFee.add(soldAmountWithFee)
+
+        expect(price).to.be.eql(numerator.div(denominator))
+      })
+    })
   })
 
   describe('_baseToToken() function', () => {
@@ -282,16 +356,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
         tokenAmountsToAdd.push(tokenAmountToAdd)
         tokensAmountsToBuy.push(tokenAmountToBuy)
       }
-
-      // Liquidity
-      const addLiquidityObj = {
-        maxBaseTokens: baseAmountsToAdd,
-        deadline: 10000000
-      } as AddLiquidityObj
-
-      addLiquidityData = ethers.utils.defaultAbiCoder.encode(
-        ['bytes4', AddLiquidityType], [methodsSignature.ADDLIQUIDITY, addLiquidityObj])
-    
+      addLiquidityData = getAddLiquidityData(baseAmountsToAdd, 10000000)
     })
 
     beforeEach(async () => {
@@ -303,110 +368,105 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       // Sell
       cost = await niftyswapExchangeContract.functions.getPrice_baseToToken(0, tokenAmountToBuy);
       cost = cost.mul(nTokenTypes)
-      const buyTokenObj = {
-        tokensBoughtIDs: types,
-        tokensBoughtAmounts: tokensAmountsToBuy,
-        deadline: 10000000
-      } as BuyTokensObj
-
-
-      buyTokenData = ethers.utils.defaultAbiCoder.encode(
-        ['bytes4', BuyTokensType], [methodsSignature.BUYTOKENS, buyTokenObj])
+      buyTokenData = getBuyTokenData(types, tokensAmountsToBuy, 10000000)
     })
 
-    it('buy 1 tokens should pass', async () => {
-      cost = cost.div(nTokenTypes).mul(1)
-      const buyTokenObj = {
-        tokensBoughtIDs: [1],
-        tokensBoughtAmounts: [1],
-        deadline: 10000000
-      } as BuyTokensObj
+    it('should fail if base balance is insufficient', async () => {
+      await userBaseTokenContract.functions.safeTransferFrom(userAddress, ownerAddress, baseTokenID, baseTokenAmount, [])
+      const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
+        {gasLimit: 8000000}
+      )
+      await expect(tx).to.be.rejectedWith( RevertError("SafeMath#sub: UNDERFLOW") )
+    })
 
+    it('should fail if base token sent is 0', async () => {
+      const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, 0, buyTokenData,
+        {gasLimit: 8000000}
+      )
+      await expect(tx).to.be.rejectedWith( RevertError("SafeMath#sub: UNDERFLOW") )
+    })
 
-      buyTokenData = ethers.utils.defaultAbiCoder.encode(
-        ['bytes4', BuyTokensType], [methodsSignature.BUYTOKENS, buyTokenObj])
-      
+    it('should fail if a bought amount is 0', async () => {
+      let tokensAmountsToBuyCopy = [...tokensAmountsToBuy]
+      tokensAmountsToBuyCopy[0] = new BigNumber(0);
+      let buyTokenData = getBuyTokenData(types, tokensAmountsToBuyCopy, 10000000)
+
+      const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
+        {gasLimit: 8000000}
+      )
+      await expect(tx).to.be.rejectedWith( RevertError("NiftyswapExchange#_baseToToken: NULL_TOKENS_BOUGHT") )
+    })
+
+    it('should fail if deadline is passed', async () => {
+      let blocknumber = await userProvider.getBlockNumber()
+      let buyTokenData = getBuyTokenData(types, tokensAmountsToBuy, blocknumber)
+
+      const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
+        {gasLimit: 8000000}
+      )
+      await expect(tx).to.be.rejectedWith( RevertError("NiftyswapExchange#_baseToToken: DEADLINE_EXCEEDED") )
+    })
+
+    it('should fail if base token sent is lower than cost', async () => {
+      const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost.sub(1), buyTokenData,
+        {gasLimit: 8000000}
+      )
+      await expect(tx).to.be.rejectedWith( RevertError("SafeMath#sub: UNDERFLOW") )
+    })
+
+    it('should buy tokens if base amount is sufficient', async () => {
       const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
         {gasLimit: 8000000}
       )
       await expect(tx).to.be.fulfilled
     })
 
-    it('buy 5 tokens should pass', async () => {
-      cost = cost.div(nTokenTypes).mul(5)
-      const buyTokenObj = {
-        tokensBoughtIDs: new Array(5).fill('').map((a, i) => getBig(i)),
-        tokensBoughtAmounts: new Array(5).fill('').map((a, i) => getBig(1)),
-        deadline: 10000000
-      } as BuyTokensObj
+    describe('When trade is successful', async () => {
 
+      beforeEach(async () => {
+        await userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
+          {gasLimit: 8000000}
+        )
+      })
 
-      buyTokenData = ethers.utils.defaultAbiCoder.encode(
-        ['bytes4', BuyTokensType], [methodsSignature.BUYTOKENS, buyTokenObj])
+      it('should update Tokens balances if it passes', async () => {
+        for (let i = 0; i < types.length; i++) {
+          const exchangeBalance = await userERC1155Contract.functions.balanceOf(niftyswapExchangeContract.address, types[i])
+          const userBalance = await userERC1155Contract.functions.balanceOf(userAddress, types[i])
 
-      const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
-        {gasLimit: 8000000}
-      )
-      await expect(tx).to.be.fulfilled
+          expect(exchangeBalance).to.be.eql(tokenAmountToAdd.sub(tokenAmountToBuy))
+          expect(userBalance).to.be.eql(new BigNumber(nTokensPerType).add(tokenAmountToBuy))
+        }
+      })
+  
+      it('should update Base Tokens balances if it passes', async () => {
+          const exchangeBalance = await userBaseTokenContract.functions.balanceOf(niftyswapExchangeContract.address, baseTokenID)
+          const userBalance = await userBaseTokenContract.functions.balanceOf(userAddress, baseTokenID)
+
+          expect(exchangeBalance).to.be.eql(baseAmountToAdd.mul(nTokenTypes).add(cost))
+          expect(userBalance).to.be.eql(baseTokenAmount.sub(cost))
+      })
+
+      it('should update the Base Tokens per token reserve', async () => {
+        for (let i = 0; i < types.length; i++) {
+          const reserve = await niftyswapExchangeContract.functions.getBaseTokenReserve(types[i])
+          expect(reserve).to.be.eql( baseAmountToAdd.add(cost.div(nTokenTypes)))
+        }
+      })
+
+      it('should have token sell price adjusted', async () => {
+        const price = await niftyswapExchangeContract.functions.getPrice_baseToToken(0, tokenAmountToBuy);
+
+        let baseReserve = baseAmountToAdd.add(cost.div(nTokenTypes))
+        let tokenReserve = tokenAmountToAdd.sub(tokenAmountToBuy)
+
+        let numerator = baseReserve.mul(tokenAmountToBuy).mul(1000)
+        let denominator = (tokenReserve.sub(tokenAmountToBuy)).mul(995)
+
+        expect(price).to.be.eql(numerator.div(denominator).add(1))
+      })
+
     })
-
-    it('buy 30 tokens should pass', async () => {
-      cost = cost.div(nTokenTypes).mul(30)
-      const buyTokenObj = {
-        tokensBoughtIDs: new Array(30).fill('').map((a, i) => getBig(i)),
-        tokensBoughtAmounts: new Array(30).fill('').map((a, i) => getBig(1)),
-        deadline: 10000000
-      } as BuyTokensObj
-
-
-      buyTokenData = ethers.utils.defaultAbiCoder.encode(
-        ['bytes4', BuyTokensType], [methodsSignature.BUYTOKENS, buyTokenObj])
-
-      const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
-        {gasLimit: 8000000}
-      )
-      await expect(tx).to.be.fulfilled
-    })
-
-
-    it('buy 80 tokens should pass', async () => {
-      cost = cost.div(nTokenTypes).mul(80)
-      const buyTokenObj = {
-        tokensBoughtIDs: new Array(80).fill('').map((a, i) => getBig(i)),
-        tokensBoughtAmounts: new Array(80).fill('').map((a, i) => getBig(1)),
-        deadline: 10000000
-      } as BuyTokensObj
-
-
-      buyTokenData = ethers.utils.defaultAbiCoder.encode(
-        ['bytes4', BuyTokensType], [methodsSignature.BUYTOKENS, buyTokenObj])
-
-      const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
-        {gasLimit: 8000000}
-      )
-      await expect(tx).to.be.fulfilled
-    })
-
-    it('buy 400 tokens should pass', async () => {
-      cost = cost.div(nTokenTypes).mul(400)
-      const buyTokenObj = {
-        tokensBoughtIDs: new Array(400).fill('').map((a, i) => getBig(i)),
-        tokensBoughtAmounts: new Array(400).fill('').map((a, i) => getBig(1)),
-        deadline: 10000000
-      } as BuyTokensObj
-
-
-      buyTokenData = ethers.utils.defaultAbiCoder.encode(
-        ['bytes4', BuyTokensType], [methodsSignature.BUYTOKENS, buyTokenObj])
-
-      const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
-        {gasLimit: 8000000}
-      )
-      await expect(tx).to.be.fulfilled
-    })
-
 
   })
-
-
 })
