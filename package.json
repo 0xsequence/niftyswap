@@ -1,8 +1,8 @@
 {
-  "name": "project-name",
+  "name": "Niftyswap",
   "version": "0.0.1",
-  "description": "Project description",
-  "repository": "https://github.com/phabc/base-solidity-repository",
+  "description": "Non-custodial exchange for ERC-1155 tokens, based on Uniswap",
+  "repository": "https://github.com/niftyswap/niftyswap",
   "license": "MIT",
   "keywords": [
     "ERC",
