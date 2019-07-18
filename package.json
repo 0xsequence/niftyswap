@@ -1,5 +1,5 @@
 {
-  "name": "Niftyswap",
+  "name": "niftyswap",
   "version": "0.0.1",
   "description": "Non-custodial exchange for ERC-1155 tokens, based on Uniswap",
   "repository": "https://github.com/niftyswap/niftyswap",
