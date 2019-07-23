@@ -183,9 +183,9 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       )
       
       // Sell
-      const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase(0, tokenAmountToSell);
+      const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase([0], [tokenAmountToSell]);
       const sellTokenObj = {
-        minBaseTokens: price.mul(nTokenTypes),
+        minBaseTokens: price[0].mul(nTokenTypes),
         deadline: 10000000
       } as SellTokensObj
 
@@ -196,9 +196,9 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     it('sell 1 tokens should pass', async () => {
       const nTokens = 1
       
-      const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase(0, tokenAmountToSell);
+      const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase([0], [tokenAmountToSell]);
       const sellTokenObj = {
-        minBaseTokens: price.mul(nTokens),
+        minBaseTokens: price[0].mul(nTokens),
         deadline: 10000000
       } as SellTokensObj
 
@@ -218,9 +218,9 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     it('sell 5 tokens should pass', async () => {
       const nTokens = 5
       
-      const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase(0, tokenAmountToSell);
+      const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase([0], [tokenAmountToSell]);
       const sellTokenObj = {
-        minBaseTokens: price.mul(nTokens),
+        minBaseTokens: price[0].mul(nTokens),
         deadline: 10000000
       } as SellTokensObj
 
@@ -240,9 +240,9 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     it('sell 30 tokens should pass', async () => {
       const nTokens = 30
       
-      const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase(0, tokenAmountToSell);
+      const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase([0], [tokenAmountToSell]);
       const sellTokenObj = {
-        minBaseTokens: price.mul(nTokens),
+        minBaseTokens: price[0].mul(nTokens),
         deadline: 10000000
       } as SellTokensObj
 
@@ -263,9 +263,9 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     it('sell 80 tokens should pass', async () => {
       const nTokens = 80
       
-      const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase(0, tokenAmountToSell);
+      const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase([0], [tokenAmountToSell]);
       const sellTokenObj = {
-        minBaseTokens: price.mul(nTokens),
+        minBaseTokens: price[0].mul(nTokens),
         deadline: 10000000
       } as SellTokensObj
 
@@ -285,9 +285,9 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     it('sell 400 tokens should pass', async () => {
       const nTokens = 400
       
-      const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase(0, tokenAmountToSell);
+      const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase([0], [tokenAmountToSell]);
       const sellTokenObj = {
-        minBaseTokens: price.mul(nTokens),
+        minBaseTokens: price[0].mul(nTokens),
         deadline: 10000000
       } as SellTokensObj
 
@@ -346,7 +346,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       )
 
       // Sell
-      cost = await niftyswapExchangeContract.functions.getPrice_baseToToken(0, tokenAmountToBuy);
+      cost = (await niftyswapExchangeContract.functions.getPrice_baseToToken([0], [tokenAmountToBuy]))[0];
       cost = cost.mul(nTokenTypes)
       const buyTokenObj = {
         tokensBoughtIDs: types,

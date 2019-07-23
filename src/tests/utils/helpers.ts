@@ -99,6 +99,17 @@ export const getAddLiquidityData = (baseAmountsToAdd: ethers.utils.BigNumber[], 
     ['bytes4', AddLiquidityType], [methodsSignature.ADDLIQUIDITY, addLiquidityObj])
 }
 
+export const getRemoveLiquidityData = (minBaseTokens: ethers.utils.BigNumber[], minTokens: ethers.utils.BigNumber[], deadline: number) => {
+  const removeLiquidityObj = {
+    minBaseTokens: minBaseTokens,
+    minTokens: minTokens,
+    deadline: deadline
+  } as RemoveLiquidityObj
+
+  return ethers.utils.defaultAbiCoder.encode(
+    ['bytes4', RemoveLiquidityType], [methodsSignature.REMOVELIQUIDITY, removeLiquidityObj])
+}
+
 
 
 export class Web3DebugProvider extends ethers.providers.JsonRpcProvider {

@@ -209,17 +209,17 @@ export class NiftyswapExchange extends Contract {
       _assetBoughtReserve: BigNumberish
     ): Promise<BigNumber>;
 
-    getBaseTokenReserve(_id: BigNumberish): Promise<BigNumber>;
+    getBaseTokenReserves(_ids: (BigNumberish)[]): Promise<(BigNumber)[]>;
 
     getPrice_baseToToken(
-      _id: BigNumberish,
-      _tokensBought: BigNumberish
-    ): Promise<BigNumber>;
+      _ids: (BigNumberish)[],
+      _tokensBoughts: (BigNumberish)[]
+    ): Promise<(BigNumber)[]>;
 
     getPrice_tokenToBase(
-      _id: BigNumberish,
-      _tokensSold: BigNumberish
-    ): Promise<BigNumber>;
+      _ids: (BigNumberish)[],
+      _tokensSold: (BigNumberish)[]
+    ): Promise<(BigNumber)[]>;
 
     supportsInterface(interfaceID: Arrayish): Promise<boolean>;
 

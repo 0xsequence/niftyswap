@@ -28,10 +28,10 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
    *   - Add DAI wrapp / unwrap (perhaps proxy)
    *   - remove all events?
    *   - Allow recipient different from _from? Change event accordingly
-   *   - batch prices for efficiency
    *   - Maybe not revert if one token trade fails in liquidity methods? skip?
    *   - Optimizations
    *   - Min liquidity tokens in AddLiquidity?
+   *   - Check rounding error for addLiquidity & getBuyPrice
    */
 
   /***********************************|
@@ -353,7 +353,7 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
     // Calculate price with fee
     uint256 numerator = _assetSoldReserve.mul(_assetBoughtAmount).mul(1000);
     uint256 denominator = (_assetBoughtReserve.sub(_assetBoughtAmount)).mul(feeMultiplier);
-    return (numerator / denominator).add(1);
+    return numerator / denominator;
   }
 
   /**
@@ -505,7 +505,7 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
 
       // Check if input values are acceptable
       require(_maxBaseTokens[i] > 0, "NiftyswapExchange#_addLiquidity: NULL_MAX_BASE_TOKEN");
-      require(amount > 0, "NiftyswapExchange#_addLiquidity: INVALID_TOKENS_AMOUNT");
+      require(amount > 0, "NiftyswapExchange#_addLiquidity: NULL_TOKENS_AMOUNT");
 
       // Current total liquidity calculated in base token
       uint256 totalLiquidity = totalSupplies[id];
@@ -523,11 +523,11 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
         * dx = X*dy/Y
         * where
         *   X:  Base token total liquidity
-        *   Y:  Token _id total liquidity
+        *   Y:  Token _id total liquidity (before tokens were received)
         *   dy: Amount of token _id deposited
         *   dx: Amount of base token to deposit
         */
-        uint256 baseTokenAmount = (amount.mul(baseReserve) / tokenReserve).add(1);
+        uint256 baseTokenAmount = amount.mul(baseReserve) / (tokenReserve.sub(amount));
         require(_maxBaseTokens[i] >= baseTokenAmount, "NiftyswapExchange#_addLiquidity: MAX_BASE_TOKENS_EXCEEDED");
 
         // Update Base Token reserve size for Token id before transfer
@@ -546,8 +546,8 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
       } else {
         uint256 maxBaseToken = _maxBaseTokens[i];
 
-        // Verify if all parameters and variables are valid
-        require(maxBaseToken >= 1000000000, "NiftyswapExchange#_addLiquidity: INVALID_BASE_TOKEN_AMOUNT"); // Prevent dust problems
+        // Otherwise rounding error could end up being significant on second deposit
+        require(maxBaseToken >= 1000000000, "NiftyswapExchange#_addLiquidity: INVALID_BASE_TOKEN_AMOUNT");
 
         // // Update Base Token reserve size for Token id before transfer
         baseTokenReserve[id] = maxBaseToken;
@@ -662,51 +662,68 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
   |__________________________________*/
 
   /**
-   * @notice Get amount of Base Token in reserve for Token _id
-   * @param _id ID to query Base Token reserve of
-   * @return amount of Base Token in reserve for Token _id
+   * @notice Get amount of Base Token in reserve for each Token _id in _ids
+   * @param _ids Array of ID sto query Base Token reserve of
+   * @return amount of Base Token in reserve for each Token _id
    */
-  function getBaseTokenReserve(
-    uint256 _id)
-    external view returns (uint256 baseReserve)
+  function getBaseTokenReserves(
+    uint256[] calldata _ids)
+    external view returns (uint256[] memory)
   {
-    return baseTokenReserve[_id];
+    uint256 nIds = _ids.length;
+    uint256[] memory baseReserves = new uint256[](nIds);
+    for (uint256 i = 0; i < nIds; i++) {
+      baseReserves[i] = baseTokenReserve[_ids[i]];
+    }
+    return baseReserves;
   }
 
   /**
    * @notice Return price for `Base Token => Token _id` trades with an exact token amount.
-   * @param _id          ID of token bought.
-   * @param _tokensBought Amount of Tokens bought.
-   * @return Amount of Base Tokens needed to buy Tokens.
+   * @param _ids           Array of ID of tokens bought.
+   * @param _tokensBoughts Amount of Tokens bought.
+   * @return Amount of Base Tokens needed to buy each Token in _ids
    */
   function getPrice_baseToToken(
-    uint256 _id,
-    uint256 _tokensBought)
-    external view returns (uint256 baseTokenAmountSold)
+    uint256[] calldata _ids,
+    uint256[] calldata _tokensBoughts)
+    external view returns (uint256[] memory)
   {
-    // Load Token id reserve
-    uint256 tokenReserve = token.balanceOf(address(this), _id);
+    uint256 nIds = _ids.length;
+    uint256[] memory prices = new uint256[](nIds);
 
-    // Return price
-    return getBuyPrice(_tokensBought, baseTokenReserve[_id], tokenReserve);
+    for (uint256 i = 0; i < nIds; i++) {
+      // Load Token id reserve
+      uint256 tokenReserve = token.balanceOf(address(this), _ids[i]);
+      prices[i] = getBuyPrice(_tokensBoughts[i], baseTokenReserve[_ids[i]], tokenReserve);
+    }
+
+    // Return prices
+    return prices;
   }
 
   /**
    * @notice Return price for `Token _id => Base Token` trades with an exact token amount.
-   * @param _id        ID of token bought.
-   * @param _tokensSold Amount of Tokens sold.
-   * @return Amount of Base Tokens that can be bought with Tokens.
+   * @param _ids        Array of IDs  token sold.
+   * @param _tokensSold Array of amount of each Token sold.
+   * @return Amount of Base Tokens that can be bought for each Token in _ids
    */
   function getPrice_tokenToBase(
-    uint256 _id,
-    uint256 _tokensSold)
-    external view returns (uint256 baseTokenAmountBought)
+    uint256[] calldata _ids,
+    uint256[] calldata _tokensSold)
+    external view returns (uint256[] memory)
   {
-    // Load Token id reserve
-    uint256 tokenReserve = token.balanceOf(address(this), _id);
+    uint256 nIds = _ids.length;
+    uint256[] memory prices = new uint256[](nIds);
+
+    for (uint256 i = 0; i < nIds; i++) {
+      // Load Token id reserve
+      uint256 tokenReserve = token.balanceOf(address(this), _ids[i]);
+      prices[i] = getSellPrice(_tokensSold[i], tokenReserve, baseTokenReserve[_ids[i]]);
+    }
 
     // Return price
-    return getSellPrice(_tokensSold, tokenReserve, baseTokenReserve[_id]);
+    return prices;
   }
 
   /**
