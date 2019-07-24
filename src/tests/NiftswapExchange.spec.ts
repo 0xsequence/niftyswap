@@ -358,6 +358,13 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       removeLiquidityData = getRemoveLiquidityData(baseAmountsToRemove, tokenAmountsToRemove, 10000000)
     })
 
+    it('should revert if no Niftyswap token', async () => {
+      const tx = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToRemove, niftyTokenToSend, removeLiquidityData,
+        {gasLimit: 8000000}
+      )
+      await expect(tx).to.be.rejectedWith(RevertError("SafeMath#sub: UNDERFLOW"))
+    })
+
     it('should revert if empty reserve', async () => {
       const zeroArray = new Array(nTypesToRemove).fill('').map((a, i) => new BigNumber(0))
       const tx = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToRemove, zeroArray, removeLiquidityData,
@@ -366,18 +373,35 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       await expect(tx).to.be.rejectedWith(RevertError("NiftyswapExchange#_removeLiquidity: NULL_TOTAL_LIQUIDITY"))
     })
 
-    it('should revert if no Niftyswap token', async () => {
-      const tx = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToRemove, niftyTokenToSend, removeLiquidityData,
-        {gasLimit: 8000000}
-      )
-      await expect(tx).to.be.rejectedWith(RevertError("SafeMath#sub: UNDERFLOW"))
-    })
 
     context('When liquidity was added', () => {
       beforeEach( async () => {
         await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToRemove, tokenAmountsToAdd, addLiquidityData,
           {gasLimit: 50000000}
         )
+      })
+
+
+      it('should revert if insufficient base tokens', async () => {
+        let baseAmountsToRemoveCopy = [...baseAmountsToRemove]
+        baseAmountsToRemoveCopy[5] = new BigNumber(baseAmountsToRemoveCopy[5].mul(10000))
+        let removeLiquidityData = getRemoveLiquidityData(baseAmountsToRemoveCopy, tokenAmountsToRemove, 10000000)
+
+        const tx = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToRemove, niftyTokenToSend, removeLiquidityData,
+          {gasLimit: 8000000}
+        )
+        await expect(tx).to.be.rejectedWith(RevertError("NiftyswapExchange#_removeLiquidity: INSUFFICIENT_BASE_TOKENS"))
+      })
+
+      it('should revert if insufficient tokens', async () => {
+        let tokenAmountsToRemoveCopy = [...tokenAmountsToRemove]
+        tokenAmountsToRemoveCopy[5] = new BigNumber(tokenAmountsToRemoveCopy[5].mul(10000))
+        let removeLiquidityData = getRemoveLiquidityData(baseAmountsToRemove, tokenAmountsToRemoveCopy, 10000000)
+
+        const tx = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToRemove, niftyTokenToSend, removeLiquidityData,
+          {gasLimit: 8000000}
+        )
+        await expect(tx).to.be.rejectedWith(RevertError("NiftyswapExchange#_removeLiquidity: INSUFFICIENT_TOKENS"))
       })
 
       it('should PASS if enough Niftyswap token', async () => {
