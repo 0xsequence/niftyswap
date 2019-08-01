@@ -221,6 +221,8 @@ export class NiftyswapExchange extends Contract {
       _tokensSold: (BigNumberish)[]
     ): Promise<(BigNumber)[]>;
 
+    getTotalSupply(_ids: (BigNumberish)[]): Promise<(BigNumber)[]>;
+
     supportsInterface(interfaceID: Arrayish): Promise<boolean>;
 
     safeBatchTransferFrom(

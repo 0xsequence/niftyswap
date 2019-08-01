@@ -241,6 +241,13 @@ contract('NiftyswapExchange', (accounts: string[]) => {
           expect(operatorBalance).to.be.eql(new BigNumber(baseAmountToAdd))
         }
       })
+
+      it('should update total supples for Niftyswap Token ids balances', async () => {
+        const exchangeTotalSupplies = await niftyswapExchangeContract.functions.getTotalSupply(types)
+        for (let i = 0; i < types.length; i++) {
+          expect(exchangeTotalSupplies[i]).to.be.eql(new BigNumber(baseAmountToAdd))
+        }
+      })
     })
 
     context('When liquidity was added for the second time', () => {
@@ -305,6 +312,18 @@ contract('NiftyswapExchange', (accounts: string[]) => {
 
           expect(exchangeBalance).to.be.eql(Zero)
           expect(operatorBalance).to.be.eql(new BigNumber(baseAmountToAdd).add(newBaseTokenAmount))
+        }
+      })
+
+      it('should update total supples for Niftyswap Token ids balances', async () => {
+        for (let i = 0; i < types.length; i++) {
+          const exchangeTotalSupply = await niftyswapExchangeContract.functions.getTotalSupply([types[i]])
+          const exchangeBalance = await niftyswapExchangeContract.functions.balanceOf(niftyswapExchangeContract.address, types[i])
+          const operatorBalance = await niftyswapExchangeContract.functions.balanceOf(operatorAddress, types[i])
+
+          const newBaseTokenAmount = (tokenAmountToAdd.mul(baseAmountToAdd)).div(tokenAmountToAdd)
+
+          expect(exchangeTotalSupply[0]).to.be.eql(new BigNumber(baseAmountToAdd).add(newBaseTokenAmount))
         }
       })
     })
@@ -450,6 +469,13 @@ contract('NiftyswapExchange', (accounts: string[]) => {
 
             expect(exchangeBalance).to.be.eql(Zero)
             expect(operatorBalance).to.be.eql(Zero)
+          }
+        })
+
+        it('should update total supples for Niftyswap Token ids balances', async () => {
+          const exchangeTotalSupplies = await niftyswapExchangeContract.functions.getTotalSupply(types)
+          for (let i = 0; i < types.length; i++) {
+            expect(exchangeTotalSupplies[i]).to.be.eql(Zero)
           }
         })
 

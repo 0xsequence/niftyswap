@@ -734,6 +734,28 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
   }
 
   /**
+   * @notice Get total supply of liquidity tokens
+   * @param _ids ID of the Tokens
+   * @return The total supply of each liquidity token id provided in _ids
+   */
+  function getTotalSupply(uint256[] calldata _ids)
+    external view returns (uint256[] memory)
+  {
+    // Number of ids
+    uint256 nIds = _ids.length;
+
+    // Variables
+    uint256[] memory batchTotalSupplies = new uint256[](nIds);
+
+    // Iterate over each owner and token ID
+    for (uint256 i = 0; i < nIds; i++) {
+      batchTotalSupplies[i] = totalSupplies[_ids[i]];
+    }
+
+    return batchTotalSupplies;
+  }
+
+  /**
    * @return Address of factory that created this exchange.
    */
   function factoryAddress() external view returns (address) {
