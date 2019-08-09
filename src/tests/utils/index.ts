@@ -13,4 +13,5 @@ export { BigNumber }
 export const { assert, expect } = chai
   .use(chaiString)
   .use(chaiAsPromised)
-  .use(ChaiBigNumber());
+  .use(ChaiBigNumber())
+  .use(require('chai-bignumber')(BigNumber));

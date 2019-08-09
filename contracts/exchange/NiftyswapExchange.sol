@@ -2,6 +2,7 @@ pragma solidity ^0.5.10;
 pragma experimental ABIEncoderV2;
 import "../interfaces/INiftyswapFactory.sol";
 import "../interfaces/INiftyswapExchange.sol";
+import "../utils/ReentrancyGuard.sol";
 import "multi-token-standard/contracts/interfaces/IERC1155.sol";
 import "multi-token-standard/contracts/tokens/ERC1155/ERC1155Meta.sol";
 import "multi-token-standard/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
@@ -21,7 +22,7 @@ import "multi-token-standard/contracts/tokens/ERC1155/ERC1155Metadata.sol";
  * implementation used here:
  *    https://github.com/horizon-games/multi-token-standard/tree/master/contracts/tokens/ERC1155
  */
-contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
+contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
 
   /**
    * TO DO
@@ -92,7 +93,7 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
   bytes4 internal constant DEPOSIT_SIG = 0xc8c323f9;
 
   // Mapping variables
-  mapping(uint256 => uint256) internal totalSupplies;    // UNI token supply per Token id
+  mapping(uint256 => uint256) internal totalSupplies;    // UNNIFTY liquidity token supply per Token id
   mapping(uint256 => uint256) internal baseTokenReserve; // Base Token reserve per Token id
 
   // Events
@@ -213,8 +214,8 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
     |__________________________________*/
 
     } else if (functionSignature == REMOVELIQUIDITY_SIG) {
-      // Tokens received need to be UNI-1155 tokens
-      require(msg.sender == address(this), "NiftyswapExchange#onERC1155BatchReceived: INVALID_UNI_TOKENS_TRANSFERRED");
+      // Tokens received need to be NIFTY-1155 tokens
+      require(msg.sender == address(this), "NiftyswapExchange#onERC1155BatchReceived: INVALID_NIFTY_TOKENS_TRANSFERRED");
 
       // Decode RemoveLiquidityObj from _data to call _removeLiquidity()
       RemoveLiquidityObj memory obj;
@@ -277,7 +278,7 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
     uint256 _maxBaseTokens,
     uint256 _deadline,
     address _recipient)
-    internal
+    internal nonReentrant()
   {
     // Number of Token IDs to deposit
     uint256 nTokens = _tokenIds.length;
@@ -347,7 +348,7 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
     uint256 _assetBoughtReserve)
     public view returns (uint256)
   {
-    //Reserves must not be empty
+    // Reserves must not be empty
     require(_assetSoldReserve > 0 && _assetBoughtReserve > 0, "NiftyswapExchange#getBuyPrice: EMPTY_RESERVE");
 
     // Calculate price with fee
@@ -372,7 +373,7 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
     uint256 _minBaseTokens,
     uint256 _deadline,
     address _recipient)
-    internal
+    internal nonReentrant()
   {
     // Number of Token IDs to deposit
     uint256 nTokens = _tokenIds.length;
@@ -459,14 +460,14 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
   |__________________________________*/
 
   /**
-   * @notice Deposit max Base Tokens && exact Tokens (token ID) at current ratio to mint UNI-1155 tokens.
-   * @dev min_liquidity does nothing when total UNI supply is 0.
+   * @notice Deposit max Base Tokens && exact Tokens (token ID) at current ratio to mint NIFTY-1155 tokens.
+   * @dev min_liquidity does nothing when total NIFTY liquidity token supply is 0.
    * @dev Assumes that sender approved this contract on the baseToken
    * @param _provider      Address that provides liquidity to the reserve
    * @param _tokenIds      Array of Token IDs where liquidity is added
    * @param _tokenAmounts  Array of amount of Tokens deposited corresponding to each ID provided in _tokenIds
    * @param _maxBaseTokens Array of maximum number of tokens deposited for each ID provided in _tokenIds.
-  *                        Deposits max amount if total UNI supply is 0.
+  *                        Deposits max amount if total NIFTY supply is 0.
    * @param _deadline      Block number after which this transaction can no longer be executed.
    */
   function _addLiquidity(
@@ -475,7 +476,7 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
     uint256[] memory _tokenAmounts,
     uint256[] memory _maxBaseTokens,
     uint256 _deadline)
-    internal
+    internal nonReentrant()
   {
     // // Initialize variables
     uint256 nTokens = _tokenIds.length; // Number of Token IDs to deposit
@@ -500,7 +501,7 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
     // Loop over all Token IDs to deposit
     for (uint256 i = 0; i < nTokens; i ++) {
       // Store current id and amount from argument arrays
-      uint256 id = _tokenIds[i];
+      uint256 tokenId = _tokenIds[i];
       uint256 amount = _tokenAmounts[i];
 
       // Check if input values are acceptable
@@ -508,13 +509,13 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
       require(amount > 0, "NiftyswapExchange#_addLiquidity: NULL_TOKENS_AMOUNT");
 
       // Current total liquidity calculated in base token
-      uint256 totalLiquidity = totalSupplies[id];
+      uint256 totalLiquidity = totalSupplies[tokenId];
 
       // When reserve for this token already exists
       if (totalLiquidity > 0) {
 
         // Load Base Token and Token reserve's supply of Token id
-        uint256 baseReserve = baseTokenReserve[id]; // Amount not yet in reserve
+        uint256 baseReserve = baseTokenReserve[tokenId]; // Amount not yet in reserve
         uint256 tokenReserve = tokenReserves[i];
 
         /**
@@ -531,7 +532,7 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
         require(_maxBaseTokens[i] >= baseTokenAmount, "NiftyswapExchange#_addLiquidity: MAX_BASE_TOKENS_EXCEEDED");
 
         // Update Base Token reserve size for Token id before transfer
-        baseTokenReserve[id] = baseReserve.add(baseTokenAmount);
+        baseTokenReserve[tokenId] = baseReserve.add(baseTokenAmount);
 
         // Update totalBaseTokens
         totalBaseTokens = totalBaseTokens.add(baseTokenAmount);
@@ -541,7 +542,7 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
         baseTokenAmounts[i] = baseTokenAmount;
 
         // Mint liquidity ownership tokens and increase liquidity supply accordingly
-        totalSupplies[id] = totalLiquidity.add(liquiditiesToMint[i]);
+        totalSupplies[tokenId] = totalLiquidity.add(liquiditiesToMint[i]);
 
       } else {
         uint256 maxBaseToken = _maxBaseTokens[i];
@@ -550,21 +551,21 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
         require(maxBaseToken >= 1000000000, "NiftyswapExchange#_addLiquidity: INVALID_BASE_TOKEN_AMOUNT");
 
         // // Update Base Token reserve size for Token id before transfer
-        baseTokenReserve[id] = maxBaseToken;
+        baseTokenReserve[tokenId] = maxBaseToken;
 
         // Update totalBaseTokens
         totalBaseTokens = totalBaseTokens.add(maxBaseToken);
 
         // // Initial liquidity is amount deposited (Incorrect pricing will be arbitraged)
         // // uint256 initialLiquidity = _maxBaseTokens;
-        totalSupplies[id] = maxBaseToken;
+        totalSupplies[tokenId] = maxBaseToken;
 
         // Liquidity to mints
         liquiditiesToMint[i] = maxBaseToken;
         baseTokenAmounts[i] = maxBaseToken;
       }
     }
-    // Mint UNI tokens
+    // Mint NIFTY liquidity tokens
     _batchMint(_provider, _tokenIds, liquiditiesToMint, "");
 
     // Transfer all Base Tokens to this contract
@@ -575,10 +576,10 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
   }
 
   /**
-   * @dev Burn UNI tokens to withdraw Base Tokens && Tokens at current ratio.
+   * @dev Burn NIFTY liquidity tokens to withdraw Base Tokens && Tokens at current ratio.
    * @param _provider        Address that removes liquidity to the reserve
    * @param _tokenIds        Array of Token IDs where liquidity is removed
-   * @param _UNItokenAmounts Array of Amount of UNI burned for each Token id in _tokenIds.
+   * @param _NIFTYtokenAmounts Array of Amount of NIFTY liquidity burned for each Token id in _tokenIds.
    * @param _minBaseTokens   Minimum Tase Tokens withdrawn for each Token id in _tokenIds.
    * @param _minTokens       Minimum Tokens id withdrawn for each Token id in _tokenIds.
    * @param _deadline        Block number after which this transaction can no longer be executed.
@@ -586,11 +587,11 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
   function _removeLiquidity(
     address _provider,
     uint256[] memory _tokenIds,
-    uint256[] memory _UNItokenAmounts,
+    uint256[] memory _NIFTYtokenAmounts,
     uint256[] memory _minBaseTokens,
     uint256[] memory _minTokens,
     uint256 _deadline)
-    internal
+    internal nonReentrant()
   {
     // Initialize variables
     uint256 nTokens = _tokenIds.length;                     // Number of Token IDs to deposit
@@ -602,12 +603,12 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
     // Get token reserves
     tokenReserves = _getTokenReserves(_tokenIds);
 
-    // Assumes UNI tokens are already received by contract, but not
+    // Assumes NITFY liquidity tokens are already received by contract, but not
     // the Base Tokens nor the Tokens Ids
 
     // Input validation
     require(_deadline > block.number, "NiftyswapExchange#_removeLiquidity: DEADLINE_EXCEEDED");
-    require(_tokenIds.length == _UNItokenAmounts.length, "NiftyswapExchange#_removeLiquidity: INVALID_LENGTH_FOR_IDS_AMOUNTS");
+    require(_tokenIds.length == _NIFTYtokenAmounts.length, "NiftyswapExchange#_removeLiquidity: INVALID_LENGTH_FOR_IDS_AMOUNTS");
     require(_tokenIds.length == _minBaseTokens.length, "NiftyswapExchange#_removeLiquidity: INVALID_LENGTH_FOR_MINBASETOKENS");
     require(_tokenIds.length == _minTokens.length, "NiftyswapExchange#_removeLiquidity: INVALID_LENGTH_FOR__MINTOKENS");
 
@@ -615,10 +616,10 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
     for (uint256 i = 0; i < nTokens; i++) {
       // Store current id and amount from argument arrays
       uint256 id = _tokenIds[i];
-      uint256 amountUNI = _UNItokenAmounts[i];
+      uint256 amountNIFTY = _NIFTYtokenAmounts[i];
       uint256 tokenReserve = tokenReserves[i];
 
-      // Load total UNI supply for Token _id
+      // Load total NIFTY liquidity supply for Token _id
       uint256 totalLiquidity = totalSupplies[id];
       require(totalLiquidity > 0, "NiftyswapExchange#_removeLiquidity: NULL_TOTAL_LIQUIDITY");
 
@@ -626,15 +627,15 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
       uint256 baseReserve = baseTokenReserve[id];
 
       // Calculate amount to withdraw for Base Tokens and Token _id
-      uint256 baseTokenAmount = amountUNI.mul(baseReserve) / totalLiquidity;
-      uint256 tokenAmount = amountUNI.mul(tokenReserve) / totalLiquidity;
+      uint256 baseTokenAmount = amountNIFTY.mul(baseReserve) / totalLiquidity;
+      uint256 tokenAmount = amountNIFTY.mul(tokenReserve) / totalLiquidity;
 
       // Verify if amounts to withdraw respect minimums specified
       require(baseTokenAmount >= _minBaseTokens[i], "NiftyswapExchange#_removeLiquidity: INSUFFICIENT_BASE_TOKENS");
       require(tokenAmount >= _minTokens[i], "NiftyswapExchange#_removeLiquidity: INSUFFICIENT_TOKENS");
 
-      // Update total UNI supply of Token _id
-      totalSupplies[id] = totalLiquidity.sub(amountUNI);
+      // Update total NIFTY liquidity supply of Token _id
+      totalSupplies[id] = totalLiquidity.sub(amountNIFTY);
 
       // Update Base Token reserve size for Token id
       baseTokenReserve[id] = baseReserve.sub(baseTokenAmount);
@@ -645,8 +646,8 @@ contract NiftyswapExchange is ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
       baseTokenAmounts[i] = baseTokenAmount;
     }
 
-    // Burn UNI tokens for offchain supplies
-    _batchBurn(address(this), _tokenIds, _UNItokenAmounts);
+    // Burn NIFTY liquidity tokens for offchain supplies
+    _batchBurn(address(this), _tokenIds, _NIFTYtokenAmounts);
 
     // Transfer total Base Tokens and all Tokens ids
     baseToken.safeTransferFrom(address(this), _provider, baseTokenID, totalBaseTokens, "");

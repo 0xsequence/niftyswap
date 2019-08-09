@@ -13,3 +13,5 @@ declare module 'truffle' {
     const artifacts: ArtifactsGlobal
   }
 }
+
+declare module 'chai-bignumber';
