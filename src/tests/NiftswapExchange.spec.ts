@@ -8,16 +8,8 @@ import {
   getBuyTokenData,
   getSellTokenData,
   getAddLiquidityData,
-  SellTokensType,
-  RemoveLiquidityType,
-  methodsSignature,
   getRemoveLiquidityData,
 } from './utils'
-
-import { 
-  SellTokensObj, 
-  RemoveLiquidityObj 
-} from 'typings/txTypes';
 
 import * as utils from './utils'
 
@@ -49,6 +41,12 @@ const {
   provider: operatorProvider,
   signer: operatorSigner
 } = utils.createTestWallet(web3, 4)
+
+const {
+  wallet: randomWallet,
+  provider: randomProvider,
+  signer: randomSigner
+} = utils.createTestWallet(web3, 5)
 
 const getBig = (id: number) => new BigNumber(id);
 
@@ -114,38 +112,62 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     userBaseTokenContract = await ownerBaseTokenContract.connect(userSigner) as ERC1155Mock
     operatorBaseTokenContract = await ownerBaseTokenContract.connect(operatorSigner) as ERC1155Mock
 
+
     // Deploy ERC-1155
     ownerERC1155Contract = await erc1155PackedAbstract.deploy(ownerWallet) as ERC1155PackedBalanceMock
     operatorERC1155Contract = await ownerERC1155Contract.connect(operatorSigner) as ERC1155PackedBalanceMock
     userERC1155Contract = await ownerERC1155Contract.connect(userSigner) as ERC1155PackedBalanceMock
     
-    // Deploy Niftyswap factory
-    niftyswapFactoryContract = await niftyswapFactoryAbstract.deploy(ownerWallet, [
-      ownerBaseTokenContract.address,
-      baseTokenID
-    ]) as NiftyswapFactory
+    console.log(2)
+    niftyswapExchangeContract = await niftyswapExchangeAbstract.deploy(
+      ownerWallet, [
+        ownerERC1155Contract.address, 
+        ownerBaseTokenContract.address, 
+        new BigNumber(baseTokenID)
+      ]) as NiftyswapExchange
+
+    // // Deploy Niftyswap factory
+    // niftyswapFactoryContract = await niftyswapFactoryAbstract.deploy(ownerWallet, [
+    //   ownerBaseTokenContract.address,
+    //   new BigNumber(baseTokenID)
+    // ]) as NiftyswapFactory
+
+    console.log(2.1)
+
+    // throw('DEBUG')
 
     // Create exchange contract for the ERC-1155 token
-    await niftyswapFactoryContract.functions.createExchange(ownerERC1155Contract.address)
-    const exchangeAddress = await niftyswapFactoryContract.functions.getExchange(ownerERC1155Contract.address)
+    // await niftyswapFactoryContract.functions.createExchange(ownerERC1155Contract.address)
+    // console.log(2.2)
+
+    // const exchangeAddress = await niftyswapFactoryContract.functions.getExchange(ownerERC1155Contract.address)
+    // console.log(3)
+
     
-    // Type exchange contract
-    niftyswapExchangeContract = new ethers.Contract(exchangeAddress, exchangeABI, ownerProvider) as NiftyswapExchange
+    // // Type exchange contract
+    // niftyswapExchangeContract = new ethers.Contract(exchangeAddress, exchangeABI, ownerProvider) as NiftyswapExchange
     operatorExchangeContract = niftyswapExchangeContract.connect(operatorSigner) as NiftyswapExchange
   
+    console.log(4)
+
+
     // Mint Token to owner and user
     await ownerERC1155Contract.functions.batchMintMock(operatorAddress, types, values, [])
     await ownerERC1155Contract.functions.batchMintMock(userAddress, types, values, [])
+    console.log(5)
 
     // Mint Base token to owner and user
     await ownerBaseTokenContract.functions.mintMock(operatorAddress, baseTokenID, baseTokenAmount, [])
     await ownerBaseTokenContract.functions.mintMock(userAddress, baseTokenID, baseTokenAmount, [])
+    console.log(6)
 
     // Authorize Niftyswap to transfer funds on your behalf for addLiquidity & transfers
     await operatorBaseTokenContract.functions.setApprovalForAll(niftyswapExchangeContract.address, true)
     await operatorERC1155Contract.functions.setApprovalForAll(niftyswapExchangeContract.address, true)
     await userBaseTokenContract.functions.setApprovalForAll(niftyswapExchangeContract.address, true)
     await userERC1155Contract.functions.setApprovalForAll(niftyswapExchangeContract.address, true)
+    console.log(7)
+    
   })
 
   describe('_addLiquidity() function', () => {
@@ -667,7 +689,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       
       // Sell
       const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase([0], [tokenAmountToSell]);
-      sellTokenData = getSellTokenData(price[0].mul(nTokenTypes), 10000000)
+      sellTokenData = getSellTokenData(userAddress, price[0].mul(nTokenTypes), 10000000)
     })
 
     it('should fail if token balance is insufficient', async () => {
@@ -691,7 +713,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     it('should fail if deadline is passed', async () => {
       let blocknumber = await userProvider.getBlockNumber()
       const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase([0], [tokenAmountToSell]);
-      let sellTokenData = getSellTokenData(price[0].mul(nTokenTypes), blocknumber)
+      let sellTokenData = getSellTokenData(userAddress, price[0].mul(nTokenTypes), blocknumber)
 
       const tx = userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, types, tokensAmountsToSell, sellTokenData,
         {gasLimit: 8000000}
@@ -703,7 +725,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase([0], [tokenAmountToSell]);
       let cost = price[0].mul(nTokenTypes)
 
-      let sellTokenData = getSellTokenData(cost, 10000000)
+      let sellTokenData = getSellTokenData(userAddress, cost, 10000000)
 
       const tx = userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, types, tokensAmountsToSell, sellTokenData,
         {gasLimit: 8000000}
@@ -715,7 +737,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase([0], [tokenAmountToSell]);
       let cost = price[0].mul(nTokenTypes)
 
-      let sellTokenData = getSellTokenData(cost.add(1), 10000000)
+      let sellTokenData = getSellTokenData(userAddress, cost.add(1), 10000000)
 
       const tx = userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, types, tokensAmountsToSell, sellTokenData,
         {gasLimit: 8000000}
@@ -814,7 +836,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       // Sell
       cost = (await niftyswapExchangeContract.functions.getPrice_baseToToken([0], [tokenAmountToBuy]))[0];
       cost = cost.mul(nTokenTypes)
-      buyTokenData = getBuyTokenData(types, tokensAmountsToBuy, 10000000)
+      buyTokenData = getBuyTokenData(userAddress, types, tokensAmountsToBuy, 10000000)
     })
 
     it('should fail if base balance is insufficient', async () => {
@@ -835,7 +857,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     it('should fail if a bought amount is 0', async () => {
       let tokensAmountsToBuyCopy = [...tokensAmountsToBuy]
       tokensAmountsToBuyCopy[0] = new BigNumber(0);
-      let buyTokenData = getBuyTokenData(types, tokensAmountsToBuyCopy, 10000000)
+      let buyTokenData = getBuyTokenData(userAddress, types, tokensAmountsToBuyCopy, 10000000)
 
       const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
         {gasLimit: 8000000}
@@ -845,7 +867,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
 
     it('should fail if deadline is passed', async () => {
       let blocknumber = await userProvider.getBlockNumber()
-      let buyTokenData = getBuyTokenData(types, tokensAmountsToBuy, blocknumber)
+      let buyTokenData = getBuyTokenData(userAddress, types, tokensAmountsToBuy, blocknumber)
 
       const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
         {gasLimit: 8000000}
@@ -912,6 +934,62 @@ contract('NiftyswapExchange', (accounts: string[]) => {
         expect(price[0]).to.be.eql(numerator.div(denominator))
       })
 
+    })
+
+    it('should send to non msg.sender if specified', async () => {
+      cost = (await niftyswapExchangeContract.functions.getPrice_baseToToken([0], [tokenAmountToBuy]))[0];
+      cost = cost.mul(nTokenTypes)
+      buyTokenData = getBuyTokenData(randomWallet.address, types, tokensAmountsToBuy, 10000000)
+
+      const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
+        {gasLimit: 8000000}
+      )
+      await expect(tx).to.be.fulfilled
+      
+      // Token bought by sender
+      for (let i = 0; i < types.length; i++) {
+        const exchangeBalance = await userERC1155Contract.functions.balanceOf(niftyswapExchangeContract.address, types[i])
+        const randomBalance = await userERC1155Contract.functions.balanceOf(randomWallet.address, types[i])
+        const userBalance = await userERC1155Contract.functions.balanceOf(userAddress, types[i])
+
+        expect(exchangeBalance).to.be.eql(tokenAmountToAdd.sub(tokenAmountToBuy))
+        expect(randomBalance).to.be.eql(tokenAmountToBuy)
+        expect(userBalance).to.be.eql(new BigNumber(nTokensPerType))
+      }
+
+      const exchangeBaseBalance = await userBaseTokenContract.functions.balanceOf(niftyswapExchangeContract.address, baseTokenID)
+      const randomBaseBalance = await userBaseTokenContract.functions.balanceOf(randomWallet.address, baseTokenID)
+      const userBaseBalance = await userBaseTokenContract.functions.balanceOf(userAddress, baseTokenID)
+
+      expect(exchangeBaseBalance).to.be.eql(baseAmountToAdd.mul(nTokenTypes).add(cost))
+      expect(randomBaseBalance).to.be.eql(Zero)
+      expect(userBaseBalance).to.be.eql(baseTokenAmount.sub(cost))
+    })
+
+    it('should send to msg.sender if 0x0 is specified as recipient', async () => {
+      cost = (await niftyswapExchangeContract.functions.getPrice_baseToToken([0], [tokenAmountToBuy]))[0];
+      cost = cost.mul(nTokenTypes)
+      buyTokenData = getBuyTokenData(ZERO_ADDRESS, types, tokensAmountsToBuy, 10000000)
+
+      const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
+        {gasLimit: 8000000}
+      )
+      await expect(tx).to.be.fulfilled
+      
+      // Token sold from sender
+      for (let i = 0; i < types.length; i++) {
+        const exchangeBalance = await userERC1155Contract.functions.balanceOf(niftyswapExchangeContract.address, types[i])
+        const userBalance = await userERC1155Contract.functions.balanceOf(userAddress, types[i])
+
+        expect(exchangeBalance).to.be.eql(tokenAmountToAdd.sub(tokenAmountToBuy))
+        expect(userBalance).to.be.eql(new BigNumber(nTokensPerType).add(tokenAmountToBuy))
+      }
+
+      const exchangeBaseBalance = await userBaseTokenContract.functions.balanceOf(niftyswapExchangeContract.address, baseTokenID)
+      const userBaseBalance = await userBaseTokenContract.functions.balanceOf(userAddress, baseTokenID)
+
+      expect(exchangeBaseBalance).to.be.eql(baseAmountToAdd.mul(nTokenTypes).add(cost))
+      expect(userBaseBalance).to.be.eql(baseTokenAmount.sub(cost))
     })
 
   })

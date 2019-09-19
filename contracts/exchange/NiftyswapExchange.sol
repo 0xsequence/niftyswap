@@ -1,4 +1,4 @@
-pragma solidity ^0.5.10;
+pragma solidity ^0.5.11;
 pragma experimental ABIEncoderV2;
 import "../interfaces/INiftyswapFactory.sol";
 import "../interfaces/INiftyswapExchange.sol";
@@ -27,12 +27,10 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
   /**
    * TO DO
    *   - Add DAI wrapp / unwrap (perhaps proxy)
-   *   - remove all events?
-   *   - Allow recipient different from _from? Change event accordingly
-   *   - Maybe not revert if one token trade fails in liquidity methods? skip?
    *   - Optimizations
    *   - Min liquidity tokens in AddLiquidity?
    *   - Check rounding error for addLiquidity & getBuyPrice
+   *   - Add Proxy
    */
 
   /***********************************|
@@ -44,38 +42,40 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
   IERC1155 baseToken;          // address of the ERC-1155 base token traded on this contract
   INiftyswapFactory factory;   // interface for the factory that created this contract
   uint256 baseTokenID;         // ID of base token in ERC-1155 base contract
-  uint256 feeMultiplier = 995; // Multiplier that calculates the fee (0.7%)
+  uint256 feeMultiplier = 995; // Multiplier that calculates the fee (0.5%)
 
   // OnReceive Objects
   struct BuyTokensObj {
-    uint256[] tokensBoughtIDs;
-    uint256[] tokensBoughtAmounts;
-    uint256 deadline;
+    address recipient;             // Who receives the tokens
+    uint256[] tokensBoughtIDs;     // Token IDs to buy
+    uint256[] tokensBoughtAmounts; // Amount of token to buy for each ID
+    uint256 deadline;              // Block # after which the tx isn't valid anymore
   }
   struct SellTokensObj {
-    uint256 minBaseTokens;
-    uint256 deadline;
+    address recipient;       // Who receives the base tokens
+    uint256 minBaseTokens;   // Total minimum number of base tokens expected for all tokens sold
+    uint256 deadline;        // Block # after which the tx isn't valid anymore
   }
   struct AddLiquidityObj {
-    uint256[] maxBaseTokens;
-    uint256 deadline;
+    uint256[] maxBaseTokens; // Maximum number of base tokens to deposit with tokens
+    uint256 deadline;        // Block # after which the tx isn't valid anymore
   }
   struct RemoveLiquidityObj {
-    uint256[] minBaseTokens;
-    uint256[] minTokens;
-    uint256 deadline;
+    uint256[] minBaseTokens; // Minimum number of base tokens to withdraw
+    uint256[] minTokens;     // Minimum number of tokens to withdraw
+    uint256 deadline;        // Block # after which the tx isn't valid anymore
   }
 
   // Signatures for onReceive control logic
   // bytes4(keccak256(
-  //   "BuyTokensObj(uint256[],uint256[],uint256)"
+  //   "BuyTokensObj(address,uint256[],uint256[],uint256)"
   // ));
-  bytes4 internal constant BUYTOKENS_SIG = 0xaf183a2d;
+  bytes4 internal constant BUYTOKENS_SIG = 0x87ba033f;
 
   // bytes4(keccak256(
-  //   "SellTokensObj(uint256,uint256)"
+  //   "SellTokensObj(address,uint256,uint256)"
   // ));
-  bytes4 internal constant SELLTOKENS_SIG = 0x7775c516;
+  bytes4 internal constant SELLTOKENS_SIG = 0x77852e33;
 
   //  bytes4(keccak256(
   //   "AddLiquidityObj(uint256[],uint256)"
@@ -181,7 +181,8 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
       // Decode BuyTokensObj from _data to call _baseToToken()
       BuyTokensObj memory obj;
       (functionSignature, obj) = abi.decode(_data, (bytes4, BuyTokensObj));
-      _baseToToken(obj.tokensBoughtIDs, obj.tokensBoughtAmounts, _amounts[0], obj.deadline, _from);
+      address recipient = obj.recipient == address(0x0) ? _from : obj.recipient;
+      _baseToToken(obj.tokensBoughtIDs, obj.tokensBoughtAmounts, _amounts[0], obj.deadline, recipient);
 
     /***********************************|
     |           Selling Tokens          |
@@ -194,7 +195,8 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
       // Decode SellTokensObj from _data to call _tokenToBase()
       SellTokensObj memory obj;
       (functionSignature, obj) = abi.decode(_data, (bytes4, SellTokensObj));
-      _tokenToBase(_ids, _amounts, obj.minBaseTokens, obj.deadline, _from);
+      address recipient = obj.recipient == address(0x0) ? _from : obj.recipient;
+      _tokenToBase(_ids, _amounts, obj.minBaseTokens, obj.deadline, recipient);
 
     /***********************************|
     |      Adding Liquidity Tokens      |
