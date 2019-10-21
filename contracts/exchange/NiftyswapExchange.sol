@@ -683,7 +683,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
    * @notice Return price for `Base Token => Token _id` trades with an exact token amount.
    * @param _ids           Array of ID of tokens bought.
    * @param _tokensBoughts Amount of Tokens bought.
-   * @return Amount of Base Tokens needed to buy each Token in _ids
+   * @return Amount of Base Tokens needed to buy Tokens in _ids for amounts in _tokensBoughts
    */
   function getPrice_baseToToken(
     uint256[] calldata _ids,
@@ -707,7 +707,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
    * @notice Return price for `Token _id => Base Token` trades with an exact token amount.
    * @param _ids        Array of IDs  token sold.
    * @param _tokensSold Array of amount of each Token sold.
-   * @return Amount of Base Tokens that can be bought for each Token in _ids
+   * @return Amount of Base Tokens that can be bought for Tokens in _ids for amounts in _tokensSold
    */
   function getPrice_tokenToBase(
     uint256[] calldata _ids,
