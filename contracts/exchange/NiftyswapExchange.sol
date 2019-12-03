@@ -42,7 +42,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
   IERC1155 baseToken;          // address of the ERC-1155 base token traded on this contract
   INiftyswapFactory factory;   // interface for the factory that created this contract
   uint256 baseTokenID;         // ID of base token in ERC-1155 base contract
-  uint256 feeMultiplier = 995; // Multiplier that calculates the fee (0.5%)
+  uint256 internal constant FEE_MULTIPLIER = 995; // Multiplier that calculates the fee (0.5%)
 
   // OnReceive Objects
   struct BuyTokensObj {
@@ -264,16 +264,16 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
   |__________________________________*/
 
   /**
-   * @notice Convert Base Tokens to Tokens _id and transfers Tokens to recipient.
-   * @dev User specifies MAXIMUM inputs (_maxBaseTokens) and EXACT outputs.
-   * @dev Assumes that all trades will be successful, or revert the whole tx
-   * @dev Sorting IDs can lead to more efficient trades with some ERC-1155 implementations
-   * @param _tokenIds         Array of Tokens ID that are bought
-   * @param _tokenAmounts     Amount of Tokens id bought for each corresponding Token id in _tokenIds
-   * @param _maxBaseTokens    Total maximum amount of base tokens to spend for all Token ids
-   * @param _deadline         Block number after which this transaction can no longer be executed.
-   * @param _recipient        The address that receives output Tokens.
-   */
+    * @notice Convert Base Tokens to Tokens _id and transfers Tokens to recipient.
+    * @dev User specifies MAXIMUM inputs (_maxBaseTokens) and EXACT outputs.
+    * @dev Assumes that all trades will be successful, or revert the whole tx
+    * @dev Sorting IDs can lead to more efficient trades with some ERC-1155 implementations
+    * @param _tokenIds         Array of Tokens ID that are bought
+    * @param _tokenAmounts     Amount of Tokens id bought for each corresponding Token id in _tokenIds
+    * @param _maxBaseTokens    Total maximum amount of base tokens to spend for all Token ids
+    * @param _deadline         Block number after which this transaction can no longer be executed.
+    * @param _recipient        The address that receives output Tokens.
+    */
   function _baseToToken(
     uint256[] memory _tokenIds,
     uint256[] memory _tokenAmounts,
@@ -355,7 +355,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
 
     // Calculate price with fee
     uint256 numerator = _assetSoldReserve.mul(_assetBoughtAmount).mul(1000);
-    uint256 denominator = (_assetBoughtReserve.sub(_assetBoughtAmount)).mul(feeMultiplier);
+    uint256 denominator = (_assetBoughtReserve.sub(_assetBoughtAmount)).mul(FEE_MULTIPLIER);
     return numerator / denominator;
   }
 
@@ -450,7 +450,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
     require(_assetSoldReserve > 0 && _assetBoughtReserve > 0, "NiftyswapExchange#getSellPrice: EMPTY_RESERVE");
 
     // Calculate amount to receive (with fee)
-    uint256 _assetSoldAmount_withFee = _assetSoldAmount.mul(feeMultiplier);
+    uint256 _assetSoldAmount_withFee = _assetSoldAmount.mul(FEE_MULTIPLIER);
     uint256 numerator = _assetSoldAmount_withFee.mul(_assetBoughtReserve);
     uint256 denominator = _assetSoldReserve.mul(1000).add(_assetSoldAmount_withFee);
     return numerator / denominator;
