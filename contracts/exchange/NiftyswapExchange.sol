@@ -268,15 +268,15 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
     * @dev User specifies MAXIMUM inputs (_maxBaseTokens) and EXACT outputs.
     * @dev Assumes that all trades will be successful, or revert the whole tx
     * @dev Sorting IDs can lead to more efficient trades with some ERC-1155 implementations
-    * @param _tokenIds         Array of Tokens ID that are bought
-    * @param _tokenAmounts     Amount of Tokens id bought for each corresponding Token id in _tokenIds
-    * @param _maxBaseTokens    Total maximum amount of base tokens to spend for all Token ids
-    * @param _deadline         Block number after which this transaction can no longer be executed.
-    * @param _recipient        The address that receives output Tokens.
+    * @param _tokenIds             Array of Tokens ID that are bought
+    * @param _tokensBoughtAmounts  Amount of Tokens id bought for each corresponding Token id in _tokenIds
+    * @param _maxBaseTokens        Total maximum amount of base tokens to spend for all Token ids
+    * @param _deadline             Block number after which this transaction can no longer be executed.
+    * @param _recipient            The address that receives output Tokens.
     */
   function _baseToToken(
     uint256[] memory _tokenIds,
-    uint256[] memory _tokenAmounts,
+    uint256[] memory _tokensBoughtAmounts,
     uint256 _maxBaseTokens,
     uint256 _deadline,
     address _recipient)
@@ -288,7 +288,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
 
     // Input validation
     require(_deadline >= block.number, "NiftyswapExchange#_baseToToken: DEADLINE_EXCEEDED");
-    require(nTokens == _tokenAmounts.length, "NiftyswapExchange#_baseToToken: INVALID_LENGTH_FOR_IDS_AMOUNTS");
+    require(nTokens == _tokensBoughtAmounts.length, "NiftyswapExchange#_baseToToken: INVALID_LENGTH_FOR_IDS_AMOUNTS");
 
     // Initialize variables
     uint256[] memory baseTokensSold = new uint256[](nTokens); // Amount of base tokens sold per ID
@@ -304,7 +304,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
     for (uint256 i = 0; i < nTokens; i++) {
       // Store current id and amount from argument arrays
       uint256 idBought = _tokenIds[i];
-      uint256 amountBought = _tokenAmounts[i];
+      uint256 amountBought = _tokensBoughtAmounts[i];
       uint256 tokenReserve = tokenReserves[i];
 
       require(amountBought > 0, "NiftyswapExchange#_baseToToken: NULL_TOKENS_BOUGHT");
@@ -334,8 +334,8 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
     }
 
     // Send Tokens all tokens purchased
-    token.safeBatchTransferFrom(address(this), _recipient, _tokenIds, _tokenAmounts, "");
-    emit TokensPurchase(_recipient, _tokenIds, _tokenAmounts, baseTokensSold);
+    token.safeBatchTransferFrom(address(this), _recipient, _tokenIds, _tokensBoughtAmounts, "");
+    emit TokensPurchase(_recipient, _tokenIds, _tokensBoughtAmounts, baseTokensSold);
   }
 
   /**
@@ -579,12 +579,12 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
 
   /**
    * @dev Burn NIFTY liquidity tokens to withdraw Base Tokens && Tokens at current ratio.
-   * @param _provider        Address that removes liquidity to the reserve
-   * @param _tokenIds        Array of Token IDs where liquidity is removed
+   * @param _provider          Address that removes liquidity to the reserve
+   * @param _tokenIds          Array of Token IDs where liquidity is removed
    * @param _NIFTYtokenAmounts Array of Amount of NIFTY liquidity burned for each Token id in _tokenIds.
-   * @param _minBaseTokens   Minimum Tase Tokens withdrawn for each Token id in _tokenIds.
-   * @param _minTokens       Minimum Tokens id withdrawn for each Token id in _tokenIds.
-   * @param _deadline        Block number after which this transaction can no longer be executed.
+   * @param _minBaseTokens     Minimum Tase Tokens withdrawn for each Token id in _tokenIds.
+   * @param _minTokens         Minimum Tokens id withdrawn for each Token id in _tokenIds.
+   * @param _deadline          Block number after which this transaction can no longer be executed.
    */
   function _removeLiquidity(
     address _provider,

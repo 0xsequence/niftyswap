@@ -8,17 +8,17 @@
 
 Niftyswap is a fork of [Uniswap](<https://hackmd.io/@477aQ9OrQTCbVR3fq1Qzxg/HJ9jLsfTz?type=view>), a protocol for automated token exchange on Ethereum. While Uniswap is for trading [ERC-20](<https://eips.ethereum.org/EIPS/eip-20>) tokens, Niftyswap is a protocol for [ERC-1155](<https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1155.md>) tokens. Both are designed to favor ease of use and provide guaranteed access to liquidity on-chain. 
 
-Most exchanges maintain an order book and facilitate matches between buyers and sellers. Niftyswap smart contracts hold liquidity reserves of various tokens, and trades are executed directly against these reserves. Prices are set automatically using the [constant product](https://ethresear.ch/t/improving-front-running-resistance-of-x-y-k-market-makers/1281)  $x*y = K$ market maker mechanism, which keeps overall reserves in relative equilibrium. Reserves are pooled between a network of liquidity providers who supply the system with tokens in exchange for a proportional share of transaction fees.
+Most exchanges maintain an order book and facilitate matches between buyers and sellers. Niftyswap smart contracts hold liquidity reserves of various tokens, and trades are executed directly against these reserves. Prices are set automatically using the [constant product](https://ethresear.ch/t/improving-front-running-resistance-of-x-y-k-market-makers/1281)  $x*y = K$ market maker mechanism, which keeps overall reserves in relative equilibrium. Reserves are pooled between a network of liquidity providers who supply the system with tokens in exchange for a proportional share of transaction fees. 
 
-An important feature of Nitfyswap is the utilization of a factory/registry contract that deploys a separate exchange contract for each ERC-1155 token contract. These exchange contracts each hold independent reserves of a single base ERC-1155 asset and their associated ERC-1155 token id. This allows trades between the base currency and the ERC-1155 tokens based on the relative supplies.
+An important feature of Nitfyswap is the utilization of a factory/registry contract that deploys a separate exchange contract for each ERC-1155 token contract. These exchange contracts each hold independent reserves of a single fungible ERC-1155 base currency and their associated ERC-1155 token id. This allows trades between the [Base Currency](???) and the ERC-1155 tokens based on the relative supplies. 
 
-This document outlines the core mechanics and technical details for Niftyswap. Some code is simplified for readability. Safety features such as overflow checks and purchase minimums are omitted. The full source code is available on GitHub.
+This document outlines the core mechanics and technical details for Niftyswap. 
 
 # Contracts
 
 ### NiftyswapExchange.sol
 
-This contract is responsible for permitting the exchange between a single base asset and all tokens in a given ERC-1155 token contract. For each token id $i$, the NiftyswapExchance contract holds a reserve of base asset and a reserve of token id $i$, which are used to calculate the price of that token id $i$ denominated in the base asset. 
+This contract is responsible for permitting the exchange between a single base currency and all tokens in a given ERC-1155 token contract. For each token id $i$, the NiftyswapExchance contract holds a reserve of base currency and a reserve of token id $i$, which are used to calculate the price of that token id $i$ denominated in the base currency. 
 
 ### NiftyswapFactory.sol
 
@@ -26,204 +26,210 @@ This contract is used to deploy a new NiftyswapExchange.sol contract for ERC-115
 
 # Contract Interactions
 
-All methods should be free of arithmetic overflows and underflows.
+*All methods should be free of arithmetic overflows and underflows.*
 
-## Transferring Tokens
+Methods for exchanging tokens and managing reserves liquidity are all called internally via the ERC-1155 `onERC1155BatchReceived()` method. 
 
-All methods that change the balance(s) of an (or multiple) address(es) are referred as transfers. 
+```solidity
+/**
+ * @notice Handle which method is being called on transfer
+ * @dev `_data` must be encoded as follow: abi.encode(bytes4, MethodObj)
+ *    where bytes4 argument is the MethodObj object signature passed as defined
+ *    in the `Signatures for onReceive control logic` section above
+ * @param _operator The address which called the `safeTransferFrom` function
+ * @param _from     The address which previously owned the Token
+ * @param _ids      An array containing ids of each Token being transferred
+ * @param _amounts  An array containing amounts of each Token being transferred
+ * @param _data     Method signature and encoded arguments for method to call
+ * @return bytes4(keccak256(
+ *     "onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"
+ *   ))
+ */
+function onERC1155BatchReceived(
+  address _operator,
+  address _from,
+  uint256[] memory _ids,
+  uint256[] memory _amounts,
+  bytes memory _data)
+  public returns(bytes4);
+```
 
-In [ERC1155.sol & ERC1155PackedBalance.sol](#erc1155.sol-&-erc1155packedbalance.sol), there are two methods to transfer tokens:
+The first 4 bytes of the `_data` argument indicate which of the four main [NiftyswapExchange.sol](???) methods to call. How to build and encode the `_data` payload for the respective methods is explained in the [???](???) section. 
+
+## Exchanging Tokens
+
+In [NiftyswapExchange.sol](???), there are two methods for exchanging tokens:
 
 ```Solidity
 /**
- * @notice Transfers amount of an _id from the _from address to the _to address specified
- * @dev MUST emit TransferSingle event on success
- * Caller MUST be approved to manage the _from account's tokens (see isApprovedForAll)
- * MUST throw if `_to` is the zero address
- * MUST throw if balance of sender for token `_id` is lower than the `_amount` sent
- * MUST throw on any other error
- * When transfer is complete, this function MUST check if `_to` is a smart contract (code size > 0). If so, it MUST call `onERC1155Received` on `_to` and revert if the return amount is not `bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"))`
- * @param _from    Source address
- * @param _to      Target address
- * @param _id      ID of the token type
- * @param _amount  Transfered amount
- * @param _data    Additional data with no specified format, sent in call to `_to`
+ * @notice Convert Base Tokens to Tokens _id and transfers Tokens to recipient.
+ * @dev User specifies MAXIMUM inputs (_maxBaseTokens) and EXACT outputs.
+ * @dev Assumes that all trades will be successful, or revert the whole tx
+ * @dev Sorting IDs can lead to more efficient trades with some ERC-1155 implementations
+ * @param _tokenIds             Array of Tokens ID that are bought
+ * @param _tokensBoughtAmounts  Amount of Tokens id bought for each id in _tokenIds
+ * @param _maxBaseTokens        Total maximum amount of base tokens to spend for whole trade
+ * @param _deadline             Block # after which this tx can no longer be executed.
+ * @param _recipient            The address that receives output Tokens.
  */
-function safeTransferFrom(address _from, address _to, uint256 _id, uint256 _amount, bytes calldata _data) external;
+function _baseToToken(
+  uint256[] memory _tokenIds,
+  uint256[] memory _tokensBoughtAmounts,
+  uint256 _maxBaseTokens,
+  uint256 _deadline,
+  address _recipient)
+  internal nonReentrant();
 
 /**
- * @notice Send multiple types of Tokens from the _from address to the _to address (with safety call)
- * @dev MUST emit TransferBatch event on success
- * Caller MUST be approved to manage the _from account's tokens (see isApprovedForAll)
- * MUST throw if `_to` is the zero address
- * MUST throw if length of `_ids` is not the same as length of `_amounts`
- * MUST throw if any of the balance of sender for token `_ids` is lower than the respective `_amounts` sent
- * MUST throw on any other error
- * When transfer is complete, this function MUST check if `_to` is a smart contract (code size > 0). If so, it MUST call `onERC1155BatchReceived` on `_to` and revert if the return amount is not `bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"))`
- * Transfers and events MUST occur in the array order they were submitted (_ids[0] before _ids[1], etc)
- * @param _from     Source addresses
- * @param _to       Target addresses
- * @param _ids      IDs of each token type
- * @param _amounts  Transfer amounts per token type
- * @param _data     Additional data with no specified format, sent in call to `_to`
+ * @notice Convert Tokens _id to Base Tokens and transfers Tokens to recipient.
+ * @dev User specifies EXACT Tokens _id sold and MINIMUM Base Tokens received.
+ * @dev Assumes that all trades will be valid, or the whole tx will fail
+ * @param _tokenIds          Array of Token IDs that are sold
+ * @param _tokensSoldAmounts Array of Amount of Tokens sold for each id in _tokenIds.
+ * @param _minBaseTokens     Minimum amount of Base Tokens to receive
+ * @param _deadline          Block # after which this tx can no longer be executed.
+ * @param _recipient         The address that receives output Base Tokens.
  */
-function safeBatchTransferFrom(address _from, address _to, uint256[] calldata _ids, uint256[] calldata _amounts, bytes calldata _data) external;
+function _tokenToBase(
+  uint256[] memory _tokenIds,
+  uint256[] memory _tokensSoldAmounts,
+  uint256 _minBaseTokens,
+  uint256 _deadline,
+  address _recipient)
+  internal nonReentrant();
 ```
 
----
+## Managing Reserves Liquidity
 
-[ERC1155Meta.sol & ERC1155MetaPackedBalance.sol](#erc1155meta.sol-&-erc1155metapackedbalance.sol) have two additional methods to transfer tokens. These methods MUST follow the conditions specified in `safeTransferFrom()` and `safeBatchTransferFrom()`, in addition to other conditions specified below:
+In [NiftyswapExchange.sol](???), there are two methods for managing token reserves supplies:
 
 ```solidity
 /**
- * @notice Allows anyone with a valid signature to transfer _amount amount of a token _id on the bahalf of _from
- * @dev MUST meet the conditions specified in safeTransferFrom()
- * @dev Signature provided MUST be valid (See Signature section)
- * @dev Gas consumed MUST be reimbursed according to signed message if _isGasFee is true
- * @param _from     Source address
- * @param _to       Target address
- * @param _id       ID of the token type
- * @param _amount   Transfered amount
- * @param _isGasFee Whether gas is reimbursed to executor or not
- * @param _data     Encodes a meta transfer indicator, signature, gas payment receipt and extra transfer data
+ * @notice Deposit max Base Tokens & exact Tokens at current ratio to get share tokens.
+ * @dev min_liquidity does nothing when total NIFTY liquidity token supply is 0.
+ * @dev Assumes that sender approved this contract on the baseToken
+ * @param _provider      Address that provides liquidity to the reserve
+ * @param _tokenIds      Array of Token IDs where liquidity is added
+ * @param _tokenAmounts  Array of amount of Tokens deposited for each id in _tokenIds
+ * @param _maxBaseTokens Array of maximum number of tokens deposited for ids in _tokenIds.
+ *                       Deposits max amount if total NIFTY supply is 0.
+ * @param _deadline      Block # after which this transaction can no longer be executed.
  */
-function metaSafeTransferFrom(address _from, address _to, uint256 _id, uint256 _amount, bool _isGasFee, bytes calldata _data) external;
-
-/**
- * @notice Allows anyone with a valid signature to transfer multiple types of tokens on the bahalf of _from
- * @dev MUST meet the conditions specified in safeBatchTransferFrom()
- * @dev Signature provided MUST be valid (See Signature section)
- * @dev Gas consumed MUST be reimbursed according to signed message if _isGasFee is true
- * @param _from     Source addresses
- * @param _to       Target addresses
- * @param _ids      IDs of each token type
- * @param _amounts  Transfer amounts per token type
- * @param _data     Encodes a meta transfer indicator, signature, gas payment receipt and extra transfer data
- */
-function metaSafeBatchTransferFrom(address _from, address _to, uint256[] calldata _ids, uint256[] calldata _amounts, bool _isGasFee, bytes calldata _data) external;
-```
-
-For how the data must be encoded in the `_data` byte arrays, see the [Meta-Transaction for Asset Transfers](meta--transaction-for-asset-transfers) section. 
-
-For what constitutes a valid signature, see [???](???).
-
----
-
-[ERC1155MintBurn.sol & ERC1155MintBurnPackedBalance.sol](#erc1155mintburn.sol-&-erc1155mintburnpackedbalance.sol) have four methods that modify balances. These methods need to be inherited by a child contract and these child contract should have tight access control. The supply logic for token ids should be specified by child contract. 
-
-```solidity
-/****************************************|
-|            Minting Functions           |
-|_______________________________________*/
-
-/**
- * @notice Mint _amount of tokens of a given id
- * @dev MUST emit a TransferSingle event on success with _from field set as address 0x0
- * When transfer is complete, this function MUST check if `_to` is a smart contract (code size > 0). If so, it MUST call `onERC1155Received` on `_to` and revert if the return amount is not `bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"))`
- * MUST increase the balance of id by the correct amount
- * @param _to     The address to mint tokens to
- * @param _id     Token id to mint
- * @param _amount The amount to be minted
- * @param _data   Data to pass if receiver is a contract
- */
-function _mint(address _to, uint256 _id, uint256 _amount, bytes memory _data) internal;
-
-/**
- * @notice Mint tokens for each ids in _ids
- * @dev MUST emit TransferBatch event on success with _from field set as address 0x0
- * When transfer is complete, this function MUST check if `_to` is a smart contract (code size > 0). If so, it MUST call `onERC1155BatchReceived` on `_to` and revert if the return amount is not `bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"))`
- * MUST increase the balance of each id by the correct amount
- * @param _to      The address to mint tokens to
- * @param _ids     Array of ids to mint
- * @param _amounts Array of amount of tokens to mint per id
- * @param _data    Data to pass if receiver is contract
- */
-function _batchMint(address _to, uint256[] memory _ids, uint256[] memory _amounts, bytes memory _data) internal;
-
-/****************************************|
-|            Burning Functions           |
-|_______________________________________*/
-
-/**
- * @notice Burn _amount of tokens of a given token id
- * @dev MUST emit a TransferSingle event on success with _to field set as address 0x0
- * MUST decrease the balance of id by the correct amount
- * @param _from    The address to burn tokens from
- * @param _id      Token id to burn
- * @param _amount  The amount to be burned
- */
-function _burn(address _from, uint256 _id, uint256 _amount) internal;
+function _addLiquidity(
+  address _provider,
+  uint256[] memory _tokenIds,
+  uint256[] memory _tokenAmounts,
+  uint256[] memory _maxBaseTokens,
+  uint256 _deadline)
+  internal nonReentrant();
   
 /**
- * @notice Burn tokens of given token id for each (_ids[i], _amounts[i]) pair
- * @dev MUST emit TransferBatch event on success with _to field set as address 0x0
- * MUST decrease the balance of each id by the correct amount
- * @param _from     The address to burn tokens from
- * @param _ids      Array of token ids to burn
- * @param _amounts  Array of the amount to be burned
+ * @dev Burn NIFTY liquidity tokens to withdraw Base Tokens && Tokens at current ratio.
+ * @param _provider          Address that removes liquidity to the reserve
+ * @param _tokenIds          Array of Token IDs where liquidity is removed
+ * @param _NIFTYtokenAmounts Array of Amount Niftyswap shared burned for ids in _tokenIds.
+ * @param _minBaseTokens     Minimum Tase Tokens withdrawn for each Token id in _tokenIds.
+ * @param _minTokens         Minimum Tokens id withdrawn for each Token id in _tokenIds.
+ * @param _deadline          Block # after which this transaction can no longer be executed.
  */
-function _batchBurn(address _from, uint256[] memory _ids, uint256[] memory _amounts) internal;
+function _removeLiquidity(
+  address _provider,
+  uint256[] memory _tokenIds,
+  uint256[] memory _NIFTYtokenAmounts,
+  uint256[] memory _minBaseTokens,
+  uint256[] memory _minTokens,
+  uint256 _deadline) 
+  internal nonReentrant();
 ```
 
+# Price Calculations
 
+In Niftyswap, like Uniswap, the price of an asset is a function of a base currency reserve and the corresponding token reserve. Indeed, all methods in Niftyswap enforce that the the following equality remains true: 
 
-## Managing Approvals
+​												$BaseReserve_i * TokenReserve_i = K$
 
-In [ERC1155.sol & ERC1155PackedBalance.sol](#erc1155.sol-&-erc1155packedbalance.sol), there is one method to set approvals:
+where $BaseReserve_i$ is the base currency reserve size for the corresponding token id $i$, $TokenReserve_i$ is the reserve size of the ERC-1155 token id $i$ and $K$ is an arbitrary constant. 
+
+**Ignoring the [Liquidity Fee](???)**, purchasing some tokens $i$ with the base currency (or vice versa) should increase the $BaseReserve_i$ and decrease the $TokenReserve_i$ (or vice versa) such that 
+
+​												$BaseReserve_i * TokenReserve_i == K$. 
+
+Determining the cost of *purchasing* $\Delta{}TokenReserve_i $ tokens $i$ therefore depends on the quantity purchased, such that 
+
+​								$\Delta{}BaseReserve_i = \frac{K}{TokenReserve_i - \Delta{}TokenReserve_i} - BaseReserve_i$
+
+where $\Delta{}BaseReserve_i$ is the amount of base currency assets that must be sent cover the cost of the $\Delta{}TokenReserve_i $ purchased. Inversely, determining the revenue from *selling* $\Delta{}TokenReserve_i $ tokens $i$ can be done with
+
+​								$\Delta{}BaseReserve_i = BaseReserve_i - \frac{K}{TokenReserve_i + \Delta{}TokenReserve_i}$
+
+where $\Delta{}BaseReserve_i$ is the amount of base currency that a user would receive. 
+
+#Liquidity Fee
+
+A small liquidity provider fee of **0.5%** paid in the base currency is added to every trade, increasing the corresponding $BaseReserve_i$. While the $BaseReserve_i$ / $TokenReserve_i$ ratio is constantly shifting, fees makes sure that the total combined reserve size increases with every trade. This functions as a payout to liquidity providers that is collected when they burn their liquidity pool tokens to withdraw their portion of total reserves. 
+
+This fee is asymmetric, unlike with Uniswap, which will bias the ratio in one direction. However, one the bias  becomes large enough, an arbitrage opportunity will emerge and someone will correct that bias. This leads to some inefficiencies, but this is necessary as some ERC-1155 tokens are non-fungible (0 decimals) and the fees can only be paid with the base currency. 
+
+# Trades
+
+All trades are done by specifying exactly how many tokens $i$ a user wants to buy or sell, without exactly knowing how much base currency they will send or receive. This design choice was necessary considering ERC-1155 tokens can be non-fungible, unlike the base currency which is assumed to be fungible (non-zero decimals).
+
+### Base Currency to Token $i$
+
+To trade base currency => token $i$, a user would call 
 
 ```solidity
-/**
- * @notice Enable or disable approval for a third party ("operator") to manage all of caller's tokens
- * @dev MUST emit the ApprovalForAll event on success
- * @param _operator  Address to add to the set of authorized operators
- * @param _approved  True if the operator is approved, false to revoke approval
- */
-function setApprovalForAll(address _operator, bool _approved) external;
+_baseToToken(_tokenIds, _tokensBoughtAmounts, _maxBaseTokens, _deadline, _recipient)
 ```
 
+as defined in [???](???) and specify *exactly* how many tokens $i$ they expect to receive from the trade. This is done by specifying the token ids to purchase in the `_tokenIds` array and the amount for each token id in the `_tokensBoughtAmounts` array. 
 
+Since users can't know exactly how much base currency will be required when the transaction is created, they must provide a `_maxBaseTokens` value which contain the maximum amount of base currency they are willing to spend for the entire trade.  It would've been possible for Niftyswap to support a maximum amount per token $i$, however this would increase the gas cost significantly. If proven to be desired, this could be incorporated in Niftyswap V2.
 
-## Managing Metadata
+Additionally, to protect users against miners or third party relayers withholding their Niftyswap trade transactions, a `_deadline` parameter must be provided by the user. This `_deadline`is a block number after which a given transaction will revert.
 
-The methods to manage token id metadata can be found in the [ERC1155Metadata.sol](#erc1155metadata.sol) contract. URI are assumed to be deterministically determined based on a `baseURL` and their id, such that `uri(id) => baseURL + id + ".json"`. For instance, if the baseURL is `https://ethereum.net/metadata/id/` and the id is `77`, then `uri(77)` should return `https://ethereum.net/metadata/id/77.json`. A child contract must call these methods for them to be used.
+Finally, users can specify who should receive the tokens with the `_rececipient` argument. This is particularly useful for third parties and proxy contracts that will interact with Niftyswap.
+
+The `bytes4` signature to call this method is `0x87ba033f`
 
 ```solidity
-/**
- * @notice Will update the base URL of token's URI
- * @param _newBaseMetadataURI New base URL of token's URI
- */
-function _setBaseMetadataURI(string memory _newBaseMetadataURI) internal;
-
-/**
- * @notice Will emit default URI log event for corresponding token _id
- * @param _tokenIDs Array of IDs of tokens to log default URI
- */
-function _logURIs(uint256[] memory _tokenIDs) internal;
+// bytes4(keccak256(
+//   "BuyTokensObj(address,uint256[],uint256[],uint256)"
+// ));
+bytes4 internal constant BUYTOKENS_SIG = 0x87ba033f;
 ```
 
-# Packed Balance
+### Token $i$ to Base Currency
 
-Here will be described how balance packing works in this implementation of the ERC-1155 token standard. While normally each token balance uses a single `uint256` storage slot, with balance packing multiple token ids will share the same `uint256` storage slot. In the contract code, we refer to these `uint256` storage slots as "bins", where each bins contains multiple values. This permits cheaper balance storage updates and reads since only one `SSTORE` and `SLOAD` operations are used to update or read multiple token ids balance for a given address. How many ids will be stored per `uint256` is specified by 
+To trade token $i$ => base currency, a user would call 
 
 ```solidity
-uint256 internal constant IDS_BITS_SIZE = 32;
+_tokenToBase(_tokenIds, _tokensSoldAmounts, _minBaseTokens, _deadline, _recipient)
 ```
+as defined in [???](???) and specify *exactly* how many tokens $i$ they sell. This is done by specifying the token ids to sell in the `_tokenIds` array and the amount for each token id in the `_tokensSoldAmounts` array. 
 
-In this example, each token id balance uses 32 bits, or 1/8 of a `uint256` storage slot:
+Since users can't know exactly how much base currency they would receive when the transaction is created, they must provide a `_minBaseTokens` value which contain the minimum amount of base currency they are willing to accept for the entire trade.  It would've been possible for Niftyswap to support a minimum amount per token $i$, however this would increase the gas cost significantly. If proven to be desired, this could be incorporated in Niftyswap V2.
+
+Additionally, to protect users against miners or third party relayers withholding their Niftyswap trade transactions, a `_deadline` parameter must be provided by the user. This `_deadline`is a block number after which a given transaction will revert.
+
+Finally, users can specify who should receive the base currency with the `_rececipient` argument upon the completion of the trade. This is particularly useful for third parties and proxy contracts that will interact with Niftyswap. 
+
+The `bytes4` signature to call this method is `0x77852e33`
 
 ```solidity
-0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
-  [ ID 7 ][ ID 6 ][ ID 5 ][ ID 4 ][ ID 3 ][ ID 2 ][ ID 1 ][ ID 0 ]
+// bytes4(keccak256(
+//   "SellTokensObj(address,uint256,uint256)"
+// ));
+bytes4 internal constant SELLTOKENS_SIG = 0x77852e33;
 ```
 
-For instance, if Bob had **four** token **#0**, **seven** token **#3** and **twenty-seven** token **#7**, the value at the storage slot they share should be 
+# Liquidity Reserves Management
 
-```solidity
-0x0000001b00000000000000000000000000000007000000000000000000000004
-  [ ID 7 ][ ID 6 ][ ID 5 ][ ID 4 ][ ID 3 ][ ID 2 ][ ID 1 ][ ID 0 ]
-```
+Anyone can provide liquidity for a given token $i$, so long as they also provide liquidity for the corresponding base currency reserve. When adding liquidity to a reserve, liquidity providers should not influence the price, hence the contract ensures that calling `_addLiquidity()` or `_removeLiquidity()` does not change the $BaseReserve_i / TokenReserve_i $ ratio.
 
-Since each of these balance values are limited to IDS_BITS_SIZE bits per token ID, this means that values in each bin can't exceed an amount of $2^{z-1}$ , where $z$ is the `IDS_BITS_SIZE`. Overflow and underflow MUST lead to a revert. It is important to note that `mint` and `burn` operations respect these rules and not lead to overflows nor underflows.
+
+
+
 
 ## Relevant Methods
 

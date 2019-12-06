@@ -118,7 +118,6 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     operatorERC1155Contract = await ownerERC1155Contract.connect(operatorSigner) as ERC1155PackedBalanceMock
     userERC1155Contract = await ownerERC1155Contract.connect(userSigner) as ERC1155PackedBalanceMock
     
-    console.log(2)
     niftyswapExchangeContract = await niftyswapExchangeAbstract.deploy(
       ownerWallet, [
         ownerERC1155Contract.address, 
@@ -132,7 +131,6 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     //   new BigNumber(baseTokenID)
     // ]) as NiftyswapFactory
 
-    console.log(2.1)
 
     // throw('DEBUG')
 
@@ -147,27 +145,20 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     // // Type exchange contract
     // niftyswapExchangeContract = new ethers.Contract(exchangeAddress, exchangeABI, ownerProvider) as NiftyswapExchange
     operatorExchangeContract = niftyswapExchangeContract.connect(operatorSigner) as NiftyswapExchange
-  
-    console.log(4)
-
 
     // Mint Token to owner and user
     await ownerERC1155Contract.functions.batchMintMock(operatorAddress, types, values, [])
     await ownerERC1155Contract.functions.batchMintMock(userAddress, types, values, [])
-    console.log(5)
 
     // Mint Base token to owner and user
     await ownerBaseTokenContract.functions.mintMock(operatorAddress, baseTokenID, baseTokenAmount, [])
     await ownerBaseTokenContract.functions.mintMock(userAddress, baseTokenID, baseTokenAmount, [])
-    console.log(6)
 
     // Authorize Niftyswap to transfer funds on your behalf for addLiquidity & transfers
     await operatorBaseTokenContract.functions.setApprovalForAll(niftyswapExchangeContract.address, true)
     await operatorERC1155Contract.functions.setApprovalForAll(niftyswapExchangeContract.address, true)
     await userBaseTokenContract.functions.setApprovalForAll(niftyswapExchangeContract.address, true)
     await userERC1155Contract.functions.setApprovalForAll(niftyswapExchangeContract.address, true)
-    console.log(7)
-    
   })
 
   describe('_addLiquidity() function', () => {
