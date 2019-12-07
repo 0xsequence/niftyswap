@@ -469,7 +469,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
    * @param _tokenIds      Array of Token IDs where liquidity is added
    * @param _tokenAmounts  Array of amount of Tokens deposited corresponding to each ID provided in _tokenIds
    * @param _maxBaseTokens Array of maximum number of tokens deposited for each ID provided in _tokenIds.
-  *                        Deposits max amount if total NIFTY supply is 0.
+   *                       Deposits max amount if total NIFTY supply is 0.
    * @param _deadline      Block number after which this transaction can no longer be executed.
    */
   function _addLiquidity(

@@ -28,22 +28,22 @@ This contract is used to deploy a new NiftyswapExchange.sol contract for ERC-115
 
 *All methods should be free of arithmetic overflows and underflows.*
 
-Methods for exchanging tokens and managing reserves liquidity are all called internally via the ERC-1155 `onERC1155BatchReceived()` method. 
+Methods for exchanging tokens and managing reserves liquidity are all called internally via the ERC-1155 `onERC1155BatchReceived()` method. The four methods that can be called via `onERC1155BatchReceived()` should be safe against re-entrancy attacks.
 
 ```solidity
 /**
  * @notice Handle which method is being called on transfer
  * @dev `_data` must be encoded as follow: abi.encode(bytes4, MethodObj)
- *    where bytes4 argument is the MethodObj object signature passed as defined
- *    in the `Signatures for onReceive control logic` section above
- * @param _operator The address which called the `safeTransferFrom` function
+ *   where bytes4 argument is the MethodObj signature passed as defined
+ *   in the `Signatures for onReceive control logic` section above
+ * @param _operator The address which called safeBachTransferFrom()
  * @param _from     The address which previously owned the Token
- * @param _ids      An array containing ids of each Token being transferred
- * @param _amounts  An array containing amounts of each Token being transferred
- * @param _data     Method signature and encoded arguments for method to call
+ * @param _ids      An array containing Token ids being transferred
+ * @param _amounts  An array containing token amounts being transferred
+ * @param _data     Method signature and corresponding encoded arguments 
  * @return bytes4(keccak256(
- *     "onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"
- *   ))
+ *  "onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"
+ * ))
  */
 function onERC1155BatchReceived(
   address _operator,
@@ -110,7 +110,7 @@ In [NiftyswapExchange.sol](???), there are two methods for managing token reserv
  * @dev Assumes that sender approved this contract on the baseToken
  * @param _provider      Address that provides liquidity to the reserve
  * @param _tokenIds      Array of Token IDs where liquidity is added
- * @param _tokenAmounts  Array of amount of Tokens deposited for each id in _tokenIds
+ * @param _tokenAmounts  Array of amount of Tokens deposited for ids in _tokenIds
  * @param _maxBaseTokens Array of maximum number of tokens deposited for ids in _tokenIds.
  *                       Deposits max amount if total NIFTY supply is 0.
  * @param _deadline      Block # after which this transaction can no longer be executed.
@@ -166,13 +166,17 @@ where $\Delta{}BaseReserve_i$ is the amount of base currency that a user would r
 
 #Liquidity Fee
 
-A small liquidity provider fee of **0.5%** paid in the base currency is added to every trade, increasing the corresponding $BaseReserve_i$. While the $BaseReserve_i$ / $TokenReserve_i$ ratio is constantly shifting, fees makes sure that the total combined reserve size increases with every trade. This functions as a payout to liquidity providers that is collected when they burn their liquidity pool tokens to withdraw their portion of total reserves. 
+A liquidity provider fee of **0.5%** paid in the base currency is added to every trade, increasing the corresponding $BaseReserve_i$. Compared to the 0.3% fee chosen by Uniswap, the 0.5% fee was chosen to ensure that token reserves are deep, which ultimately provides a better experience for users (less slippage, better price discovery and lower risk of transactions failing). This value could change for Niftyswap V2. 
+
+While the $BaseReserve_i$ / $TokenReserve_i$ ratio is constantly shifting, fees makes sure that the total combined reserve size increases with every trade. This functions as a payout to liquidity providers that is collected when they burn their liquidity pool tokens to withdraw their portion of total reserves. 
 
 This fee is asymmetric, unlike with Uniswap, which will bias the ratio in one direction. However, one the bias  becomes large enough, an arbitrage opportunity will emerge and someone will correct that bias. This leads to some inefficiencies, but this is necessary as some ERC-1155 tokens are non-fungible (0 decimals) and the fees can only be paid with the base currency. 
 
 # Trades
 
-All trades are done by specifying exactly how many tokens $i$ a user wants to buy or sell, without exactly knowing how much base currency they will send or receive. This design choice was necessary considering ERC-1155 tokens can be non-fungible, unlike the base currency which is assumed to be fungible (non-zero decimals).
+All trades are done by specifying exactly how many tokens $i$ a user wants to buy or sell, without exactly knowing how much base currency they will send or receive. This design choice was necessary considering ERC-1155 tokens can be non-fungible, unlike the base currency which is assumed to be fungible (non-zero decimals). All trades will update the corresponding base currency and token reserves correctly and will be subjected to a [liquidity provider fee](#liquidity-fee). 
+
+It is possible to buy/sell multiple tokens at once, but if any one fails, the entire trade will fail as well. This could change for Niftyswap V2.
 
 ### Base Currency to Token $i$
 
@@ -184,7 +188,7 @@ _baseToToken(_tokenIds, _tokensBoughtAmounts, _maxBaseTokens, _deadline, _recipi
 
 as defined in [???](???) and specify *exactly* how many tokens $i$ they expect to receive from the trade. This is done by specifying the token ids to purchase in the `_tokenIds` array and the amount for each token id in the `_tokensBoughtAmounts` array. 
 
-Since users can't know exactly how much base currency will be required when the transaction is created, they must provide a `_maxBaseTokens` value which contain the maximum amount of base currency they are willing to spend for the entire trade.  It would've been possible for Niftyswap to support a maximum amount per token $i$, however this would increase the gas cost significantly. If proven to be desired, this could be incorporated in Niftyswap V2.
+Since users can't know exactly how much base currency will be required when the transaction is created, they must provide a `_maxBaseTokens` value which contain the maximum amount of base currency they are willing to spend for the entire trade. It would've been possible for Niftyswap to support a maximum amount per token $i$, however this would increase the gas cost significantly. If proven to be desired, this could be incorporated in Niftyswap V2.
 
 Additionally, to protect users against miners or third party relayers withholding their Niftyswap trade transactions, a `_deadline` parameter must be provided by the user. This `_deadline`is a block number after which a given transaction will revert.
 
@@ -198,6 +202,25 @@ The `bytes4` signature to call this method is `0x87ba033f`
 // ));
 bytes4 internal constant BUYTOKENS_SIG = 0x87ba033f;
 ```
+
+The `_maxBaseTokens` argument is specified as the amount of base currency sent to the NiftyswapExchange.sol contract via the `onERC1155BatchReceived()` method :
+
+```solidity
+// Tokens received need to be Base Currency contract
+require(msg.sender == address(baseToken), "NiftyswapExchange#onERC1155BatchReceived: INVALID_BASE_TOKENS_TRANSFERRED");
+require(_ids.length == 1, "NiftyswapExchange#onERC1155BatchReceived: INVALID_BASE_TOKEN_ID_AMOUNT");
+require(_ids[0] == baseTokenID, "NiftyswapExchange#onERC1155BatchReceived: INVALID_BASE_TOKEN_ID");
+
+// Decode BuyTokensObj from _data to call _baseToToken()
+BuyTokensObj memory obj;
+(functionSignature, obj) = abi.decode(_data, (bytes4, BuyTokensObj));
+address recipient = obj.recipient == address(0x0) ? _from : obj.recipient;
+
+// Buy tokens
+_baseToToken(obj.tokensBoughtIDs, obj.tokensBoughtAmounts, _amounts[0], obj.deadline, recipient);
+```
+
+where any difference between the actual cost of the trade and the amount sent will be refunded  to the specified recipient.
 
 ### Token $i$ to Base Currency
 
@@ -223,9 +246,34 @@ The `bytes4` signature to call this method is `0x77852e33`
 bytes4 internal constant SELLTOKENS_SIG = 0x77852e33;
 ```
 
+The `_tokenIds` and  `_tokensSoldAmounts` arguments are specified as the token ids and token amounts sent to the NiftyswapExchange.sol contract via the `onERC1155BatchReceived()` method :
+
+```solidity
+// Tokens received need to be correct ERC-1155 Token contract
+require(msg.sender == address(token), "NiftyswapExchange#onERC1155BatchReceived: INVALID_TOKENS_TRANSFERRED");
+
+// Decode SellTokensObj from _data to call _tokenToBase()
+SellTokensObj memory obj;
+(functionSignature, obj) = abi.decode(_data, (bytes4, SellTokensObj));
+address recipient = obj.recipient == address(0x0) ? _from : obj.recipient;
+
+// Sell tokens
+_tokenToBase(_ids, _amounts, obj.minBaseTokens, obj.deadline, recipient);
+```
+
 # Liquidity Reserves Management
 
-Anyone can provide liquidity for a given token $i$, so long as they also provide liquidity for the corresponding base currency reserve. When adding liquidity to a reserve, liquidity providers should not influence the price, hence the contract ensures that calling `_addLiquidity()` or `_removeLiquidity()` does not change the $BaseReserve_i / TokenReserve_i $ ratio.
+Anyone can provide liquidity for a given token $i$, so long as they also provide liquidity for the corresponding base currency reserve. When adding liquidity to a reserve, liquidity providers should not influence the price, hence the contract ensures that calling `_addLiquidity()` or `_removeLiquidity()` does not change the $BaseReserve_i / TokenReserve_i $ ratio. 
+
+### Adding Liquidity
+
+Similarly to trading, when adding liquidity, 
+
+
+
+### Removing Liquidity
+
+
 
 
 
