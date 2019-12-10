@@ -15,7 +15,7 @@
   * [Base Currency](#base-currency)
   * [Tokens](#tokens)
 - [Trades](#trades)
-    + [Base Currency to Token $i$](#base-currency-to-token--i-)
+    + [Base Currency to Token $$i$$](#base-currency-to-token--i-)
     + [Token $i$ to Base Currency](#token--i--to-base-currency)
 - [Liquidity Reserves Management](#liquidity-reserves-management)
     + [Adding Liquidity](#adding-liquidity)
@@ -174,7 +174,7 @@ function _removeLiquidity(
 
 In Niftyswap, like Uniswap, the price of an asset is a function of a base currency reserve and the corresponding token reserve. Indeed, all methods in Niftyswap enforce that the the following equality remains true: 
 
-​												$BaseReserve_i * TokenReserve_i = K$
+​												$$BaseReserve_i * TokenReserve_i = K$$
 
 where $BaseReserve_i$ is the base currency reserve size for the corresponding token id $i$, $TokenReserve_i$ is the reserve size of the ERC-1155 token id $i$ and $K$ is an arbitrary constant. 
 
