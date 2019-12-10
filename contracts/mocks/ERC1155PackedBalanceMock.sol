@@ -1,4 +1,4 @@
-pragma solidity ^0.5.10;
+pragma solidity ^0.5.11;
 pragma experimental ABIEncoderV2;
 import "multi-token-standard/contracts/mocks/ERC1155MetaMintBurnPackedBalanceMock.sol";
 

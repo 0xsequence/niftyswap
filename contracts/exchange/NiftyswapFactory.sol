@@ -1,4 +1,4 @@
-pragma solidity ^0.5.10;
+pragma solidity ^0.5.11;
 import "./NiftyswapExchange.sol";
 
 
@@ -40,31 +40,31 @@ contract NiftyswapFactory {
    * @param _token The address of the ERC-1155 token to create an NiftySwap exchange for
    */
   function createExchange(address _token) public {
-    require(_token != address(0), "NiftyswapFactory#createExchange: INVALID_TOKEN");
-    require(tokenToExchange[_token] == address(0), "NiftyswapFactory#createExchange: TOKEN_ALREADY_INITIALIZED");
+    require(_token != address(0x0), "NiftyswapFactory#createExchange: INVALID_TOKEN");
+    require(tokenToExchange[_token] == address(0x0), "NiftyswapFactory#createExchange: TOKEN_ALREADY_INITIALIZED");
 
     // Create new exchange contract
     NiftyswapExchange exchange = new NiftyswapExchange(_token, address(baseToken), baseTokenID);
 
     // Store exchange and token addresses
-    tokenToExchange[_token] = address(exchange);
-    exchangeToToken[address(exchange)] = _token;
+    // tokenToExchange[_token] = address(exchange);
+    // exchangeToToken[address(exchange)] = _token;
 
     // Increment amount of token exchange created
     uint256 tokenId = tokenCount + 1;
     tokenCount = tokenId;
 
-    emit NewExchange(_token, address(exchange));
+    // emit NewExchange(_token, address(exchange));
   }
 
-  /***********************************|
-  |         Getter Functions          |
-  |__________________________________*/
+  // /***********************************|
+  // |         Getter Functions          |
+  // |__________________________________*/
 
-  /**
-   * @notice Return address of exchange for corresponding ERC-1155 token contract
-   * @param _token The address of the ERC-1155 Token
-   */
+  // /**
+  //  * @notice Return address of exchange for corresponding ERC-1155 token contract
+  //  * @param _token The address of the ERC-1155 Token
+  //  */
   function getExchange(address _token) public view returns (address) {
     return tokenToExchange[_token];
   }

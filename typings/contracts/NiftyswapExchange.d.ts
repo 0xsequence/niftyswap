@@ -221,6 +221,13 @@ export class NiftyswapExchange extends Contract {
       _tokensSold: (BigNumberish)[]
     ): Promise<(BigNumber)[]>;
 
+    getBaseTokenInfo(): Promise<{
+      _baseTokenAddress: string;
+      _baseTokenID: BigNumber;
+      0: string;
+      1: BigNumber;
+    }>;
+
     getTotalSupply(_ids: (BigNumberish)[]): Promise<(BigNumber)[]>;
 
     supportsInterface(interfaceID: Arrayish): Promise<boolean>;
@@ -296,8 +303,8 @@ export class NiftyswapExchange extends Contract {
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
-    tokenAddress(): Promise<string>;
-    factoryAddress(): Promise<string>;
+    getTokenAddress(): Promise<string>;
+    getFactoryAddress(): Promise<string>;
   };
 
   filters: {

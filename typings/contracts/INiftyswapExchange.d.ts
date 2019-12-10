@@ -97,6 +97,11 @@ export class INiftyswapExchange extends Contract {
       _tokensSold: BigNumberish
     ): Promise<BigNumber>;
 
+    getBaseTokenInfo(): Promise<{
+      0: string;
+      1: BigNumber;
+    }>;
+
     onERC1155Received(
       _operator: string,
       _from: string,
@@ -106,8 +111,8 @@ export class INiftyswapExchange extends Contract {
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
-    tokenAddress(): Promise<string>;
-    factoryAddress(): Promise<string>;
+    getTokenAddress(): Promise<string>;
+    getFactoryAddress(): Promise<string>;
   };
 
   filters: {

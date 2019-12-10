@@ -32,19 +32,21 @@ export function RevertError(errorMessage: string) {
 }
 
 export const methodsSignature = {
-  BUYTOKENS: "0xaf183a2d",
-  SELLTOKENS: "0x7775c516",
-  ADDLIQUIDITY: "0xdae60727",
-  REMOVELIQUIDITY: "0xf6384fca"
+  BUYTOKENS: "0x24c186e7",
+  SELLTOKENS: "0x7db38b4a",
+  ADDLIQUIDITY: "0x82da2b73",
+  REMOVELIQUIDITY: "0x5c0bf259"
 }
 
 export const BuyTokensType = `tuple(
+  address recipient,
   uint256[] tokensBoughtIDs,
   uint256[] tokensBoughtAmounts,
   uint256 deadline
 )`
 
 export const SellTokensType = `tuple(
+  address recipient,
   uint256 minBaseTokens,
   uint256 deadline
 )`
@@ -67,8 +69,13 @@ export interface JSONRPCRequest {
   params: any
 }
 
-export const getBuyTokenData = (types: any[], tokensAmountsToBuy: ethers.utils.BigNumber[], deadline: number) => {
+export const getBuyTokenData = (
+  recipient: string,
+  types: any[], 
+  tokensAmountsToBuy: ethers.utils.BigNumber[],
+  deadline: number) => {
   const buyTokenObj = {
+    recipient: recipient,
     tokensBoughtIDs: types,
     tokensBoughtAmounts: tokensAmountsToBuy,
     deadline: deadline
@@ -79,8 +86,13 @@ export const getBuyTokenData = (types: any[], tokensAmountsToBuy: ethers.utils.B
     ['bytes4', BuyTokensType], [methodsSignature.BUYTOKENS, buyTokenObj])
 }
 
-export const getSellTokenData = (cost: BigNumber, deadline: number) => {
+export const getSellTokenData = (
+  recipient: string,
+  cost: BigNumber, 
+  deadline: number
+) => {
   const sellTokenObj = {
+    recipient: recipient,
     minBaseTokens: cost,
     deadline: deadline
   } as SellTokensObj
