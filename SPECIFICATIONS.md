@@ -3,7 +3,35 @@
 \* *Certain sections of this document were taken directly from the [Uniswap](<https://hackmd.io/@477aQ9OrQTCbVR3fq1Qzxg/HJ9jLsfTz?type=view>) documentation.*
 
 # Table of Content
-
+- [Overview](#overview)
+- [Contracts](#contracts)
+    + [NiftyswapExchange.sol](#niftyswapexchangesol)
+    + [NiftyswapFactory.sol](#niftyswapfactorysol)
+- [Contract Interactions](#contract-interactions)
+  * [Exchanging Tokens](#exchanging-tokens)
+  * [Managing Reserves Liquidity](#managing-reserves-liquidity)
+- [Price Calculations](#price-calculations)
+- [Assets](#assets)
+  * [Base Currency](#base-currency)
+  * [Tokens](#tokens)
+- [Trades](#trades)
+    + [Base Currency to Token $i$](#base-currency-to-token--i-)
+    + [Token $i$ to Base Currency](#token--i--to-base-currency)
+- [Liquidity Reserves Management](#liquidity-reserves-management)
+    + [Adding Liquidity](#adding-liquidity)
+    + [Removing Liquidity](#removing-liquidity)
+- [Data Encoding](#data-encoding)
+    + [_baseToToken()](#-basetotoken--)
+    + [_tokenToBase()](#-tokentobase--)
+    + [_addLiquidity()](#-addliquidity--)
+    + [_removeLiquidity()](#-removeliquidity--)
+  * [Relevant Methods](#relevant-methods)
+    + [getBaseTokenReserves()](#getbasetokenreserves--)
+    + [getPrice_baseToToken()](#getprice-basetotoken--)
+    + [getPrice_tokenToBase()](#getprice-tokentobase--)
+    + [getTokenAddress()](#gettokenaddress--)
+    + [getBaseTokenInfo()](#getbasetokeninfo--)
+    
 # Overview
 
 Niftyswap is a fork of [Uniswap](<https://hackmd.io/@477aQ9OrQTCbVR3fq1Qzxg/HJ9jLsfTz?type=view>), a protocol for automated token exchange on Ethereum. While Uniswap is for trading [ERC-20](<https://eips.ethereum.org/EIPS/eip-20>) tokens, Niftyswap is a protocol for [ERC-1155](<https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1155.md>) tokens. Both are designed to favor ease of use and provide guaranteed access to liquidity on-chain. 
