@@ -72,11 +72,16 @@ interface INiftyswapExchange {
   /**
    * @return Address of Token that is sold on this exchange.
    */
-  function tokenAddress() external view returns (address);
+  function getTokenAddress() external view returns (address);
+
+  /**
+   * @return Address of the Base Token that is used as Currency and its ID
+   */
+  function getBaseTokenInfo() external view returns (address, uint256);
 
   /**
    * @return Address of factory that created this exchange.
    */
-  function factoryAddress() external view returns (address);
+  function getFactoryAddress() external view returns (address);
 
 }

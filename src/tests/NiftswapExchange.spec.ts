@@ -161,6 +161,27 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     await userERC1155Contract.functions.setApprovalForAll(niftyswapExchangeContract.address, true)
   })
 
+  describe('Getter functions', () => {
+    describe('getTokenAddress() function', () => {
+      it('should return token address', async () => {
+        const token_address = await niftyswapExchangeContract.functions.getTokenAddress()
+        await expect(token_address).to.be.eql(ownerERC1155Contract.address)
+      })
+    })
+
+    describe('getBaseTokenInfo() function', () => {
+      it('should return base token address and ID', async () => {
+        const token_info = await niftyswapExchangeContract.functions.getBaseTokenInfo()
+        await expect(token_info[0]).to.be.eql(ownerBaseTokenContract.address)
+        await expect(token_info[1]).to.be.eql(new BigNumber(baseTokenID))
+      })
+    })
+
+    describe('getFactoryAddress() function', () => {
+      /* ... */
+    })
+  })
+
   describe('_addLiquidity() function', () => {
     let nTypesToAdd = 30;
     let tokenAmountToAdd = new BigNumber(10);

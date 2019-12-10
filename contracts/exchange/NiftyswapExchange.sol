@@ -38,10 +38,10 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
   |__________________________________*/
 
   // Variables
-  IERC1155 token;              // address of the ERC-1155 token contract
-  IERC1155 baseToken;          // address of the ERC-1155 base token traded on this contract
-  INiftyswapFactory factory;   // interface for the factory that created this contract
-  uint256 baseTokenID;         // ID of base token in ERC-1155 base contract
+  IERC1155 internal token;                        // address of the ERC-1155 token contract
+  IERC1155 internal baseToken;                    // address of the ERC-1155 base token traded on this contract
+  INiftyswapFactory factory;                      // interface for the factory that created this contract
+  uint256 internal baseTokenID;                   // ID of base token in ERC-1155 base contract
   uint256 internal constant FEE_MULTIPLIER = 995; // Multiplier that calculates the fee (0.5%)
 
   // OnReceive Objects
@@ -68,24 +68,24 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
 
   // Signatures for onReceive control logic
   // bytes4(keccak256(
-  //   "BuyTokensObj(address,uint256[],uint256[],uint256)"
+  //   "_baseToToken(uint256[],uint256[],uint256,uint256,address)"
   // ));
-  bytes4 internal constant BUYTOKENS_SIG = 0x87ba033f;
+  bytes4 internal constant BUYTOKENS_SIG = 0x24c186e7;
 
   // bytes4(keccak256(
-  //   "SellTokensObj(address,uint256,uint256)"
+  //   "_tokenToBase(uint256[],uint256[],uint256,uint256,address)"
   // ));
-  bytes4 internal constant SELLTOKENS_SIG = 0x77852e33;
+  bytes4 internal constant SELLTOKENS_SIG = 0x7db38b4a;
 
   //  bytes4(keccak256(
-  //   "AddLiquidityObj(uint256[],uint256)"
+  //   "_addLiquidity(address,uint256[],uint256[],uint256[],uint256)"
   // ));
-  bytes4 internal constant ADDLIQUIDITY_SIG = 0xdae60727;
+  bytes4 internal constant ADDLIQUIDITY_SIG = 0x82da2b73;
 
   // bytes4(keccak256(
-  //    "RemoveLiquidityObj(uint256[],uint256[],uint256)"
+  //    "_removeLiquidity(address,uint256[],uint256[],uint256[],uint256[],uint256)"
   // ));
-  bytes4 internal constant REMOVELIQUIDITY_SIG = 0xf6384fca;
+  bytes4 internal constant REMOVELIQUIDITY_SIG = 0x5c0bf259;
 
   // bytes4(keccak256(
   //   "DepositTokens()"
@@ -93,7 +93,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
   bytes4 internal constant DEPOSIT_SIG = 0xc8c323f9;
 
   // Mapping variables
-  mapping(uint256 => uint256) internal totalSupplies;    // UNNIFTY liquidity token supply per Token id
+  mapping(uint256 => uint256) internal totalSupplies;    // Liquidity pool token supply per Token id
   mapping(uint256 => uint256) internal baseTokenReserve; // Base Token reserve per Token id
 
   // Events
@@ -173,7 +173,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
     |__________________________________*/
 
     if (functionSignature == BUYTOKENS_SIG) {
-      // Tokens received need to be Token contract
+      // Tokens received need to be Base Token contract
       require(msg.sender == address(baseToken), "NiftyswapExchange#onERC1155BatchReceived: INVALID_BASE_TOKENS_TRANSFERRED");
       require(_ids.length == 1, "NiftyswapExchange#onERC1155BatchReceived: INVALID_BASE_TOKEN_ID_AMOUNT");
       require(_ids[0] == baseTokenID, "NiftyswapExchange#onERC1155BatchReceived: INVALID_BASE_TOKEN_ID");
@@ -463,13 +463,13 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
 
   /**
    * @notice Deposit max Base Tokens && exact Tokens (token ID) at current ratio to mint NIFTY-1155 tokens.
-   * @dev min_liquidity does nothing when total NIFTY liquidity token supply is 0.
+   * @dev min_liquidity does nothing when total liquidity pool token supply is 0.
    * @dev Assumes that sender approved this contract on the baseToken
    * @param _provider      Address that provides liquidity to the reserve
    * @param _tokenIds      Array of Token IDs where liquidity is added
    * @param _tokenAmounts  Array of amount of Tokens deposited corresponding to each ID provided in _tokenIds
    * @param _maxBaseTokens Array of maximum number of tokens deposited for each ID provided in _tokenIds.
-   *                       Deposits max amount if total NIFTY supply is 0.
+   *                       Deposits max amount if total liquidity pool token supply is 0.
    * @param _deadline      Block number after which this transaction can no longer be executed.
    */
   function _addLiquidity(
@@ -567,7 +567,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
         baseTokenAmounts[i] = maxBaseToken;
       }
     }
-    // Mint NIFTY liquidity tokens
+    // Mint liquidity pool tokens
     _batchMint(_provider, _tokenIds, liquiditiesToMint, "");
 
     // Transfer all Base Tokens to this contract
@@ -578,18 +578,18 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
   }
 
   /**
-   * @dev Burn NIFTY liquidity tokens to withdraw Base Tokens && Tokens at current ratio.
-   * @param _provider          Address that removes liquidity to the reserve
-   * @param _tokenIds          Array of Token IDs where liquidity is removed
-   * @param _NIFTYtokenAmounts Array of Amount of NIFTY liquidity burned for each Token id in _tokenIds.
-   * @param _minBaseTokens     Minimum Tase Tokens withdrawn for each Token id in _tokenIds.
-   * @param _minTokens         Minimum Tokens id withdrawn for each Token id in _tokenIds.
-   * @param _deadline          Block number after which this transaction can no longer be executed.
+   * @dev Burn liquidity pool tokens to withdraw Base Tokens && Tokens at current ratio.
+   * @param _provider         Address that removes liquidity to the reserve
+   * @param _tokenIds         Array of Token IDs where liquidity is removed
+   * @param _poolTokenAmounts Array of Amount of liquidity pool tokens burned for each Token id in _tokenIds.
+   * @param _minBaseTokens    Minimum Base Tokens withdrawn for each Token id in _tokenIds.
+   * @param _minTokens        Minimum Tokens id withdrawn for each Token id in _tokenIds.
+   * @param _deadline         Block number after which this transaction can no longer be executed.
    */
   function _removeLiquidity(
     address _provider,
     uint256[] memory _tokenIds,
-    uint256[] memory _NIFTYtokenAmounts,
+    uint256[] memory _poolTokenAmounts,
     uint256[] memory _minBaseTokens,
     uint256[] memory _minTokens,
     uint256 _deadline)
@@ -610,7 +610,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
 
     // Input validation
     require(_deadline > block.number, "NiftyswapExchange#_removeLiquidity: DEADLINE_EXCEEDED");
-    require(_tokenIds.length == _NIFTYtokenAmounts.length, "NiftyswapExchange#_removeLiquidity: INVALID_LENGTH_FOR_IDS_AMOUNTS");
+    require(_tokenIds.length == _poolTokenAmounts.length, "NiftyswapExchange#_removeLiquidity: INVALID_LENGTH_FOR_IDS_AMOUNTS");
     require(_tokenIds.length == _minBaseTokens.length, "NiftyswapExchange#_removeLiquidity: INVALID_LENGTH_FOR_MINBASETOKENS");
     require(_tokenIds.length == _minTokens.length, "NiftyswapExchange#_removeLiquidity: INVALID_LENGTH_FOR__MINTOKENS");
 
@@ -618,10 +618,10 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
     for (uint256 i = 0; i < nTokens; i++) {
       // Store current id and amount from argument arrays
       uint256 id = _tokenIds[i];
-      uint256 amountNIFTY = _NIFTYtokenAmounts[i];
+      uint256 amountPool = _poolTokenAmounts[i];
       uint256 tokenReserve = tokenReserves[i];
 
-      // Load total NIFTY liquidity supply for Token _id
+      // Load total liquidity pool token supply for Token _id
       uint256 totalLiquidity = totalSupplies[id];
       require(totalLiquidity > 0, "NiftyswapExchange#_removeLiquidity: NULL_TOTAL_LIQUIDITY");
 
@@ -629,15 +629,15 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
       uint256 baseReserve = baseTokenReserve[id];
 
       // Calculate amount to withdraw for Base Tokens and Token _id
-      uint256 baseTokenAmount = amountNIFTY.mul(baseReserve) / totalLiquidity;
-      uint256 tokenAmount = amountNIFTY.mul(tokenReserve) / totalLiquidity;
+      uint256 baseTokenAmount = amountPool.mul(baseReserve) / totalLiquidity;
+      uint256 tokenAmount = amountPool.mul(tokenReserve) / totalLiquidity;
 
       // Verify if amounts to withdraw respect minimums specified
       require(baseTokenAmount >= _minBaseTokens[i], "NiftyswapExchange#_removeLiquidity: INSUFFICIENT_BASE_TOKENS");
       require(tokenAmount >= _minTokens[i], "NiftyswapExchange#_removeLiquidity: INSUFFICIENT_TOKENS");
 
-      // Update total NIFTY liquidity supply of Token _id
-      totalSupplies[id] = totalLiquidity.sub(amountNIFTY);
+      // Update total liquidity pool token supply of Token _id
+      totalSupplies[id] = totalLiquidity.sub(amountPool);
 
       // Update Base Token reserve size for Token id
       baseTokenReserve[id] = baseReserve.sub(baseTokenAmount);
@@ -648,8 +648,8 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
       baseTokenAmounts[i] = baseTokenAmount;
     }
 
-    // Burn NIFTY liquidity tokens for offchain supplies
-    _batchBurn(address(this), _tokenIds, _NIFTYtokenAmounts);
+    // Burn liquidity pool tokens for offchain supplies
+    _batchBurn(address(this), _tokenIds, _poolTokenAmounts);
 
     // Transfer total Base Tokens and all Tokens ids
     baseToken.safeTransferFrom(address(this), _provider, baseTokenID, totalBaseTokens, "");
@@ -732,8 +732,15 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
   /**
    * @return Address of Token that is sold on this exchange.
    */
-  function tokenAddress() external view returns (address) {
+  function getTokenAddress() external view returns (address) {
     return address(token);
+  }
+
+  /**
+   * @return Address of the Base Token contract that is used as currency and its corresponding id
+   */
+  function getBaseTokenInfo() external view returns (address _baseTokenAddress, uint256 _baseTokenID) {
+    return (address(baseToken), baseTokenID);
   }
 
   /**
@@ -761,7 +768,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
   /**
    * @return Address of factory that created this exchange.
    */
-  function factoryAddress() external view returns (address) {
+  function getFactoryAddress() external view returns (address) {
     return address(factory);
   }
 
