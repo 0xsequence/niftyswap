@@ -1,4 +1,4 @@
-pragma solidity ^0.5.11;
+pragma solidity ^0.5.14;
 pragma experimental ABIEncoderV2;
 import "../interfaces/INiftyswapFactory.sol";
 import "../interfaces/INiftyswapExchange.sol";
@@ -6,7 +6,6 @@ import "../utils/ReentrancyGuard.sol";
 import "multi-token-standard/contracts/interfaces/IERC1155.sol";
 import "multi-token-standard/contracts/tokens/ERC1155/ERC1155Meta.sol";
 import "multi-token-standard/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
-import "multi-token-standard/contracts/tokens/ERC1155/ERC1155Metadata.sol";
 
 
 /**
@@ -22,7 +21,7 @@ import "multi-token-standard/contracts/tokens/ERC1155/ERC1155Metadata.sol";
  * implementation used here:
  *    https://github.com/horizon-games/multi-token-standard/tree/master/contracts/tokens/ERC1155
  */
-contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn, ERC1155Meta {
+contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
 
   /**
    * TO DO
@@ -40,7 +39,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
   // Variables
   IERC1155 internal token;                        // address of the ERC-1155 token contract
   IERC1155 internal baseToken;                    // address of the ERC-1155 base token traded on this contract
-  INiftyswapFactory factory;                      // interface for the factory that created this contract
+  INiftyswapFactory internal factory;             // interface for the factory that created this contract
   uint256 internal baseTokenID;                   // ID of base token in ERC-1155 base contract
   uint256 internal constant FEE_MULTIPLIER = 995; // Multiplier that calculates the fee (0.5%)
 
@@ -60,7 +59,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
     uint256[] maxBaseTokens; // Maximum number of base tokens to deposit with tokens
     uint256 deadline;        // Block # after which the tx isn't valid anymore
   }
-  struct RemoveLiquidityObj {
+  struct LiquidityRemovedObj {
     uint256[] minBaseTokens; // Minimum number of base tokens to withdraw
     uint256[] minTokens;     // Minimum number of tokens to withdraw
     uint256 deadline;        // Block # after which the tx isn't valid anymore
@@ -85,7 +84,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
   // bytes4(keccak256(
   //    "_removeLiquidity(address,uint256[],uint256[],uint256[],uint256[],uint256)"
   // ));
-  bytes4 internal constant REMOVELIQUIDITY_SIG = 0x5c0bf259;
+  bytes4 internal constant LiquidityRemoved_SIG = 0x5c0bf259;
 
   // bytes4(keccak256(
   //   "DepositTokens()"
@@ -99,8 +98,8 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
   // Events
   event TokensPurchase(address indexed buyer, uint256[] tokensBoughtIds, uint256[] tokensBoughtAmounts, uint256[] baseTokensSoldAmounts);
   event BaseTokenPurchase(address indexed buyer, uint256[] tokensSoldIds, uint256[] tokensSoldAmounts, uint256[] baseTokensBoughtAmounts);
-  event AddLiquidity(address indexed provider, uint256[] tokenIds, uint256[] tokenAmounts, uint256[] baseTokenAmounts);
-  event RemoveLiquidity(address indexed provider, uint256[] tokenIds, uint256[] tokenAmounts, uint256[] baseTokenAmounts);
+  event LiquidityAdded(address indexed provider, uint256[] tokenIds, uint256[] tokenAmounts, uint256[] baseTokenAmounts);
+  event LiquidityRemoved(address indexed provider, uint256[] tokenIds, uint256[] tokenAmounts, uint256[] baseTokenAmounts);
 
 
   /***********************************|
@@ -215,13 +214,13 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
     |      Removing iquidity Tokens     |
     |__________________________________*/
 
-    } else if (functionSignature == REMOVELIQUIDITY_SIG) {
+    } else if (functionSignature == LiquidityRemoved_SIG) {
       // Tokens received need to be NIFTY-1155 tokens
       require(msg.sender == address(this), "NiftyswapExchange#onERC1155BatchReceived: INVALID_NIFTY_TOKENS_TRANSFERRED");
 
-      // Decode RemoveLiquidityObj from _data to call _removeLiquidity()
-      RemoveLiquidityObj memory obj;
-      (functionSignature, obj) = abi.decode(_data, (bytes4, RemoveLiquidityObj));
+      // Decode LiquidityRemovedObj from _data to call _removeLiquidity()
+      LiquidityRemovedObj memory obj;
+      (functionSignature, obj) = abi.decode(_data, (bytes4, LiquidityRemovedObj));
       _removeLiquidity(_from, _ids, _amounts, obj.minBaseTokens, obj.minTokens, obj.deadline);
 
     /***********************************|
@@ -574,7 +573,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
     baseToken.safeTransferFrom(_provider, address(this), baseTokenID, totalBaseTokens, abi.encodePacked(DEPOSIT_SIG));
 
     // Emit event
-    emit AddLiquidity(_provider, _tokenIds, _tokenAmounts, baseTokenAmounts);
+    emit LiquidityAdded(_provider, _tokenIds, _tokenAmounts, baseTokenAmounts);
   }
 
   /**
@@ -656,7 +655,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155Metadata, ERC1155MintBurn,
     token.safeBatchTransferFrom(address(this), _provider, _tokenIds, tokenAmounts, "");
 
     // Emit event
-    emit RemoveLiquidity(_provider, _tokenIds, tokenAmounts, baseTokenAmounts);
+    emit LiquidityRemoved(_provider, _tokenIds, tokenAmounts, baseTokenAmounts);
   }
 
 

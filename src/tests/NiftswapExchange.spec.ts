@@ -117,33 +117,22 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     ownerERC1155Contract = await erc1155PackedAbstract.deploy(ownerWallet) as ERC1155PackedBalanceMock
     operatorERC1155Contract = await ownerERC1155Contract.connect(operatorSigner) as ERC1155PackedBalanceMock
     userERC1155Contract = await ownerERC1155Contract.connect(userSigner) as ERC1155PackedBalanceMock
-    
-    niftyswapExchangeContract = await niftyswapExchangeAbstract.deploy(
-      ownerWallet, [
-        ownerERC1155Contract.address, 
-        ownerBaseTokenContract.address, 
-        new BigNumber(baseTokenID)
-      ]) as NiftyswapExchange
 
-    // // Deploy Niftyswap factory
-    // niftyswapFactoryContract = await niftyswapFactoryAbstract.deploy(ownerWallet, [
-    //   ownerBaseTokenContract.address,
-    //   new BigNumber(baseTokenID)
-    // ]) as NiftyswapFactory
-
-
-    // throw('DEBUG')
+    // Deploy Niftyswap factory
+    niftyswapFactoryContract = await niftyswapFactoryAbstract.deploy(ownerWallet) as NiftyswapFactory
 
     // Create exchange contract for the ERC-1155 token
-    // await niftyswapFactoryContract.functions.createExchange(ownerERC1155Contract.address)
-    // console.log(2.2)
-
-    // const exchangeAddress = await niftyswapFactoryContract.functions.getExchange(ownerERC1155Contract.address)
-    // console.log(3)
-
+    await niftyswapFactoryContract.functions.createExchange(
+      ownerERC1155Contract.address, 
+      ownerBaseTokenContract.address, 
+      baseTokenID
+    )
     
-    // // Type exchange contract
-    // niftyswapExchangeContract = new ethers.Contract(exchangeAddress, exchangeABI, ownerProvider) as NiftyswapExchange
+    // Retrieve exchange address
+    const exchangeAddress = await niftyswapFactoryContract.functions.getExchange(ownerERC1155Contract.address)
+    
+    // Type exchange contract
+    niftyswapExchangeContract = new ethers.Contract(exchangeAddress, exchangeABI, ownerProvider) as NiftyswapExchange
     operatorExchangeContract = niftyswapExchangeContract.connect(operatorSigner) as NiftyswapExchange
 
     // Mint Token to owner and user
@@ -178,7 +167,10 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     })
 
     describe('getFactoryAddress() function', () => {
-      /* ... */
+      it('should return factory address', async () => {
+        const factory_address = await niftyswapExchangeContract.functions.getFactoryAddress()
+        await expect(factory_address).to.be.eql(niftyswapFactoryContract.address)
+      })
     })
   })
 
@@ -709,7 +701,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       const tx = userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, types, tokensAmountsToSell, sellTokenData,
         {gasLimit: 8000000}
       )
-      await expect(tx).to.be.rejectedWith( RevertError("ERC1155PackedBalance#_viewUpdateIDBalance: UNDERFLOW") )
+      await expect(tx).to.be.rejectedWith( RevertError("ERC1155PackedBalance#_viewUpdateBinValue: UNDERFLOW") )
     })
 
     it('should fail if token sent is 0', async () => {

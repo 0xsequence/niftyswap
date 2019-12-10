@@ -13,7 +13,11 @@ import {
 interface NiftyswapFactoryInterface extends Interface {
   functions: {
     createExchange: TypedFunctionDescription<{
-      encode([_token]: [string]): string;
+      encode([_token, _baseTokenAddr, _baseTokenID]: [
+        string,
+        string,
+        BigNumberish
+      ]): string;
     }>;
   };
 
@@ -43,15 +47,12 @@ export class NiftyswapFactory extends Contract {
   functions: {
     getExchange(_token: string): Promise<string>;
 
-    getToken(_exchange: string): Promise<string>;
-
     createExchange(
       _token: string,
+      _baseTokenAddr: string,
+      _baseTokenID: BigNumberish,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
-
-    tokenCount(): Promise<BigNumber>;
-    baseTokenID(): Promise<BigNumber>;
   };
 
   filters: {
@@ -59,6 +60,10 @@ export class NiftyswapFactory extends Contract {
   };
 
   estimate: {
-    createExchange(_token: string): Promise<BigNumber>;
+    createExchange(
+      _token: string,
+      _baseTokenAddr: string,
+      _baseTokenID: BigNumberish
+    ): Promise<BigNumber>;
   };
 }

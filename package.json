@@ -62,7 +62,7 @@
     "ethers": "^4.0.33",
     "ganache-cli": "^6.6.0",
     "ganache-core": "^2.7.0",
-    "solc": "0.5.11",
+    "solc": "0.5.14",
     "solidity-coverage": "^0.5.11",
     "solium": "^1.2.4",
     "truffle": "^5.0.26",

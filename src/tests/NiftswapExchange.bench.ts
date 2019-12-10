@@ -117,13 +117,14 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     userERC1155Contract = await ownerERC1155Contract.connect(userSigner) as ERC1155PackedBalanceMock
     
     // Deploy Niftyswap factory
-    niftyswapFactoryContract = await niftyswapFactoryAbstract.deploy(ownerWallet, [
-      ownerBaseTokenContract.address,
-      baseTokenID
-    ]) as NiftyswapFactory
+    niftyswapFactoryContract = await niftyswapFactoryAbstract.deploy(ownerWallet) as NiftyswapFactory
 
     // Create exchange contract for the ERC-1155 token
-    await niftyswapFactoryContract.functions.createExchange(ownerERC1155Contract.address)
+    await niftyswapFactoryContract.functions.createExchange(
+      ownerERC1155Contract.address, 
+      ownerBaseTokenContract.address, 
+      baseTokenID
+    )
     const exchangeAddress = await niftyswapFactoryContract.functions.getExchange(ownerERC1155Contract.address)
     
     // Type exchange contract
