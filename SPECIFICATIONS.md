@@ -33,11 +33,6 @@
     + [getBaseTokenInfo()](#getbasetokeninfo--)
 - [Miscellaneous](#miscellaneous)
   * [Rounding Errors](#rounding-errors)
-    
-
-
-
-
 
 # Overview
 
@@ -283,10 +278,6 @@ IERC1155(BaseCurrencyContract).safeTranferFrom(_from, niftyswap_address, base_cu
 
 where `_data` is defined in the [Data Encoding: _baseToToken()](#_basetotoken()) section.
 
-
-
-
-
 ### Token $i$ to Base Currency
 
 To trade token $i$ => base currency, a user would call 
@@ -325,10 +316,6 @@ IERC1155(TokenContract).safeBatchTranferFrom(_from, niftyswap_address, _ids, _am
 ```
 
 where `_data` is defined in the [Data Encoding: _tokenToBase()](#_tokentobase()) section.
-
-
-
-
 
 # Liquidity Reserves Management
 
