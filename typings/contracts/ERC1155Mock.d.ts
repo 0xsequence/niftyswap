@@ -12,9 +12,16 @@ import {
 
 interface ERC1155MockInterface extends Interface {
   functions: {
-    safeBatchTransferFrom: TypedFunctionDescription<{
-      encode([_from, _to, _ids, _amounts, _data]: [
+    batchBurnMock: TypedFunctionDescription<{
+      encode([_from, _ids, _values]: [
         string,
+        (BigNumberish)[],
+        (BigNumberish)[]
+      ]): string;
+    }>;
+
+    batchMintMock: TypedFunctionDescription<{
+      encode([_to, _ids, _values, _data]: [
         string,
         (BigNumberish)[],
         (BigNumberish)[],
@@ -30,10 +37,6 @@ interface ERC1155MockInterface extends Interface {
       ]): string;
     }>;
 
-    setApprovalForAll: TypedFunctionDescription<{
-      encode([_operator, _approved]: [string, boolean]): string;
-    }>;
-
     metaSafeBatchTransferFrom: TypedFunctionDescription<{
       encode([_from, _to, _ids, _amounts, _isGasFee, _data]: [
         string,
@@ -42,23 +45,6 @@ interface ERC1155MockInterface extends Interface {
         (BigNumberish)[],
         boolean,
         Arrayish
-      ]): string;
-    }>;
-
-    mintMock: TypedFunctionDescription<{
-      encode([_to, _id, _value, _data]: [
-        string,
-        BigNumberish,
-        BigNumberish,
-        Arrayish
-      ]): string;
-    }>;
-
-    batchBurnMock: TypedFunctionDescription<{
-      encode([_from, _ids, _values]: [
-        string,
-        (BigNumberish)[],
-        (BigNumberish)[]
       ]): string;
     }>;
 
@@ -73,8 +59,28 @@ interface ERC1155MockInterface extends Interface {
       ]): string;
     }>;
 
-    batchMintMock: TypedFunctionDescription<{
-      encode([_to, _ids, _values, _data]: [
+    metaSetApprovalForAll: TypedFunctionDescription<{
+      encode([_owner, _operator, _approved, _isGasFee, _data]: [
+        string,
+        string,
+        boolean,
+        boolean,
+        Arrayish
+      ]): string;
+    }>;
+
+    mintMock: TypedFunctionDescription<{
+      encode([_to, _id, _value, _data]: [
+        string,
+        BigNumberish,
+        BigNumberish,
+        Arrayish
+      ]): string;
+    }>;
+
+    safeBatchTransferFrom: TypedFunctionDescription<{
+      encode([_from, _to, _ids, _amounts, _data]: [
+        string,
         string,
         (BigNumberish)[],
         (BigNumberish)[],
@@ -92,30 +98,22 @@ interface ERC1155MockInterface extends Interface {
       ]): string;
     }>;
 
-    metaSetApprovalForAll: TypedFunctionDescription<{
-      encode([_owner, _operator, _approved, _isGasFee, _data]: [
-        string,
-        string,
-        boolean,
-        boolean,
-        Arrayish
-      ]): string;
+    setApprovalForAll: TypedFunctionDescription<{
+      encode([_operator, _approved]: [string, boolean]): string;
     }>;
   };
 
   events: {
-    URI: TypedEventDescription<{
-      encodeTopics([_uri, _id]: [null, BigNumberish | null]): string[];
-    }>;
-
-    TransferSingle: TypedEventDescription<{
-      encodeTopics([_operator, _from, _to, _id, _amount]: [
+    ApprovalForAll: TypedEventDescription<{
+      encodeTopics([_owner, _operator, _approved]: [
         string | null,
         string | null,
-        string | null,
-        null,
         null
       ]): string[];
+    }>;
+
+    NonceChange: TypedEventDescription<{
+      encodeTopics([signer, newNonce]: [string | null, null]): string[];
     }>;
 
     TransferBatch: TypedEventDescription<{
@@ -128,12 +126,18 @@ interface ERC1155MockInterface extends Interface {
       ]): string[];
     }>;
 
-    ApprovalForAll: TypedEventDescription<{
-      encodeTopics([_owner, _operator, _approved]: [
+    TransferSingle: TypedEventDescription<{
+      encodeTopics([_operator, _from, _to, _id, _amount]: [
         string | null,
         string | null,
+        string | null,
+        null,
         null
       ]): string[];
+    }>;
+
+    URI: TypedEventDescription<{
+      encodeTopics([_uri, _id]: [null, BigNumberish | null]): string[];
     }>;
   };
 }
@@ -154,16 +158,12 @@ export class ERC1155Mock extends Contract {
   functions: {
     balanceOf(_owner: string, _id: BigNumberish): Promise<BigNumber>;
 
-    supportsInterface(_interfaceID: Arrayish): Promise<boolean>;
-
-    uri(_id: BigNumberish): Promise<string>;
-
-    getNonce(_signer: string): Promise<BigNumber>;
-
     balanceOfBatch(
       _owners: (string)[],
       _ids: (BigNumberish)[]
     ): Promise<(BigNumber)[]>;
+
+    getNonce(_signer: string): Promise<BigNumber>;
 
     isApprovedForAll(_owner: string, _operator: string): Promise<boolean>;
 
@@ -174,11 +174,21 @@ export class ERC1155Mock extends Contract {
       _sig: Arrayish
     ): Promise<boolean>;
 
-    safeBatchTransferFrom(
+    supportsInterface(_interfaceID: Arrayish): Promise<boolean>;
+
+    uri(_id: BigNumberish): Promise<string>;
+
+    batchBurnMock(
       _from: string,
+      _ids: (BigNumberish)[],
+      _values: (BigNumberish)[],
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    batchMintMock(
       _to: string,
       _ids: (BigNumberish)[],
-      _amounts: (BigNumberish)[],
+      _values: (BigNumberish)[],
       _data: Arrayish,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
@@ -187,12 +197,6 @@ export class ERC1155Mock extends Contract {
       _from: string,
       _id: BigNumberish,
       _value: BigNumberish,
-      overrides?: TransactionOverrides
-    ): Promise<ContractTransaction>;
-
-    setApprovalForAll(
-      _operator: string,
-      _approved: boolean,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
@@ -206,21 +210,6 @@ export class ERC1155Mock extends Contract {
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
-    mintMock(
-      _to: string,
-      _id: BigNumberish,
-      _value: BigNumberish,
-      _data: Arrayish,
-      overrides?: TransactionOverrides
-    ): Promise<ContractTransaction>;
-
-    batchBurnMock(
-      _from: string,
-      _ids: (BigNumberish)[],
-      _values: (BigNumberish)[],
-      overrides?: TransactionOverrides
-    ): Promise<ContractTransaction>;
-
     metaSafeTransferFrom(
       _from: string,
       _to: string,
@@ -231,10 +220,28 @@ export class ERC1155Mock extends Contract {
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
-    batchMintMock(
+    metaSetApprovalForAll(
+      _owner: string,
+      _operator: string,
+      _approved: boolean,
+      _isGasFee: boolean,
+      _data: Arrayish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    mintMock(
+      _to: string,
+      _id: BigNumberish,
+      _value: BigNumberish,
+      _data: Arrayish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    safeBatchTransferFrom(
+      _from: string,
       _to: string,
       _ids: (BigNumberish)[],
-      _values: (BigNumberish)[],
+      _amounts: (BigNumberish)[],
       _data: Arrayish,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
@@ -248,26 +255,21 @@ export class ERC1155Mock extends Contract {
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
-    metaSetApprovalForAll(
-      _owner: string,
+    setApprovalForAll(
       _operator: string,
       _approved: boolean,
-      _isGasFee: boolean,
-      _data: Arrayish,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
   };
 
   filters: {
-    URI(_uri: null, _id: BigNumberish | null): EventFilter;
-
-    TransferSingle(
+    ApprovalForAll(
+      _owner: string | null,
       _operator: string | null,
-      _from: string | null,
-      _to: string | null,
-      _id: null,
-      _amount: null
+      _approved: null
     ): EventFilter;
+
+    NonceChange(signer: string | null, newNonce: null): EventFilter;
 
     TransferBatch(
       _operator: string | null,
@@ -277,19 +279,28 @@ export class ERC1155Mock extends Contract {
       _amounts: null
     ): EventFilter;
 
-    ApprovalForAll(
-      _owner: string | null,
+    TransferSingle(
       _operator: string | null,
-      _approved: null
+      _from: string | null,
+      _to: string | null,
+      _id: null,
+      _amount: null
     ): EventFilter;
+
+    URI(_uri: null, _id: BigNumberish | null): EventFilter;
   };
 
   estimate: {
-    safeBatchTransferFrom(
+    batchBurnMock(
       _from: string,
+      _ids: (BigNumberish)[],
+      _values: (BigNumberish)[]
+    ): Promise<BigNumber>;
+
+    batchMintMock(
       _to: string,
       _ids: (BigNumberish)[],
-      _amounts: (BigNumberish)[],
+      _values: (BigNumberish)[],
       _data: Arrayish
     ): Promise<BigNumber>;
 
@@ -297,11 +308,6 @@ export class ERC1155Mock extends Contract {
       _from: string,
       _id: BigNumberish,
       _value: BigNumberish
-    ): Promise<BigNumber>;
-
-    setApprovalForAll(
-      _operator: string,
-      _approved: boolean
     ): Promise<BigNumber>;
 
     metaSafeBatchTransferFrom(
@@ -313,19 +319,6 @@ export class ERC1155Mock extends Contract {
       _data: Arrayish
     ): Promise<BigNumber>;
 
-    mintMock(
-      _to: string,
-      _id: BigNumberish,
-      _value: BigNumberish,
-      _data: Arrayish
-    ): Promise<BigNumber>;
-
-    batchBurnMock(
-      _from: string,
-      _ids: (BigNumberish)[],
-      _values: (BigNumberish)[]
-    ): Promise<BigNumber>;
-
     metaSafeTransferFrom(
       _from: string,
       _to: string,
@@ -335,10 +328,26 @@ export class ERC1155Mock extends Contract {
       _data: Arrayish
     ): Promise<BigNumber>;
 
-    batchMintMock(
+    metaSetApprovalForAll(
+      _owner: string,
+      _operator: string,
+      _approved: boolean,
+      _isGasFee: boolean,
+      _data: Arrayish
+    ): Promise<BigNumber>;
+
+    mintMock(
+      _to: string,
+      _id: BigNumberish,
+      _value: BigNumberish,
+      _data: Arrayish
+    ): Promise<BigNumber>;
+
+    safeBatchTransferFrom(
+      _from: string,
       _to: string,
       _ids: (BigNumberish)[],
-      _values: (BigNumberish)[],
+      _amounts: (BigNumberish)[],
       _data: Arrayish
     ): Promise<BigNumber>;
 
@@ -350,12 +359,9 @@ export class ERC1155Mock extends Contract {
       _data: Arrayish
     ): Promise<BigNumber>;
 
-    metaSetApprovalForAll(
-      _owner: string,
+    setApprovalForAll(
       _operator: string,
-      _approved: boolean,
-      _isGasFee: boolean,
-      _data: Arrayish
+      _approved: boolean
     ): Promise<BigNumber>;
   };
 }

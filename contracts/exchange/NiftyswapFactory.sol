@@ -1,4 +1,4 @@
-pragma solidity ^0.5.11;
+pragma solidity ^0.5.14;
 import "./NiftyswapExchange.sol";
 
 
@@ -8,73 +8,45 @@ contract NiftyswapFactory {
   |       Events And Variables        |
   |__________________________________*/
 
-  IERC1155 baseToken;         // Address of the ERC-1155 base token traded on this contract
-  uint256 public baseTokenID; // ID of base token in ERC-1155 base contract
-  uint256 public tokenCount;  // Number of ERC-1155 exchange contract created
   mapping (address => address) internal tokenToExchange;
-  mapping (address => address) internal exchangeToToken;
-
-  event NewExchange(address indexed token, address indexed exchange);
-
+  event NewExchange(address indexed token, address indexed baseToken, uint256 baseTokenID, address indexed exchange);
 
   /***********************************|
   |            Constructor            |
   |__________________________________*/
 
   /**
-   * @notice Create the NiftySwap Factory
-   * @param _baseTokenAddr The address of the ERC-1155 Base Token
-   * @param _baseTokenID   The ID of the ERC-1155 Base Token
-   */
-  constructor(address _baseTokenAddr, uint256 _baseTokenID) public {
-    require(
-      address(_baseTokenAddr) != address(0),
-      "NiftyswapFactory#constructor: INVALID_BASE_TOKEN_ADDRESS"
-    );
-    baseToken = IERC1155(_baseTokenAddr);
-    baseTokenID = _baseTokenID;
-  }
-
-  /**
    * @notice Creates a NiftySwap Exchange for given token contract
-   * @param _token The address of the ERC-1155 token to create an NiftySwap exchange for
+   * @dev Possible to create exchanges with fake base currency, blocking proper exchange creation
+   * @param _token         The address of the ERC-1155 token to create an NiftySwap exchange for
+   * @param _baseTokenAddr The address of the ERC-1155 Base Token
+   * @param _baseTokenID   The ID of the ERC-1155 Base Token (must be divisible, ideally > 12 decimals)
    */
-  function createExchange(address _token) public {
-    require(_token != address(0x0), "NiftyswapFactory#createExchange: INVALID_TOKEN");
-    require(tokenToExchange[_token] == address(0x0), "NiftyswapFactory#createExchange: TOKEN_ALREADY_INITIALIZED");
+  function createExchange(address _token, address _baseTokenAddr, uint256 _baseTokenID) public {
+    // require(_token != address(0x0), "NiftyswapFactory#createExchange: INVALID_TOKEN_ADDRESS");
+    // require(_baseTokenAddr != address(0x0), "NiftyswapFactory#createExchange: INVALID_BASE_TOKEN_ADDRESS");
+    // ^^^ Checked in NiftyswapExchange.sol constructor
+    require(tokenToExchange[_token] == address(0x0), "NiftyswapFactory#createExchange: EXCHANGE_ALREADY_CREATED");
 
     // Create new exchange contract
-    NiftyswapExchange exchange = new NiftyswapExchange(_token, address(baseToken), baseTokenID);
+    NiftyswapExchange exchange = new NiftyswapExchange(_token, _baseTokenAddr, _baseTokenID);
 
     // Store exchange and token addresses
-    // tokenToExchange[_token] = address(exchange);
-    // exchangeToToken[address(exchange)] = _token;
+    tokenToExchange[_token] = address(exchange);
 
-    // Increment amount of token exchange created
-    uint256 tokenId = tokenCount + 1;
-    tokenCount = tokenId;
-
-    // emit NewExchange(_token, address(exchange));
+    // Emit event
+    emit NewExchange(_token, _baseTokenAddr, _baseTokenID, address(exchange));
   }
 
-  // /***********************************|
-  // |         Getter Functions          |
-  // |__________________________________*/
+  /***********************************|
+  |         Getter Functions          |
+  |__________________________________*/
 
-  // /**
-  //  * @notice Return address of exchange for corresponding ERC-1155 token contract
-  //  * @param _token The address of the ERC-1155 Token
-  //  */
+  /**
+   * @notice Return address of exchange for corresponding ERC-1155 token contract
+   * @param _token The address of the ERC-1155 Token
+   */
   function getExchange(address _token) public view returns (address) {
     return tokenToExchange[_token];
   }
-
-  /**
-   * @notice Return address of ERC-1155 token for corresponding NiftySwap exchange contract
-   * @param _exchange The address of the ERC-1155 Token
-   */
-  function getToken(address _exchange) public view returns (address) {
-    return exchangeToToken[_exchange];
-  }
-
 }

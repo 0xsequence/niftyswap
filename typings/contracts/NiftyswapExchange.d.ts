@@ -12,20 +12,6 @@ import {
 
 interface NiftyswapExchangeInterface extends Interface {
   functions: {
-    safeBatchTransferFrom: TypedFunctionDescription<{
-      encode([_from, _to, _ids, _amounts, _data]: [
-        string,
-        string,
-        (BigNumberish)[],
-        (BigNumberish)[],
-        Arrayish
-      ]): string;
-    }>;
-
-    setApprovalForAll: TypedFunctionDescription<{
-      encode([_operator, _approved]: [string, boolean]): string;
-    }>;
-
     metaSafeBatchTransferFrom: TypedFunctionDescription<{
       encode([_from, _to, _ids, _amounts, _isGasFee, _data]: [
         string,
@@ -48,6 +34,26 @@ interface NiftyswapExchangeInterface extends Interface {
       ]): string;
     }>;
 
+    metaSetApprovalForAll: TypedFunctionDescription<{
+      encode([_owner, _operator, _approved, _isGasFee, _data]: [
+        string,
+        string,
+        boolean,
+        boolean,
+        Arrayish
+      ]): string;
+    }>;
+
+    safeBatchTransferFrom: TypedFunctionDescription<{
+      encode([_from, _to, _ids, _amounts, _data]: [
+        string,
+        string,
+        (BigNumberish)[],
+        (BigNumberish)[],
+        Arrayish
+      ]): string;
+    }>;
+
     safeTransferFrom: TypedFunctionDescription<{
       encode([_from, _to, _id, _amount, _data]: [
         string,
@@ -58,14 +64,8 @@ interface NiftyswapExchangeInterface extends Interface {
       ]): string;
     }>;
 
-    metaSetApprovalForAll: TypedFunctionDescription<{
-      encode([_owner, _operator, _approved, _isGasFee, _data]: [
-        string,
-        string,
-        boolean,
-        boolean,
-        Arrayish
-      ]): string;
+    setApprovalForAll: TypedFunctionDescription<{
+      encode([_operator, _approved]: [string, boolean]): string;
     }>;
 
     onERC1155BatchReceived: TypedFunctionDescription<{
@@ -90,25 +90,25 @@ interface NiftyswapExchangeInterface extends Interface {
   };
 
   events: {
-    TokensPurchase: TypedEventDescription<{
-      encodeTopics([
-        buyer,
-        tokensBoughtIds,
-        tokensBoughtAmounts,
-        baseTokensSoldAmounts
-      ]: [string | null, null, null, null]): string[];
+    ApprovalForAll: TypedEventDescription<{
+      encodeTopics([_owner, _operator, _approved]: [
+        string | null,
+        string | null,
+        null
+      ]): string[];
     }>;
 
     BaseTokenPurchase: TypedEventDescription<{
       encodeTopics([
         buyer,
+        recipient,
         tokensSoldIds,
         tokensSoldAmounts,
         baseTokensBoughtAmounts
-      ]: [string | null, null, null, null]): string[];
+      ]: [string | null, string | null, null, null, null]): string[];
     }>;
 
-    AddLiquidity: TypedEventDescription<{
+    LiquidityAdded: TypedEventDescription<{
       encodeTopics([provider, tokenIds, tokenAmounts, baseTokenAmounts]: [
         string | null,
         null,
@@ -117,7 +117,7 @@ interface NiftyswapExchangeInterface extends Interface {
       ]): string[];
     }>;
 
-    RemoveLiquidity: TypedEventDescription<{
+    LiquidityRemoved: TypedEventDescription<{
       encodeTopics([provider, tokenIds, tokenAmounts, baseTokenAmounts]: [
         string | null,
         null,
@@ -126,14 +126,18 @@ interface NiftyswapExchangeInterface extends Interface {
       ]): string[];
     }>;
 
-    TransferSingle: TypedEventDescription<{
-      encodeTopics([_operator, _from, _to, _id, _amount]: [
-        string | null,
-        string | null,
-        string | null,
-        null,
-        null
-      ]): string[];
+    NonceChange: TypedEventDescription<{
+      encodeTopics([signer, newNonce]: [string | null, null]): string[];
+    }>;
+
+    TokensPurchase: TypedEventDescription<{
+      encodeTopics([
+        buyer,
+        recipient,
+        tokensBoughtIds,
+        tokensBoughtAmounts,
+        baseTokensSoldAmounts
+      ]: [string | null, string | null, null, null, null]): string[];
     }>;
 
     TransferBatch: TypedEventDescription<{
@@ -146,10 +150,12 @@ interface NiftyswapExchangeInterface extends Interface {
       ]): string[];
     }>;
 
-    ApprovalForAll: TypedEventDescription<{
-      encodeTopics([_owner, _operator, _approved]: [
+    TransferSingle: TypedEventDescription<{
+      encodeTopics([_operator, _from, _to, _id, _amount]: [
         string | null,
         string | null,
+        string | null,
+        null,
         null
       ]): string[];
     }>;
@@ -179,14 +185,12 @@ export class NiftyswapExchange extends Contract {
   functions: {
     balanceOf(_owner: string, _id: BigNumberish): Promise<BigNumber>;
 
-    uri(_id: BigNumberish): Promise<string>;
-
-    getNonce(_signer: string): Promise<BigNumber>;
-
     balanceOfBatch(
       _owners: (string)[],
       _ids: (BigNumberish)[]
     ): Promise<(BigNumber)[]>;
+
+    getNonce(_signer: string): Promise<BigNumber>;
 
     isApprovedForAll(_owner: string, _operator: string): Promise<boolean>;
 
@@ -232,21 +236,6 @@ export class NiftyswapExchange extends Contract {
 
     supportsInterface(interfaceID: Arrayish): Promise<boolean>;
 
-    safeBatchTransferFrom(
-      _from: string,
-      _to: string,
-      _ids: (BigNumberish)[],
-      _amounts: (BigNumberish)[],
-      _data: Arrayish,
-      overrides?: TransactionOverrides
-    ): Promise<ContractTransaction>;
-
-    setApprovalForAll(
-      _operator: string,
-      _approved: boolean,
-      overrides?: TransactionOverrides
-    ): Promise<ContractTransaction>;
-
     metaSafeBatchTransferFrom(
       _from: string,
       _to: string,
@@ -267,6 +256,24 @@ export class NiftyswapExchange extends Contract {
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
+    metaSetApprovalForAll(
+      _owner: string,
+      _operator: string,
+      _approved: boolean,
+      _isGasFee: boolean,
+      _data: Arrayish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    safeBatchTransferFrom(
+      _from: string,
+      _to: string,
+      _ids: (BigNumberish)[],
+      _amounts: (BigNumberish)[],
+      _data: Arrayish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
     safeTransferFrom(
       _from: string,
       _to: string,
@@ -276,12 +283,9 @@ export class NiftyswapExchange extends Contract {
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
-    metaSetApprovalForAll(
-      _owner: string,
+    setApprovalForAll(
       _operator: string,
       _approved: boolean,
-      _isGasFee: boolean,
-      _data: Arrayish,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
@@ -308,40 +312,42 @@ export class NiftyswapExchange extends Contract {
   };
 
   filters: {
-    TokensPurchase(
-      buyer: string | null,
-      tokensBoughtIds: null,
-      tokensBoughtAmounts: null,
-      baseTokensSoldAmounts: null
+    ApprovalForAll(
+      _owner: string | null,
+      _operator: string | null,
+      _approved: null
     ): EventFilter;
 
     BaseTokenPurchase(
       buyer: string | null,
+      recipient: string | null,
       tokensSoldIds: null,
       tokensSoldAmounts: null,
       baseTokensBoughtAmounts: null
     ): EventFilter;
 
-    AddLiquidity(
+    LiquidityAdded(
       provider: string | null,
       tokenIds: null,
       tokenAmounts: null,
       baseTokenAmounts: null
     ): EventFilter;
 
-    RemoveLiquidity(
+    LiquidityRemoved(
       provider: string | null,
       tokenIds: null,
       tokenAmounts: null,
       baseTokenAmounts: null
     ): EventFilter;
 
-    TransferSingle(
-      _operator: string | null,
-      _from: string | null,
-      _to: string | null,
-      _id: null,
-      _amount: null
+    NonceChange(signer: string | null, newNonce: null): EventFilter;
+
+    TokensPurchase(
+      buyer: string | null,
+      recipient: string | null,
+      tokensBoughtIds: null,
+      tokensBoughtAmounts: null,
+      baseTokensSoldAmounts: null
     ): EventFilter;
 
     TransferBatch(
@@ -352,29 +358,18 @@ export class NiftyswapExchange extends Contract {
       _amounts: null
     ): EventFilter;
 
-    ApprovalForAll(
-      _owner: string | null,
+    TransferSingle(
       _operator: string | null,
-      _approved: null
+      _from: string | null,
+      _to: string | null,
+      _id: null,
+      _amount: null
     ): EventFilter;
 
     URI(_uri: null, _id: BigNumberish | null): EventFilter;
   };
 
   estimate: {
-    safeBatchTransferFrom(
-      _from: string,
-      _to: string,
-      _ids: (BigNumberish)[],
-      _amounts: (BigNumberish)[],
-      _data: Arrayish
-    ): Promise<BigNumber>;
-
-    setApprovalForAll(
-      _operator: string,
-      _approved: boolean
-    ): Promise<BigNumber>;
-
     metaSafeBatchTransferFrom(
       _from: string,
       _to: string,
@@ -393,6 +388,22 @@ export class NiftyswapExchange extends Contract {
       _data: Arrayish
     ): Promise<BigNumber>;
 
+    metaSetApprovalForAll(
+      _owner: string,
+      _operator: string,
+      _approved: boolean,
+      _isGasFee: boolean,
+      _data: Arrayish
+    ): Promise<BigNumber>;
+
+    safeBatchTransferFrom(
+      _from: string,
+      _to: string,
+      _ids: (BigNumberish)[],
+      _amounts: (BigNumberish)[],
+      _data: Arrayish
+    ): Promise<BigNumber>;
+
     safeTransferFrom(
       _from: string,
       _to: string,
@@ -401,12 +412,9 @@ export class NiftyswapExchange extends Contract {
       _data: Arrayish
     ): Promise<BigNumber>;
 
-    metaSetApprovalForAll(
-      _owner: string,
+    setApprovalForAll(
       _operator: string,
-      _approved: boolean,
-      _isGasFee: boolean,
-      _data: Arrayish
+      _approved: boolean
     ): Promise<BigNumber>;
 
     onERC1155BatchReceived(

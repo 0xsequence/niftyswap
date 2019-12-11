@@ -7,16 +7,15 @@ import {
   RevertError,
   BuyTokensType,
   SellTokensType,
-  AddLiquidityType, 
-  RemoveLiquidityType,
+  getBuyTokenData,
+  getSellTokenData,
+  getAddLiquidityData,
   methodsSignature
 } from './utils'
 
 import { 
   BuyTokensObj, 
-  SellTokensObj, 
-  AddLiquidityObj, 
-  RemoveLiquidityObj 
+  SellTokensObj
 } from 'typings/txTypes';
 
 import * as utils from './utils'
@@ -88,7 +87,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
   const baseTokenAmount = new BigNumber(10000000).mul(new BigNumber(10).pow(18))
 
   // load contract abi and deploy to test server
-  before(async () => {
+  beforeEach(async () => {
     ownerAddress = await ownerWallet.getAddress()
     userAddress = await userWallet.getAddress()
     operatorAddress = await operatorWallet.getAddress()
@@ -117,13 +116,14 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     userERC1155Contract = await ownerERC1155Contract.connect(userSigner) as ERC1155PackedBalanceMock
     
     // Deploy Niftyswap factory
-    niftyswapFactoryContract = await niftyswapFactoryAbstract.deploy(ownerWallet, [
-      ownerBaseTokenContract.address,
-      baseTokenID
-    ]) as NiftyswapFactory
+    niftyswapFactoryContract = await niftyswapFactoryAbstract.deploy(ownerWallet) as NiftyswapFactory
 
     // Create exchange contract for the ERC-1155 token
-    await niftyswapFactoryContract.functions.createExchange(ownerERC1155Contract.address)
+    await niftyswapFactoryContract.functions.createExchange(
+      ownerERC1155Contract.address, 
+      ownerBaseTokenContract.address, 
+      baseTokenID
+    )
     const exchangeAddress = await niftyswapFactoryContract.functions.getExchange(ownerERC1155Contract.address)
     
     // Type exchange contract
@@ -158,22 +158,14 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     let tokensAmountsToSell: ethers.utils.BigNumber[] = []
     let sellTokenData: string;
 
-    before(async () => {
+    beforeEach(async () => {
       for (let i = 0; i < nTokenTypes; i++) {
         baseAmountsToAdd.push(baseAmountToAdd)
         tokenAmountsToAdd.push(tokenAmountToAdd)
         tokensAmountsToSell.push(tokenAmountToSell)
       }
 
-      // Liquidity
-      const addLiquidityObj = {
-        maxBaseTokens: baseAmountsToAdd,
-        deadline: 10000000
-      } as AddLiquidityObj
-
-      addLiquidityData = ethers.utils.defaultAbiCoder.encode(
-        ['bytes4', AddLiquidityType], [methodsSignature.ADDLIQUIDITY, addLiquidityObj])
-    
+      addLiquidityData = getAddLiquidityData(baseAmountsToAdd, 10000000)    
     })
 
     beforeEach(async () => {
@@ -184,27 +176,14 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       
       // Sell
       const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase([0], [tokenAmountToSell]);
-      const sellTokenObj = {
-        minBaseTokens: price[0].mul(nTokenTypes),
-        deadline: 10000000
-      } as SellTokensObj
-
-      sellTokenData = ethers.utils.defaultAbiCoder.encode(
-        ['bytes4', SellTokensType], [methodsSignature.SELLTOKENS, sellTokenObj])
+      sellTokenData = getSellTokenData(userAddress, price[0].mul(nTokenTypes), 10000000)
     })
 
     it('sell 1 tokens should pass', async () => {
-      const nTokens = 1
-      
+      const nTokens = 1      
       const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase([0], [tokenAmountToSell]);
-      const sellTokenObj = {
-        minBaseTokens: price[0].mul(nTokens),
-        deadline: 10000000
-      } as SellTokensObj
 
-
-      sellTokenData = ethers.utils.defaultAbiCoder.encode(
-        ['bytes4', SellTokensType], [methodsSignature.SELLTOKENS, sellTokenObj])
+      sellTokenData = getSellTokenData(userAddress, price[0].mul(nTokens), 10000000)
 
       let tokensSoldIDs = new Array(nTokens).fill('').map((a, i) => getBig(i))
       let tokensSoldAmounts = new Array(nTokens).fill('').map((a, i) => tokenAmountToSell)
@@ -216,17 +195,9 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     })
 
     it('sell 5 tokens should pass', async () => {
-      const nTokens = 5
-      
+      const nTokens = 5      
       const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase([0], [tokenAmountToSell]);
-      const sellTokenObj = {
-        minBaseTokens: price[0].mul(nTokens),
-        deadline: 10000000
-      } as SellTokensObj
-
-
-      sellTokenData = ethers.utils.defaultAbiCoder.encode(
-        ['bytes4', SellTokensType], [methodsSignature.SELLTOKENS, sellTokenObj])
+      sellTokenData = getSellTokenData(userAddress, price[0].mul(nTokens), 10000000)
 
       let tokensSoldIDs = new Array(nTokens).fill('').map((a, i) => getBig(i))
       let tokensSoldAmounts = new Array(nTokens).fill('').map((a, i) => tokenAmountToSell)
@@ -241,14 +212,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       const nTokens = 30
       
       const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase([0], [tokenAmountToSell]);
-      const sellTokenObj = {
-        minBaseTokens: price[0].mul(nTokens),
-        deadline: 10000000
-      } as SellTokensObj
-
-
-      sellTokenData = ethers.utils.defaultAbiCoder.encode(
-        ['bytes4', SellTokensType], [methodsSignature.SELLTOKENS, sellTokenObj])
+      sellTokenData = getSellTokenData(userAddress, price[0].mul(nTokens), 10000000)
 
       let tokensSoldIDs = new Array(nTokens).fill('').map((a, i) => getBig(i))
       let tokensSoldAmounts = new Array(nTokens).fill('').map((a, i) => tokenAmountToSell)
@@ -264,14 +228,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       const nTokens = 80
       
       const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase([0], [tokenAmountToSell]);
-      const sellTokenObj = {
-        minBaseTokens: price[0].mul(nTokens),
-        deadline: 10000000
-      } as SellTokensObj
-
-
-      sellTokenData = ethers.utils.defaultAbiCoder.encode(
-        ['bytes4', SellTokensType], [methodsSignature.SELLTOKENS, sellTokenObj])
+      sellTokenData = getSellTokenData(userAddress, price[0].mul(nTokens), 10000000)
 
       let tokensSoldIDs = new Array(nTokens).fill('').map((a, i) => getBig(i))
       let tokensSoldAmounts = new Array(nTokens).fill('').map((a, i) => tokenAmountToSell)
@@ -286,14 +243,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       const nTokens = 400
       
       const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase([0], [tokenAmountToSell]);
-      const sellTokenObj = {
-        minBaseTokens: price[0].mul(nTokens),
-        deadline: 10000000
-      } as SellTokensObj
-
-
-      sellTokenData = ethers.utils.defaultAbiCoder.encode(
-        ['bytes4', SellTokensType], [methodsSignature.SELLTOKENS, sellTokenObj])
+      sellTokenData = getSellTokenData(userAddress, price[0].mul(nTokens), 10000000)
 
       let tokensSoldIDs = new Array(nTokens).fill('').map((a, i) => getBig(i))
       let tokensSoldAmounts = new Array(nTokens).fill('').map((a, i) => tokenAmountToSell)
@@ -321,7 +271,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     let buyTokenData: string;
     let cost: ethers.utils.BigNumber
 
-    before(async () => {
+    beforeEach(async () => {
       for (let i = 0; i < nTokenTypes; i++) {
         baseAmountsToAdd.push(baseAmountToAdd)
         tokenAmountsToAdd.push(tokenAmountToAdd)
@@ -329,14 +279,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       }
 
       // Liquidity
-      const addLiquidityObj = {
-        maxBaseTokens: baseAmountsToAdd,
-        deadline: 10000000
-      } as AddLiquidityObj
-
-      addLiquidityData = ethers.utils.defaultAbiCoder.encode(
-        ['bytes4', AddLiquidityType], [methodsSignature.ADDLIQUIDITY, addLiquidityObj])
-    
+      addLiquidityData = getAddLiquidityData(baseAmountsToAdd, 10000000)
     })
 
     beforeEach(async () => {
@@ -348,28 +291,12 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       // Sell
       cost = (await niftyswapExchangeContract.functions.getPrice_baseToToken([0], [tokenAmountToBuy]))[0];
       cost = cost.mul(nTokenTypes)
-      const buyTokenObj = {
-        tokensBoughtIDs: types,
-        tokensBoughtAmounts: tokensAmountsToBuy,
-        deadline: 10000000
-      } as BuyTokensObj
-
-
-      buyTokenData = ethers.utils.defaultAbiCoder.encode(
-        ['bytes4', BuyTokensType], [methodsSignature.BUYTOKENS, buyTokenObj])
+      buyTokenData = getBuyTokenData(userAddress, types, tokensAmountsToBuy, 10000000)
     })
 
     it('buy 1 tokens should pass', async () => {
       cost = cost.div(nTokenTypes).mul(1)
-      const buyTokenObj = {
-        tokensBoughtIDs: [1],
-        tokensBoughtAmounts: [1],
-        deadline: 10000000
-      } as BuyTokensObj
-
-
-      buyTokenData = ethers.utils.defaultAbiCoder.encode(
-        ['bytes4', BuyTokensType], [methodsSignature.BUYTOKENS, buyTokenObj])
+      buyTokenData = getBuyTokenData(userAddress, [1], [new BigNumber(1)], 10000000)
       
       const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
         {gasLimit: 8000000}
@@ -379,15 +306,13 @@ contract('NiftyswapExchange', (accounts: string[]) => {
 
     it('buy 5 tokens should pass', async () => {
       cost = cost.div(nTokenTypes).mul(5)
-      const buyTokenObj = {
-        tokensBoughtIDs: new Array(5).fill('').map((a, i) => getBig(i)),
-        tokensBoughtAmounts: new Array(5).fill('').map((a, i) => getBig(1)),
-        deadline: 10000000
-      } as BuyTokensObj
 
-
-      buyTokenData = ethers.utils.defaultAbiCoder.encode(
-        ['bytes4', BuyTokensType], [methodsSignature.BUYTOKENS, buyTokenObj])
+      buyTokenData = getBuyTokenData(
+        userAddress, 
+        new Array(5).fill('').map((a, i) => getBig(i)), 
+        new Array(5).fill('').map((a, i) => getBig(1)), 
+        10000000
+      )
 
       const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
         {gasLimit: 8000000}
@@ -397,15 +322,12 @@ contract('NiftyswapExchange', (accounts: string[]) => {
 
     it('buy 30 tokens should pass', async () => {
       cost = cost.div(nTokenTypes).mul(30)
-      const buyTokenObj = {
-        tokensBoughtIDs: new Array(30).fill('').map((a, i) => getBig(i)),
-        tokensBoughtAmounts: new Array(30).fill('').map((a, i) => getBig(1)),
-        deadline: 10000000
-      } as BuyTokensObj
-
-
-      buyTokenData = ethers.utils.defaultAbiCoder.encode(
-        ['bytes4', BuyTokensType], [methodsSignature.BUYTOKENS, buyTokenObj])
+      buyTokenData = getBuyTokenData(
+        userAddress, 
+        new Array(30).fill('').map((a, i) => getBig(i)), 
+        new Array(30).fill('').map((a, i) => getBig(1)), 
+        10000000
+      )
 
       const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
         {gasLimit: 8000000}
@@ -416,15 +338,12 @@ contract('NiftyswapExchange', (accounts: string[]) => {
 
     it('buy 80 tokens should pass', async () => {
       cost = cost.div(nTokenTypes).mul(80)
-      const buyTokenObj = {
-        tokensBoughtIDs: new Array(80).fill('').map((a, i) => getBig(i)),
-        tokensBoughtAmounts: new Array(80).fill('').map((a, i) => getBig(1)),
-        deadline: 10000000
-      } as BuyTokensObj
-
-
-      buyTokenData = ethers.utils.defaultAbiCoder.encode(
-        ['bytes4', BuyTokensType], [methodsSignature.BUYTOKENS, buyTokenObj])
+      buyTokenData = getBuyTokenData(
+        userAddress, 
+        new Array(80).fill('').map((a, i) => getBig(i)), 
+        new Array(80).fill('').map((a, i) => getBig(1)), 
+        10000000
+      )
 
       const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
         {gasLimit: 8000000}
@@ -434,15 +353,12 @@ contract('NiftyswapExchange', (accounts: string[]) => {
 
     it('buy 400 tokens should pass', async () => {
       cost = cost.div(nTokenTypes).mul(400)
-      const buyTokenObj = {
-        tokensBoughtIDs: new Array(400).fill('').map((a, i) => getBig(i)),
-        tokensBoughtAmounts: new Array(400).fill('').map((a, i) => getBig(1)),
-        deadline: 10000000
-      } as BuyTokensObj
-
-
-      buyTokenData = ethers.utils.defaultAbiCoder.encode(
-        ['bytes4', BuyTokensType], [methodsSignature.BUYTOKENS, buyTokenObj])
+      buyTokenData = getBuyTokenData(
+        userAddress, 
+        new Array(400).fill('').map((a, i) => getBig(i)), 
+        new Array(400).fill('').map((a, i) => getBig(1)), 
+        10000000
+      )
 
       const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
         {gasLimit: 8000000}

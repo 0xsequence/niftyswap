@@ -16,34 +16,34 @@ interface ERC20MockInterface extends Interface {
       encode([spender, value]: [string, BigNumberish]): string;
     }>;
 
-    transferFrom: TypedFunctionDescription<{
-      encode([from, to, value]: [string, string, BigNumberish]): string;
+    decreaseAllowance: TypedFunctionDescription<{
+      encode([spender, subtractedValue]: [string, BigNumberish]): string;
     }>;
 
     increaseAllowance: TypedFunctionDescription<{
       encode([spender, addedValue]: [string, BigNumberish]): string;
     }>;
 
-    decreaseAllowance: TypedFunctionDescription<{
-      encode([spender, subtractedValue]: [string, BigNumberish]): string;
-    }>;
-
     transfer: TypedFunctionDescription<{
       encode([to, value]: [string, BigNumberish]): string;
+    }>;
+
+    transferFrom: TypedFunctionDescription<{
+      encode([from, to, value]: [string, string, BigNumberish]): string;
     }>;
   };
 
   events: {
-    Transfer: TypedEventDescription<{
-      encodeTopics([from, to, value]: [
+    Approval: TypedEventDescription<{
+      encodeTopics([owner, spender, value]: [
         string | null,
         string | null,
         null
       ]): string[];
     }>;
 
-    Approval: TypedEventDescription<{
-      encodeTopics([owner, spender, value]: [
+    Transfer: TypedEventDescription<{
+      encodeTopics([from, to, value]: [
         string | null,
         string | null,
         null
@@ -66,26 +66,13 @@ export class ERC20Mock extends Contract {
   interface: ERC20MockInterface;
 
   functions: {
-    balanceOf(owner: string): Promise<BigNumber>;
-
     allowance(owner: string, spender: string): Promise<BigNumber>;
+
+    balanceOf(owner: string): Promise<BigNumber>;
 
     approve(
       spender: string,
       value: BigNumberish,
-      overrides?: TransactionOverrides
-    ): Promise<ContractTransaction>;
-
-    transferFrom(
-      from: string,
-      to: string,
-      value: BigNumberish,
-      overrides?: TransactionOverrides
-    ): Promise<ContractTransaction>;
-
-    increaseAllowance(
-      spender: string,
-      addedValue: BigNumberish,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
@@ -95,35 +82,47 @@ export class ERC20Mock extends Contract {
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
+    increaseAllowance(
+      spender: string,
+      addedValue: BigNumberish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
     transfer(
       to: string,
       value: BigNumberish,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
-    name(): Promise<string>;
-    totalSupply(): Promise<BigNumber>;
+    transferFrom(
+      from: string,
+      to: string,
+      value: BigNumberish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
     decimals(): Promise<BigNumber>;
+    name(): Promise<string>;
     symbol(): Promise<string>;
+    totalSupply(): Promise<BigNumber>;
   };
 
   filters: {
-    Transfer(from: string | null, to: string | null, value: null): EventFilter;
-
     Approval(
       owner: string | null,
       spender: string | null,
       value: null
     ): EventFilter;
+
+    Transfer(from: string | null, to: string | null, value: null): EventFilter;
   };
 
   estimate: {
     approve(spender: string, value: BigNumberish): Promise<BigNumber>;
 
-    transferFrom(
-      from: string,
-      to: string,
-      value: BigNumberish
+    decreaseAllowance(
+      spender: string,
+      subtractedValue: BigNumberish
     ): Promise<BigNumber>;
 
     increaseAllowance(
@@ -131,11 +130,12 @@ export class ERC20Mock extends Contract {
       addedValue: BigNumberish
     ): Promise<BigNumber>;
 
-    decreaseAllowance(
-      spender: string,
-      subtractedValue: BigNumberish
-    ): Promise<BigNumber>;
-
     transfer(to: string, value: BigNumberish): Promise<BigNumber>;
+
+    transferFrom(
+      from: string,
+      to: string,
+      value: BigNumberish
+    ): Promise<BigNumber>;
   };
 }

@@ -24,8 +24,8 @@ interface INiftyswapExchangeInterface extends Interface {
   };
 
   events: {
-    TokenPurchase: TypedEventDescription<{
-      encodeTopics([buyer, baseTokeSold, tokensBought]: [
+    AddLiquidity: TypedEventDescription<{
+      encodeTopics([provider, baseTokenAmount, tokenAmount]: [
         string | null,
         BigNumberish | null,
         BigNumberish | null
@@ -40,7 +40,7 @@ interface INiftyswapExchangeInterface extends Interface {
       ]): string[];
     }>;
 
-    AddLiquidity: TypedEventDescription<{
+    RemoveLiquidity: TypedEventDescription<{
       encodeTopics([provider, baseTokenAmount, tokenAmount]: [
         string | null,
         BigNumberish | null,
@@ -48,8 +48,8 @@ interface INiftyswapExchangeInterface extends Interface {
       ]): string[];
     }>;
 
-    RemoveLiquidity: TypedEventDescription<{
-      encodeTopics([provider, baseTokenAmount, tokenAmount]: [
+    TokenPurchase: TypedEventDescription<{
+      encodeTopics([buyer, baseTokeSold, tokensBought]: [
         string | null,
         BigNumberish | null,
         BigNumberish | null
@@ -116,10 +116,10 @@ export class INiftyswapExchange extends Contract {
   };
 
   filters: {
-    TokenPurchase(
-      buyer: string | null,
-      baseTokeSold: BigNumberish | null,
-      tokensBought: BigNumberish | null
+    AddLiquidity(
+      provider: string | null,
+      baseTokenAmount: BigNumberish | null,
+      tokenAmount: BigNumberish | null
     ): EventFilter;
 
     BaseTokenPurchase(
@@ -128,16 +128,16 @@ export class INiftyswapExchange extends Contract {
       baseTokensBought: BigNumberish | null
     ): EventFilter;
 
-    AddLiquidity(
+    RemoveLiquidity(
       provider: string | null,
       baseTokenAmount: BigNumberish | null,
       tokenAmount: BigNumberish | null
     ): EventFilter;
 
-    RemoveLiquidity(
-      provider: string | null,
-      baseTokenAmount: BigNumberish | null,
-      tokenAmount: BigNumberish | null
+    TokenPurchase(
+      buyer: string | null,
+      baseTokeSold: BigNumberish | null,
+      tokensBought: BigNumberish | null
     ): EventFilter;
   };
 

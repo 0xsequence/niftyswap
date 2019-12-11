@@ -186,11 +186,21 @@ Determining the cost of *purchasing* $\Delta{}TokenReserve_i $ tokens $i$ theref
 
 ​								$\Delta{}BaseReserve_i = \frac{K}{TokenReserve_i - \Delta{}TokenReserve_i} - BaseReserve_i$
 
-where $\Delta{}BaseReserve_i$ is the amount of base currency assets that must be sent cover the cost of the $\Delta{}TokenReserve_i $ purchased. Inversely, determining the revenue from *selling* $\Delta{}TokenReserve_i $ tokens $i$ can be done with
+with substitution,  the purchase cost can also be written as 
+
+​								$\Delta{}BaseReserve_i = \frac{BaseReserve_i * \Delta{}TokenReserve_i}{TokenReserve_i - \Delta{}TokenReserve_i} $
+
+where $\Delta{}BaseReserve_i$ is the amount of base currency assets that must be sent cover the cost of the $\Delta{}TokenReserve_i $ purchased. The latter form of this equation is the one used in the `getBuyPrice()` function. Inversely, determining the revenue from *selling* $\Delta{}TokenReserve_i $ tokens $i$ can be done with
 
 ​								$\Delta{}BaseReserve_i = BaseReserve_i - \frac{K}{TokenReserve_i + \Delta{}TokenReserve_i}$
 
-where $\Delta{}BaseReserve_i$ is the amount of base currency that a user would receive. 
+with substitution,  the purchase cost can also be written as
+
+​								$\Delta{}BaseReserve_i = \frac{BaseReserve_i * \Delta{}TokenReserve_i}{TokenReserve_i + \Delta{}TokenReserve_i}$
+
+where $\Delta{}BaseReserve_i$ is the amount of base currency that a user would receive. The latter form of this equation is the one used in the `getSellPrice()` function. 
+
+Note that the implementation of these equations is subjected to arithmetic rounding errors. To see how these are mitigated, see the [Rounding Errors](#rounding-errors) section.
 
 #Liquidity Fee
 
@@ -562,3 +572,43 @@ function getBaseTokenInfo() external view returns (address, uint256);
 ```
 
 Will return the address of the Base Token contract that is used as currency and its corresponding id.
+
+# Miscellaneous
+
+## Rounding Errors
+
+Some rounding errors are possible due to the nature of finite precision arithmetic the Ethereum Virtual Machine (EVM) inherits from. To account for this, some corrections needed to be implemented to make sure these rounding errors can't be exploited. 
+
+Three main functions in NiftyswapExchange.sol are subjected to rounding errors: `_addLiquidity()`, `_baseToToken()` and `_tokenToBase()`. 
+
+For `_addLiquidity()`, the rounding error can occur at
+
+```solidity
+uint256 baseTokenAmount = (tokenAmount.mul(baseReserve) / (tokenReserve.sub(tokenAmount))).add(1);
+```
+
+where `baseTokenAmount` is the amount of Base Currency that needs to be sent to NiftySwap for the given `tokenAmount` of token $i$ added to the liquidity. Rounding errors could lead to a smaller value of `baseTokenAmount` than expected, favoring the liquidity provider, hence we add `1` to the amount that is required to be sent. 
+
+For `_baseToToken()`, the rounding error can occur at
+
+```solidity
+// Calculate buy price of card
+uint256 numerator = _baseReserve.mul(_tokenBoughtAmount);
+uint256 denominator = (_tokenReserve.sub(_tokenBoughtAmount));
+uint256 cost = (numerator / denominator).add(1);
+```
+
+where `cost` is the amount of Base Currency that needs to be sent to NiftySwap for the given `_tokenBoughtAmount` of token $i$ being purchased. Rounding errors could lead to a smaller value of `baseTokenAmount` than expected, favoring the buyer, hence we add `1` to the amount that is required to be sent
+
+For `_tokenToToken()`, the rounding error can occur at
+
+```solidity
+// Calculate sell price of card
+uint256 numerator = _tokenSoldAmount.mul(_baseReserve);
+uint256 denominator = _tokenReserve.add(_tokenSoldAmount);
+uin256 revenue = numerator / denominator; 
+```
+
+where `revenue` is the amount of Base Currency that will to be sent to buyer for the given `_tokenSoldAmount` of token $i$ being sold. Rounding errors could lead to a smaller value of `baseTokenAmount` than expected, disfavoring the buyer, hence no correction necessary.
+
+Notably, rounding errors and the applied correction only have a significant impact when the Base Currency use has a low number of decimals.
