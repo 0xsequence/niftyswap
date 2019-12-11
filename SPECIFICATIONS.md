@@ -15,7 +15,7 @@
   * [Base Currency](#base-currency)
   * [Tokens](#tokens)
 - [Trades](#trades)
-    + [Base Currency to Token $$i$$](#base-currency-to-token--i-)
+    + [Base Currency to Token $i$](#base-currency-to-token--i-)
     + [Token $i$ to Base Currency](#token--i--to-base-currency)
 - [Liquidity Reserves Management](#liquidity-reserves-management)
     + [Adding Liquidity](#adding-liquidity)
@@ -31,7 +31,14 @@
     + [getPrice_tokenToBase()](#getprice-tokentobase--)
     + [getTokenAddress()](#gettokenaddress--)
     + [getBaseTokenInfo()](#getbasetokeninfo--)
+- [Miscellaneous](#miscellaneous)
+  * [Rounding Errors](#rounding-errors)
     
+
+
+
+
+
 # Overview
 
 Niftyswap is a fork of [Uniswap](<https://hackmd.io/@477aQ9OrQTCbVR3fq1Qzxg/HJ9jLsfTz?type=view>), a protocol for automated token exchange on Ethereum. While Uniswap is for trading [ERC-20](<https://eips.ethereum.org/EIPS/eip-20>) tokens, Niftyswap is a protocol for [ERC-1155](<https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1155.md>) tokens. Both are designed to favor ease of use and provide guaranteed access to liquidity on-chain. 
@@ -58,7 +65,7 @@ This contract is used to deploy a new NiftyswapExchange.sol contract for ERC-115
 
 Methods for exchanging tokens and managing reserves liquidity are all called internally via the ERC-1155 `onERC1155BatchReceived()` method. The four methods that can be called via `onERC1155BatchReceived()` should be safe against re-entrancy attacks.
 
-```solidity
+```java
 /**
  * @notice Handle which method is being called on transfer
  * @dev `_data` must be encoded as follow: abi.encode(bytes4, MethodObj)
@@ -88,7 +95,7 @@ The first 4 bytes of the `_data` argument indicate which of the four main [Nifty
 
 In `NiftyswapExchange.sol`, there are two methods for exchanging tokens:
 
-```Solidity
+```java
 /**
  * @notice Convert Base Tokens to Tokens _id and transfers Tokens to recipient.
  * @dev User specifies MAXIMUM inputs (_maxBaseTokens) and EXACT outputs.
@@ -131,7 +138,7 @@ function _tokenToBase(
 
 In `NiftyswapExchange.sol`, there are two methods for managing token reserves supplies:
 
-```solidity
+```java
 /**
  * @notice Deposit max Base Tokens & exact Tokens at current ratio to get share tokens.
  * @dev min_liquidity does nothing when total NIFTY liquidity token supply is 0.
@@ -174,11 +181,11 @@ function _removeLiquidity(
 
 In Niftyswap, like Uniswap, the price of an asset is a function of a base currency reserve and the corresponding token reserve. Indeed, all methods in Niftyswap enforce that the the following equality remains true: 
 
-​												$$BaseReserve_i * TokenReserve_i = K$$
+​												$BaseReserve_i * TokenReserve_i = K$
 
 where $BaseReserve_i$ is the base currency reserve size for the corresponding token id $i$, $TokenReserve_i$ is the reserve size of the ERC-1155 token id $i$ and $K$ is an arbitrary constant. 
 
-**Ignoring the [Liquidity Fee](#liquidity-fee)**, purchasing some tokens $i$ with the base currency (or vice versa) should increase the $BaseReserve_i$ and decrease the $TokenReserve_i$ (or vice versa) such that 
+**Ignoring the [Liquidity Fee](#liquidity-fee)**, purchasing some tokens $i$ with the base currency (or vice versa) should increase the $BaseReserve_i$ and decrease the $TokenReserve_i$ (or vice versa) such that
 
 ​												$BaseReserve_i * TokenReserve_i == K$. 
 
@@ -236,7 +243,7 @@ It is possible to buy/sell multiple tokens at once, but if any one fails, the en
 
 To trade base currency => token $i$, a user would call 
 
-```solidity
+```java
 _baseToToken(_tokenIds, _tokensBoughtAmounts, _maxBaseTokens, _deadline, _recipient);
 ```
 
@@ -250,7 +257,7 @@ Finally, users can specify who should receive the tokens with the `_recipient` a
 
 The `_maxBaseTokens` argument is specified as the amount of base currency sent to the NiftyswapExchange.sol contract via the `onERC1155BatchReceived()` method :
 
-```solidity
+```java
 // Tokens received need to be Base Currency contract
 require(msg.sender == address(baseToken), "NiftyswapExchange#onERC1155BatchReceived: INVALID_BASE_TOKENS_TRANSFERRED");
 require(_ids.length == 1, "NiftyswapExchange#onERC1155BatchReceived: INVALID_BASE_TOKEN_ID_AMOUNT");
@@ -269,18 +276,22 @@ where any difference between the actual cost of the trade and the amount sent wi
 
 To call this method, users must transfer sufficient base currency to the NiftyswapExchange.sol, as follow:
 
-```solidity
+```java
 // Call _baseToToken() on NiftyswapExchange.sol contract
 IERC1155(BaseCurrencyContract).safeTranferFrom(_from, niftyswap_address, base_curency_id, _maxBaseTokens, _data);
 ```
 
 where `_data` is defined in the [Data Encoding: _baseToToken()](#_basetotoken()) section.
 
+
+
+
+
 ### Token $i$ to Base Currency
 
 To trade token $i$ => base currency, a user would call 
 
-```solidity
+```java
 _tokenToBase(_tokenIds, _tokensSoldAmounts, _minBaseTokens, _deadline, _recipient);
 ```
 as defined [Exchanging Tokens](#exchanging-tokens) and specify *exactly* how many tokens $i$ they sell. This is done by specifying the token ids to sell in the `_tokenIds` array and the amount for each token id in the `_tokensSoldAmounts` array. 
@@ -293,7 +304,7 @@ Finally, users can specify who should receive the base currency with the `_recip
 
 The `_tokenIds` and  `_tokensSoldAmounts` arguments are specified as the token ids and token amounts sent to the NiftyswapExchange.sol contract via the `onERC1155BatchReceived()` method :
 
-```solidity
+```java
 // Tokens received need to be correct ERC-1155 Token contract
 require(msg.sender == address(token), "NiftyswapExchange#onERC1155BatchReceived: INVALID_TOKENS_TRANSFERRED");
 
@@ -308,12 +319,16 @@ _tokenToBase(_ids, _amounts, obj.minBaseTokens, obj.deadline, recipient);
 
 To call this method, users must transfer the tokens to sell to the NiftyswapExchange.sol contract, as follow:
 
-```solidity
+```java
 // Call _tokenToBase() on NiftyswapExchange.sol contract
 IERC1155(TokenContract).safeBatchTranferFrom(_from, niftyswap_address, _ids, _amounts, _data);
 ```
 
 where `_data` is defined in the [Data Encoding: _tokenToBase()](#_tokentobase()) section.
+
+
+
+
 
 # Liquidity Reserves Management
 
@@ -323,7 +338,7 @@ Anyone can provide liquidity for a given token $i$, so long as they also provide
 
 To add liquidity for a given token $i$, a user would call
 
-```solidity
+```java
 _addLiquidity(_provider, _tokenIds, _tokenAmounts, _maxBaseTokens, _deadline);
 ```
 
@@ -335,7 +350,7 @@ Additionally, to protect users against miners or third party relayers withholdin
 
 The `_provider` argument is the address of who sent the tokens and the `_tokenIds` and  `_tokenAmounts` arguments are specified as the token ids and token amounts sent to the NiftyswapExchange.sol contract via the `onERC1155BatchReceived()` method:
 
-```solidity
+```java
 // Tokens received need to be correct ERC-1155 Token contract
 require(msg.sender == address(token), "NiftyswapExchange#onERC1155BatchReceived: INVALID_TOKEN_TRANSFERRED");
 
@@ -349,7 +364,7 @@ _addLiquidity(_from, _ids, _amounts, obj.maxBaseTokens, obj.deadline);
 
 To call this method, users must transfer the tokens to add to the NiftyswapExchange.sol liquidity pools, as follow:
 
-```solidity
+```java
 // Call _addLiquidity() on NiftyswapExchange.sol contract
 IERC1155(TokenContract).safeBatchTranferFrom(_provider, niftyswap_address, _ids, _amounts, _data);
 ```
@@ -360,7 +375,7 @@ where `_data` is defined in the [Data Encoding: _addLiquidity()](#_addliquidity(
 
 To remove liquidity for a given token $i$, a user would call
 
-```solidity
+```java
 _removeLiquidity(_provider, _tokenIds, _poolTokenAmounts, _minBaseTokens, _minTokens, _deadline);
 ```
 
@@ -372,7 +387,7 @@ Additionally, to protect users against miners or third party relayers withholdin
 
 The `_provider` argument is the address of who sent the liquidity pool tokens, the `_tokenIds` and `_poolTokenAmounts` arguments are specified as the token ids and liquidity pool token amounts sent to the NiftyswapExchange.sol contract via the `onERC1155BatchReceived()` method:
 
-```solidity
+```java
 // Tokens received need to be NIFTY-1155 tokens (liquidity pool tokens)
 require(msg.sender == address(this), "NiftyswapExchange#onERC1155BatchReceived: INVALID_NIFTY_TOKENS_TRANSFERRED");
 
@@ -386,7 +401,7 @@ _removeLiquidity(_from, _ids, _amounts, obj.minBaseTokens, obj.minTokens, obj.de
 
 To call this method, users must transfer the liquidity pool tokens to burn to the NiftyswapExchange.sol contract, as follow:
 
-```solidity
+```java
 // Call _removeLiquidity() on NiftyswapExchange.sol contract
 IERC1155(NiftyswapExchange).safeBatchTranferFrom(_provider, niftyswap_address, _ids, _amounts, _data);
 ```
@@ -397,7 +412,7 @@ where `_data` is defined in the [Data Encoding: _removeLiquidity()](#_removeliqu
 
 In order to call the correct NiftySwap method, users must encode a data payload containing the function signature to call and the method's receptive argument objects. All method calls must be encoded as follow:
 
-```solidity
+```java
 // bytes4 method_signature
 // Obj method_struct
 _data = abi.encode(method_signature, method_struct);
@@ -409,7 +424,7 @@ where the `method_signature` and `method_struct` are specific to each method. Th
 
 The `bytes4` signature to call this method is `0x24c186e7`
 
-```solidity
+```java
 // bytes4(keccak256(
 //   "_baseToToken(uint256[],uint256[],uint256,uint256,address)"
 // ));
@@ -427,7 +442,7 @@ The `method_struct` for this method is structured as follow:
 
 or 
 
-```solidity
+```java
 struct BuyTokensObj {
     address recipient;             // Who receives the tokens
     uint256[] tokensBoughtIDs;     // Token IDs to buy
@@ -440,7 +455,7 @@ struct BuyTokensObj {
 
 The `bytes4` signature to call this method is `0x7db38b4a`
 
-```solidity
+```java
 // bytes4(keccak256(
 //   "_tokenToBase(uint256[],uint256[],uint256,uint256,address)"
 // ));
@@ -457,7 +472,7 @@ The `method_struct` for this method is structured as follow:
 
 or 
 
-```solidity
+```java
 struct SellTokensObj {
     address recipient;       // Who receives the base tokens for the sale
     uint256 minBaseTokens;   // Minimum number of base tokens expected for all tokens sold
@@ -469,7 +484,7 @@ struct SellTokensObj {
 
 The `bytes4` signature to call this method is `0x82da2b73`
 
-```solidity
+```java
 //  bytes4(keccak256(
 //   "_addLiquidity(address,uint256[],uint256[],uint256[],uint256)"
 // ));
@@ -485,7 +500,7 @@ The `method_struct` for this method is structured as follow:
 
 or 
 
-```solidity
+```java
 struct AddLiquidityObj {
     uint256[] maxBaseTokens; // Maximum number of base tokens to deposit with tokens
     uint256 deadline;        // Block # after which the tx isn't valid anymore
@@ -496,7 +511,7 @@ struct AddLiquidityObj {
 
 The `bytes4` signature to call this method is `0x5c0bf259`
 
-```solidity
+```java
 // bytes4(keccak256(
 //    "_removeLiquidity(address,uint256[],uint256[],uint256[],uint256[],uint256)"
 // ));
@@ -513,7 +528,7 @@ The `method_struct` for this method is structured as follow:
 
 or 
 
-```solidity
+```java
 struct RemoveLiquidityObj {
     uint256[] minBaseTokens; // Minimum number of base tokens to withdraw
     uint256[] minTokens;     // Minimum number of tokens to withdraw
@@ -527,7 +542,7 @@ There methods are useful for clients and third parties to query the current stat
 
 ### getBaseTokenReserves()
 
-```solidity
+```java
 function getBaseTokenReserves(
 	uint256[] calldata _ids
 ) external view returns (uint256[] memory)
@@ -537,7 +552,7 @@ This method returns the amount of Base Currency in reserve for each Token $i$ in
 
 ### getPrice_baseToToken()
 
-```solidity
+```java
 function getPrice_baseToToken(
     uint256[] calldata _ids,
     uint256[] calldata _tokensBoughts
@@ -548,7 +563,7 @@ This method will return the current cost for the token _ids provided and their r
 
 ### getPrice_tokenToBase()
 
-```solidity
+```java
 function getPrice_tokenToBase(
     uint256[] calldata _ids,
     uint256[] calldata _tokensSold
@@ -559,7 +574,7 @@ This method will return the current amount of base currency to be received for t
 
 ### getTokenAddress()
 
-```solidity
+```java
 function tokenAddress() external view returns (address);
 ```
 
@@ -567,7 +582,7 @@ Will return the address of the corresponding ERC-1155 token contract.
 
 ### getBaseTokenInfo()
 
-```solidity
+```java
 function getBaseTokenInfo() external view returns (address, uint256);
 ```
 
@@ -583,7 +598,7 @@ Three main functions in NiftyswapExchange.sol are subjected to rounding errors: 
 
 For `_addLiquidity()`, the rounding error can occur at
 
-```solidity
+```java
 uint256 baseTokenAmount = (tokenAmount.mul(baseReserve) / (tokenReserve.sub(tokenAmount))).add(1);
 ```
 
@@ -591,7 +606,7 @@ where `baseTokenAmount` is the amount of Base Currency that needs to be sent to 
 
 For `_baseToToken()`, the rounding error can occur at
 
-```solidity
+```java
 // Calculate buy price of card
 uint256 numerator = _baseReserve.mul(_tokenBoughtAmount);
 uint256 denominator = (_tokenReserve.sub(_tokenBoughtAmount));
@@ -602,7 +617,7 @@ where `cost` is the amount of Base Currency that needs to be sent to NiftySwap f
 
 For `_tokenToToken()`, the rounding error can occur at
 
-```solidity
+```java
 // Calculate sell price of card
 uint256 numerator = _tokenSoldAmount.mul(_baseReserve);
 uint256 denominator = _tokenReserve.add(_tokenSoldAmount);
