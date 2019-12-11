@@ -101,10 +101,11 @@ interface NiftyswapExchangeInterface extends Interface {
     BaseTokenPurchase: TypedEventDescription<{
       encodeTopics([
         buyer,
+        recipient,
         tokensSoldIds,
         tokensSoldAmounts,
         baseTokensBoughtAmounts
-      ]: [string | null, null, null, null]): string[];
+      ]: [string | null, string | null, null, null, null]): string[];
     }>;
 
     LiquidityAdded: TypedEventDescription<{
@@ -132,10 +133,11 @@ interface NiftyswapExchangeInterface extends Interface {
     TokensPurchase: TypedEventDescription<{
       encodeTopics([
         buyer,
+        recipient,
         tokensBoughtIds,
         tokensBoughtAmounts,
         baseTokensSoldAmounts
-      ]: [string | null, null, null, null]): string[];
+      ]: [string | null, string | null, null, null, null]): string[];
     }>;
 
     TransferBatch: TypedEventDescription<{
@@ -318,6 +320,7 @@ export class NiftyswapExchange extends Contract {
 
     BaseTokenPurchase(
       buyer: string | null,
+      recipient: string | null,
       tokensSoldIds: null,
       tokensSoldAmounts: null,
       baseTokensBoughtAmounts: null
@@ -341,6 +344,7 @@ export class NiftyswapExchange extends Contract {
 
     TokensPurchase(
       buyer: string | null,
+      recipient: string | null,
       tokensBoughtIds: null,
       tokensBoughtAmounts: null,
       baseTokensSoldAmounts: null

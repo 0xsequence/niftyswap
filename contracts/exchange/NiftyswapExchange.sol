@@ -23,17 +23,9 @@ import "multi-token-standard/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
  */
 contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
 
-  /**
-   * TO DO
-   *   - Add DAI wrapp / unwrap (perhaps proxy)
-   *   - Optimizations
-   *   - Min liquidity tokens in AddLiquidity?
-   *   - Check rounding error for addLiquidity & getBuyPrice
-   *   - Add Proxy
-   */
 
   /***********************************|
-  |        Variables && Events        |
+  |       Variables & Constants       |
   |__________________________________*/
 
   // Variables
@@ -65,7 +57,8 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     uint256 deadline;        // Block # after which the tx isn't valid anymore
   }
 
-  // Signatures for onReceive control logic
+  // Method signatures for onReceive control logic
+
   // bytes4(keccak256(
   //   "_baseToToken(uint256[],uint256[],uint256,uint256,address)"
   // ));
@@ -84,7 +77,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
   // bytes4(keccak256(
   //    "_removeLiquidity(address,uint256[],uint256[],uint256[],uint256[],uint256)"
   // ));
-  bytes4 internal constant LiquidityRemoved_SIG = 0x5c0bf259;
+  bytes4 internal constant REMOVELIQUIDITY_SIG = 0x5c0bf259;
 
   // bytes4(keccak256(
   //   "DepositTokens()"
@@ -95,11 +88,40 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
   mapping(uint256 => uint256) internal totalSupplies;    // Liquidity pool token supply per Token id
   mapping(uint256 => uint256) internal baseTokenReserve; // Base Token reserve per Token id
 
-  // Events
-  event TokensPurchase(address indexed buyer, uint256[] tokensBoughtIds, uint256[] tokensBoughtAmounts, uint256[] baseTokensSoldAmounts);
-  event BaseTokenPurchase(address indexed buyer, uint256[] tokensSoldIds, uint256[] tokensSoldAmounts, uint256[] baseTokensBoughtAmounts);
-  event LiquidityAdded(address indexed provider, uint256[] tokenIds, uint256[] tokenAmounts, uint256[] baseTokenAmounts);
-  event LiquidityRemoved(address indexed provider, uint256[] tokenIds, uint256[] tokenAmounts, uint256[] baseTokenAmounts);
+
+  /***********************************|
+  |               Events              |
+  |__________________________________*/
+
+  event TokensPurchase(
+    address indexed buyer,
+    address indexed recipient,
+    uint256[] tokensBoughtIds,
+    uint256[] tokensBoughtAmounts,
+    uint256[] baseTokensSoldAmounts
+  );
+
+  event BaseTokenPurchase(
+    address indexed buyer,
+    address indexed recipient,
+    uint256[] tokensSoldIds,
+    uint256[] tokensSoldAmounts,
+    uint256[] baseTokensBoughtAmounts
+  );
+
+  event LiquidityAdded(
+    address indexed provider,
+    uint256[] tokenIds,
+    uint256[] tokenAmounts,
+    uint256[] baseTokenAmounts
+  );
+
+  event LiquidityRemoved(
+    address indexed provider,
+    uint256[] tokenIds,
+    uint256[] tokenAmounts,
+    uint256[] baseTokenAmounts
+  );
 
 
   /***********************************|
@@ -181,7 +203,10 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
       BuyTokensObj memory obj;
       (functionSignature, obj) = abi.decode(_data, (bytes4, BuyTokensObj));
       address recipient = obj.recipient == address(0x0) ? _from : obj.recipient;
-      _baseToToken(obj.tokensBoughtIDs, obj.tokensBoughtAmounts, _amounts[0], obj.deadline, recipient);
+
+      // Execute trade and retrieve amount of baseTokens spent
+      uint256[] memory baseTokensSold = _baseToToken(obj.tokensBoughtIDs, obj.tokensBoughtAmounts, _amounts[0], obj.deadline, recipient);
+      emit TokensPurchase(_from, recipient, obj.tokensBoughtIDs, obj.tokensBoughtAmounts, baseTokensSold);
 
     /***********************************|
     |           Selling Tokens          |
@@ -195,7 +220,10 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
       SellTokensObj memory obj;
       (functionSignature, obj) = abi.decode(_data, (bytes4, SellTokensObj));
       address recipient = obj.recipient == address(0x0) ? _from : obj.recipient;
-      _tokenToBase(_ids, _amounts, obj.minBaseTokens, obj.deadline, recipient);
+
+      // Execute trade and retrieve amount of baseTokens received
+      uint256[] memory baseTokensBougth = _tokenToBase(_ids, _amounts, obj.minBaseTokens, obj.deadline, recipient);
+      emit BaseTokenPurchase(_from, recipient, _ids, _amounts, baseTokensBougth);
 
     /***********************************|
     |      Adding Liquidity Tokens      |
@@ -214,7 +242,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     |      Removing iquidity Tokens     |
     |__________________________________*/
 
-    } else if (functionSignature == LiquidityRemoved_SIG) {
+    } else if (functionSignature == REMOVELIQUIDITY_SIG) {
       // Tokens received need to be NIFTY-1155 tokens
       require(msg.sender == address(this), "NiftyswapExchange#onERC1155BatchReceived: INVALID_NIFTY_TOKENS_TRANSFERRED");
 
@@ -279,7 +307,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     uint256 _maxBaseTokens,
     uint256 _deadline,
     address _recipient)
-    internal nonReentrant()
+    internal nonReentrant() returns (uint256[] memory baseTokensSold)
   {
     // Number of Token IDs to deposit
     uint256 nTokens = _tokenIds.length;
@@ -290,7 +318,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     require(nTokens == _tokensBoughtAmounts.length, "NiftyswapExchange#_baseToToken: INVALID_LENGTH_FOR_IDS_AMOUNTS");
 
     // Initialize variables
-    uint256[] memory baseTokensSold = new uint256[](nTokens); // Amount of base tokens sold per ID
+    baseTokensSold = new uint256[](nTokens); // Amount of base tokens sold per ID
     uint256[] memory tokenReserves = new uint256[](nTokens);  // Amount of tokens in reserve for each Token id
 
     // Get token reserves
@@ -334,14 +362,15 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
 
     // Send Tokens all tokens purchased
     token.safeBatchTransferFrom(address(this), _recipient, _tokenIds, _tokensBoughtAmounts, "");
-    emit TokensPurchase(_recipient, _tokenIds, _tokensBoughtAmounts, baseTokensSold);
+    return baseTokensSold;
   }
 
   /**
-   * @dev Pricing function for converting between Base Tokens && Tokens.
-   * @param _assetBoughtAmount  Amount of Base Tokens or Tokens being bought.
-   * @param _assetSoldReserve   Amount of Base Tokens or Tokens (input type) in exchange reserves.
-   * @param _assetBoughtReserve Amount of Base Tokens or Tokens (output type) in exchange reserves.
+   * @dev Pricing function used for converting between Base Token to Tokens.
+   * @param _assetBoughtAmount  Amount of Tokens being bought.
+   * @param _assetSoldReserve   Amount of Base Tokens in exchange reserves.
+   * @param _assetBoughtReserve Amount of Tokens (output type) in exchange reserves.
+   * @return Amount of Base Tokens to send to Niftyswap.
    */
   function getBuyPrice(
     uint256 _assetBoughtAmount,
@@ -355,7 +384,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     // Calculate price with fee
     uint256 numerator = _assetSoldReserve.mul(_assetBoughtAmount).mul(1000);
     uint256 denominator = (_assetBoughtReserve.sub(_assetBoughtAmount)).mul(FEE_MULTIPLIER);
-    return numerator / denominator;
+    return (numerator / denominator).add(1); // Rounding error favors user, hence need +1 to be safe
   }
 
   /**
@@ -374,7 +403,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     uint256 _minBaseTokens,
     uint256 _deadline,
     address _recipient)
-    internal nonReentrant()
+    internal nonReentrant() returns (uint256[] memory baseTokensBougth)
   {
     // Number of Token IDs to deposit
     uint256 nTokens = _tokenIds.length;
@@ -385,7 +414,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
 
     // Initialize variables
     uint256 totalBaseTokens = 0; // Total amount of Base tokens to transfer
-    uint256[] memory baseTokensBougth = new uint256[](nTokens);
+    baseTokensBougth = new uint256[](nTokens);
     uint256[] memory tokenReserves = new uint256[](nTokens);
 
     // Get token reserves
@@ -428,16 +457,15 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     // Transfer baseTokens here
     baseToken.safeTransferFrom(address(this), _recipient, baseTokenID, totalBaseTokens, "");
 
-    // Might need to emit in onReceive
-    emit BaseTokenPurchase(_recipient, _tokenIds, _tokensSoldAmounts, baseTokensBougth);
+    return baseTokensBougth;
   }
 
   /**
-   * @dev Pricing function for converting between Base Tokens && Tokens.
-   * @param _assetSoldAmount    Amount of Base Tokens or Tokens being sold.
-   * @param _assetSoldReserve   Amount of Base Tokens or Tokens (output type) in exchange reserves.
-   * @param _assetBoughtReserve Amount of Base Tokens or Tokens (input type) in exchange reserves.
-   * @return Amount of Base Tokens or Tokens to receive from Niftyswap.
+   * @dev Pricing function used for converting Tokens to Base Token.
+   * @param _assetSoldAmount    Amount of Tokens being sold.
+   * @param _assetSoldReserve   Amount of Tokens in exchange reserves.
+   * @param _assetBoughtReserve Amount of Base Tokens in exchange reserves.
+   * @return Amount of Base Tokens to receive from Niftyswap.
    */
   function getSellPrice(
     uint256 _assetSoldAmount,
@@ -452,7 +480,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     uint256 _assetSoldAmount_withFee = _assetSoldAmount.mul(FEE_MULTIPLIER);
     uint256 numerator = _assetSoldAmount_withFee.mul(_assetBoughtReserve);
     uint256 denominator = _assetSoldReserve.mul(1000).add(_assetSoldAmount_withFee);
-    return numerator / denominator;
+    return numerator / denominator; //Rounding errors will favor Niftyswap, hence safe
   }
 
 
@@ -461,7 +489,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
   |__________________________________*/
 
   /**
-   * @notice Deposit max Base Tokens && exact Tokens (token ID) at current ratio to mint NIFTY-1155 tokens.
+   * @notice Deposit less than max Base Tokens && exact Tokens (token ID) at current ratio to mint liquidity pool tokens.
    * @dev min_liquidity does nothing when total liquidity pool token supply is 0.
    * @dev Assumes that sender approved this contract on the baseToken
    * @param _provider      Address that provides liquidity to the reserve
@@ -528,8 +556,10 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
         *   Y:  Token _id total liquidity (before tokens were received)
         *   dy: Amount of token _id deposited
         *   dx: Amount of base token to deposit
+        *
+        * Adding .add(1) to make sure rounding errors don't favor users incorrectly
         */
-        uint256 baseTokenAmount = amount.mul(baseReserve) / (tokenReserve.sub(amount));
+        uint256 baseTokenAmount = (amount.mul(baseReserve) / (tokenReserve.sub(amount))).add(1);
         require(_maxBaseTokens[i] >= baseTokenAmount, "NiftyswapExchange#_addLiquidity: MAX_BASE_TOKENS_EXCEEDED");
 
         // Update Base Token reserve size for Token id before transfer

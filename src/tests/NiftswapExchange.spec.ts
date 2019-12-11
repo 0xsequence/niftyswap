@@ -2,7 +2,6 @@ import * as ethers from 'ethers'
 
 import { 
   AbstractContract, 
-  BigNumber, 
   expect,
   RevertError,
   getBuyTokenData,
@@ -20,6 +19,7 @@ import { NiftyswapFactory } from 'typings/contracts/NiftyswapFactory'
 //@ts-ignore
 import { abi as exchangeABI } from './contracts/NiftyswapExchange.json'
 import { Zero } from 'ethers/constants';
+import { BigNumber } from 'ethers/utils';
 
 // init test wallets from package.json mnemonic
 const web3 = (global as any).web3
@@ -51,7 +51,6 @@ const {
 const getBig = (id: number) => new BigNumber(id);
 
 contract('NiftyswapExchange', (accounts: string[]) => {
-  const MAXVAL = new BigNumber(2).pow(256).sub(1) // 2**256 - 1
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
   let ownerAddress: string
@@ -60,8 +59,6 @@ contract('NiftyswapExchange', (accounts: string[]) => {
   let erc1155Abstract: AbstractContract
   let erc1155PackedAbstract: AbstractContract
   let niftyswapFactoryAbstract: AbstractContract
-  let niftyswapExchangeAbstract: AbstractContract
-  let operatorAbstract: AbstractContract
 
   // ERC-1155 token
   let ownerERC1155Contract: ERC1155PackedBalanceMock
@@ -79,14 +76,16 @@ contract('NiftyswapExchange', (accounts: string[]) => {
   let operatorExchangeContract: NiftyswapExchange
 
   // Token Param
-  let types: number[] = []
-  let values: number[]  = []
   const nTokenTypes    = 30 //560
   const nTokensPerType = 500000
 
   // Base Token Param
   const baseTokenID = 666;
   const baseTokenAmount = new BigNumber(10000000).mul(new BigNumber(10).pow(18))
+
+  // Arrays
+  const types = new Array(nTokenTypes).fill('').map((a, i) => getBig(i))
+  const values = new Array(nTokenTypes).fill('').map((a, i) => nTokensPerType)
 
   // load contract abi and deploy to test server
   before(async () => {
@@ -96,13 +95,6 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     erc1155Abstract = await AbstractContract.fromArtifactName('ERC1155Mock')
     erc1155PackedAbstract = await AbstractContract.fromArtifactName('ERC1155PackedBalanceMock')
     niftyswapFactoryAbstract = await AbstractContract.fromArtifactName('NiftyswapFactory')
-    niftyswapExchangeAbstract = await AbstractContract.fromArtifactName('NiftyswapExchange')
-
-    // Minting enough values for transfer for each types
-    for (let i = 0; i < nTokenTypes; i++) {
-      types.push(i)
-      values.push(nTokensPerType)
-    }
   })
 
   // deploy before each test, to reset state of contract
@@ -175,18 +167,14 @@ contract('NiftyswapExchange', (accounts: string[]) => {
   })
 
   describe('_addLiquidity() function', () => {
-    let nTypesToAdd = 30;
-    let tokenAmountToAdd = new BigNumber(10);
-    let baseAmountToAdd = new BigNumber(10).pow(18)
+    const nTypesToAdd = 30;
+    const tokenAmountToAdd = new BigNumber(10);
+    const baseAmountToAdd = new BigNumber(10).pow(18)
     
-    let typesToAdd = new Array(nTypesToAdd).fill('').map((a, i) => getBig(i))
-    let baseAmountsToAdd = new Array(nTypesToAdd).fill('').map((a, i) => baseAmountToAdd)
-    let tokenAmountsToAdd =  new Array(nTypesToAdd).fill('').map((a, i) => tokenAmountToAdd)
-    let addLiquidityData: string;
-
-    before(async () => {
-      addLiquidityData = getAddLiquidityData(baseAmountsToAdd, 10000000)
-    })
+    const typesToAdd = new Array(nTypesToAdd).fill('').map((a, i) => getBig(i))
+    const baseAmountsToAdd = new Array(nTypesToAdd).fill('').map((a, i) => baseAmountToAdd)
+    const tokenAmountsToAdd =  new Array(nTypesToAdd).fill('').map((a, i) => tokenAmountToAdd)
+    const addLiquidityData: string = getAddLiquidityData(baseAmountsToAdd, 10000000)
 
     it('should pass when balances are sufficient', async () => {
       const tx = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityData,
@@ -227,8 +215,12 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     })
 
     context('When liquidity was added', () => {
+      let tx;
+      const baseAmountsToAddOne = new Array(nTypesToAdd).fill('').map((a, i) => baseAmountToAdd.add(1))
+      const addLiquidityDataOne = getAddLiquidityData(baseAmountsToAddOne, 10000000)
+
       beforeEach( async () => {
-        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityData,
+        tx = await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityData,
           {gasLimit: 50000000}
         )
       })
@@ -282,7 +274,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
         const prePrices = await niftyswapExchangeContract.functions.getPrice_baseToToken(types, ones)
 
         // After 2nd deposit
-        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityData,
+        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityDataOne,
           {gasLimit: 50000000}
         )
         const postPrices = await niftyswapExchangeContract.functions.getPrice_baseToToken(types, ones)
@@ -296,13 +288,13 @@ contract('NiftyswapExchange', (accounts: string[]) => {
         const ones = new Array(nTypesToAdd).fill('').map((a, i) => 1)
         
         // After 2nd deposit
-        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityData,
+        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityDataOne,
           {gasLimit: 50000000}
         )
         const prePrices = await niftyswapExchangeContract.functions.getPrice_baseToToken(types, ones)
 
         // After 3rd deposit
-        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityData,
+        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityDataOne,
           {gasLimit: 50000000}
         )
         const postPrices = await niftyswapExchangeContract.functions.getPrice_baseToToken(types, ones)
@@ -319,7 +311,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
         const prePrices = await niftyswapExchangeContract.functions.getPrice_tokenToBase(types, ones)
 
         // After 2nd deposit
-        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityData,
+        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityDataOne,
           {gasLimit: 50000000}
         )
         const postPrices = await niftyswapExchangeContract.functions.getPrice_tokenToBase(types, ones)
@@ -333,13 +325,13 @@ contract('NiftyswapExchange', (accounts: string[]) => {
         const ones = new Array(nTypesToAdd).fill('').map((a, i) => 1)
         
         // After 2nd deposit
-        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityData,
+        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityDataOne,
           {gasLimit: 50000000}
         )
         const prePrices = await niftyswapExchangeContract.functions.getPrice_tokenToBase(types, ones)
 
         // After 3rd deposit
-        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityData,
+        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityDataOne,
           {gasLimit: 50000000}
         )
         const postPrices = await niftyswapExchangeContract.functions.getPrice_tokenToBase(types, ones)
@@ -349,14 +341,30 @@ contract('NiftyswapExchange', (accounts: string[]) => {
         }
       })
 
+      it('should emit LiquidityAdded event', async () => {
+        let filterFromOperatorContract: ethers.ethers.EventFilter
+
+        // Get event filter to get internal tx event
+        filterFromOperatorContract = niftyswapExchangeContract.filters.LiquidityAdded(null, null, null, null);
+
+        // Get logs from internal transaction event
+        // @ts-ignore (https://github.com/ethers-io/ethers.js/issues/204#issuecomment-427059031)
+        filterFromOperatorContract.fromBlock = 0;
+        let logs = await operatorProvider.getLogs(filterFromOperatorContract);
+        expect(logs[0].topics[0]).to.be.eql(niftyswapExchangeContract.interface.events.LiquidityAdded.topic)
+      })
+
     })
 
     context('When liquidity was added for the second time', () => {
+      const baseAmountsToAddOne = new Array(nTypesToAdd).fill('').map((a, i) => baseAmountToAdd.add(1))
+      const addLiquidityDataOne = getAddLiquidityData(baseAmountsToAddOne, 10000000)
+
       beforeEach( async () => {
         await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityData,
           {gasLimit: 50000000}
         )
-        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityData,
+        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityDataOne,
           {gasLimit: 50000000}
         )
       })
@@ -392,15 +400,18 @@ contract('NiftyswapExchange', (accounts: string[]) => {
           const tokenReserve = tokenAmountToAdd
           const baseTokenAmountCalc = (tokenAmountToAdd.mul(baseReserve)).div(tokenReserve)
 
-          expect(exchangeBalance).to.be.eql(baseAmountToAdd.mul(nTokenTypes).add(baseTokenAmountCalc.mul(nTokenTypes)))
-          expect(operatorBalance).to.be.eql(operatorBalance1.sub(baseTokenAmountCalc.mul(nTokenTypes)))
+          // .add(nTokenTypes) is to account for rounding error protection
+          expect(exchangeBalance).to.be.eql(baseAmountToAdd.mul(nTokenTypes).add(baseTokenAmountCalc.mul(nTokenTypes).add(nTokenTypes)))
+          expect(operatorBalance).to.be.eql(operatorBalance1.sub(baseTokenAmountCalc.mul(nTokenTypes).add(nTokenTypes)))
       })
 
       it('should update the Base Tokens per token reserve', async () => {
         for (let i = 0; i < types.length; i++) {
           const reserve = await niftyswapExchangeContract.functions.getBaseTokenReserves([types[i]])
           const newBaseTokenAmount = (tokenAmountToAdd.mul(baseAmountToAdd)).div(tokenAmountToAdd)
-          expect(reserve[0]).to.be.eql(baseAmountToAdd.add(newBaseTokenAmount))
+
+          // .add(1) is to account for rounding error protection
+          expect(reserve[0]).to.be.eql(baseAmountToAdd.add(newBaseTokenAmount).add(1))
         }
       })
   
@@ -411,8 +422,9 @@ contract('NiftyswapExchange', (accounts: string[]) => {
 
           const newBaseTokenAmount = (tokenAmountToAdd.mul(baseAmountToAdd)).div(tokenAmountToAdd)
 
+          // .add(1) is to account for rounding error protection
+          expect(operatorBalance).to.be.eql(new BigNumber(baseAmountToAdd).add(newBaseTokenAmount).add(1))
           expect(exchangeBalance).to.be.eql(Zero)
-          expect(operatorBalance).to.be.eql(new BigNumber(baseAmountToAdd).add(newBaseTokenAmount))
         }
       })
 
@@ -421,7 +433,8 @@ contract('NiftyswapExchange', (accounts: string[]) => {
           const exchangeTotalSupply = await niftyswapExchangeContract.functions.getTotalSupply([types[i]])
           const newBaseTokenAmount = (tokenAmountToAdd.mul(baseAmountToAdd)).div(tokenAmountToAdd)
 
-          expect(exchangeTotalSupply[0]).to.be.eql(new BigNumber(baseAmountToAdd).add(newBaseTokenAmount))
+          // .add(1) is to account for rounding error protection
+          expect(exchangeTotalSupply[0]).to.be.eql(new BigNumber(baseAmountToAdd).add(newBaseTokenAmount).add(1))
         }
       })
 
@@ -440,9 +453,9 @@ contract('NiftyswapExchange', (accounts: string[]) => {
         for (let i = 0; i < nTypesToAdd; i++) {
           maxBaseTokens.push(baseAmountToAdd.mul(2))
         }
-        addLiquidityData = getAddLiquidityData(maxBaseTokens, 10000000)
+        let addLiquidityData2 = getAddLiquidityData(maxBaseTokens, 10000000)
 
-        const tx = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityData,
+        const tx = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityData2,
           {gasLimit: 8000000}
         )
         await expect(tx).to.be.fulfilled
@@ -452,29 +465,24 @@ contract('NiftyswapExchange', (accounts: string[]) => {
   })
 
   describe('_removeLiquidity() function', () => {
-    let nTypesToRemove = 30;
-    let tokenAmountToAdd = new BigNumber(20);
-    let baseAmountToAdd = new BigNumber(20).pow(18)
+    const nTypesToRemove = 30;
+    const tokenAmountToAdd = new BigNumber(20);
+    const baseAmountToAdd = new BigNumber(20).pow(18)
 
-    let tokenAmountToRemove = new BigNumber(5);
-    let baseAmountToRemove = (new BigNumber(20).pow(18)).div(4)
+    const tokenAmountToRemove = new BigNumber(5);
+    const baseAmountToRemove = (new BigNumber(20).pow(18)).div(4)
     
-    let typesToRemove = new Array(nTypesToRemove).fill('').map((a, i) => getBig(i))
-    let tokenAmountsToAdd = new Array(nTypesToRemove).fill('').map((a, i) => tokenAmountToAdd)
-    let baseAmountsToAdd = new Array(nTypesToRemove).fill('').map((a, i) => baseAmountToAdd)
+    const typesToRemove = new Array(nTypesToRemove).fill('').map((a, i) => getBig(i))
+    const tokenAmountsToAdd = new Array(nTypesToRemove).fill('').map((a, i) => tokenAmountToAdd)
+    const baseAmountsToAdd = new Array(nTypesToRemove).fill('').map((a, i) => baseAmountToAdd)
 
-    let tokenAmountsToRemove = new Array(nTypesToRemove).fill('').map((a, i) => tokenAmountToRemove)
-    let baseAmountsToRemove = new Array(nTypesToRemove).fill('').map((a, i) => baseAmountToRemove)
+    const tokenAmountsToRemove = new Array(nTypesToRemove).fill('').map((a, i) => tokenAmountToRemove)
+    const baseAmountsToRemove = new Array(nTypesToRemove).fill('').map((a, i) => baseAmountToRemove)
 
-    let niftyTokenToSend = new Array(nTypesToRemove).fill('').map((a, i) => baseAmountToRemove)
+    const niftyTokenToSend = new Array(nTypesToRemove).fill('').map((a, i) => baseAmountToRemove)
 
-    let addLiquidityData: string;
-    let removeLiquidityData: string;
-
-    before(async () => {
-      addLiquidityData = getAddLiquidityData(baseAmountsToAdd, 10000000)
-      removeLiquidityData = getRemoveLiquidityData(baseAmountsToRemove, tokenAmountsToRemove, 10000000)
-    })
+    const addLiquidityData: string = getAddLiquidityData(baseAmountsToAdd, 10000000)
+    const removeLiquidityData: string = getRemoveLiquidityData(baseAmountsToRemove, tokenAmountsToRemove, 10000000)
 
     it('should revert if no Niftyswap token', async () => {
       const tx = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToRemove, niftyTokenToSend, removeLiquidityData,
@@ -604,8 +612,9 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       })
 
       context('When liquidity was removed', () => {
+        let tx;
         beforeEach( async () => {
-          await operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToRemove, niftyTokenToSend, removeLiquidityData,
+          tx = await operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToRemove, niftyTokenToSend, removeLiquidityData,
             {gasLimit: 8000000}
           )
         })
@@ -657,6 +666,12 @@ contract('NiftyswapExchange', (accounts: string[]) => {
           }
         })
 
+        it('should emit LiquidityRemoved event', async () => {
+          const receipt = await tx.wait(1)
+          const ev = receipt.events!.pop()!
+          expect(ev.event).to.be.eql('LiquidityRemoved')
+        })
+
       })
     })
   })
@@ -664,26 +679,16 @@ contract('NiftyswapExchange', (accounts: string[]) => {
   describe('_tokenToBase() function', () => {
 
     //Liquidity
-    let tokenAmountToAdd = new BigNumber(10);
-    let baseAmountToAdd = new BigNumber(10).pow(18)
-    let baseAmountsToAdd: ethers.utils.BigNumber[] = []
-    let tokenAmountsToAdd: ethers.utils.BigNumber[] = []
-    let addLiquidityData: string;
+    const tokenAmountToAdd = new BigNumber(10);
+    const baseAmountToAdd = new BigNumber(10).pow(18)
+    const baseAmountsToAdd: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => baseAmountToAdd)
+    const tokenAmountsToAdd: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => tokenAmountToAdd)
+    const addLiquidityData: string = getAddLiquidityData(baseAmountsToAdd, 10000000) 
 
     //Sell
-    let tokenAmountToSell = new BigNumber(50)
-    let tokensAmountsToSell: ethers.utils.BigNumber[] = []
+    const tokenAmountToSell = new BigNumber(50)
+    const tokensAmountsToSell: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => tokenAmountToSell)
     let sellTokenData: string;
-
-    before(async () => {
-      for (let i = 0; i < nTokenTypes; i++) {
-        baseAmountsToAdd.push(baseAmountToAdd)
-        tokenAmountsToAdd.push(tokenAmountToAdd)
-        tokensAmountsToSell.push(tokenAmountToSell)
-      }
-      // Liquidity
-      addLiquidityData = getAddLiquidityData(baseAmountsToAdd, 10000000) 
-    })
 
     beforeEach(async () => {
       // Add liquidity
@@ -758,12 +763,13 @@ contract('NiftyswapExchange', (accounts: string[]) => {
 
     describe('When trade is successful', async () => {
       let cost;
+      let tx;
 
       beforeEach(async () => {
         const price = await niftyswapExchangeContract.functions.getPrice_tokenToBase([0], [tokenAmountToSell]);
         cost = price[0].mul(nTokenTypes)
 
-        await userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, types, tokensAmountsToSell, sellTokenData,
+        tx = await userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, types, tokensAmountsToSell, sellTokenData,
           {gasLimit: 8000000}
         )
       })
@@ -804,32 +810,37 @@ contract('NiftyswapExchange', (accounts: string[]) => {
 
         expect(price[0]).to.be.eql(numerator.div(denominator))
       })
+
+      it('should emit BaseTokenPurchase event', async () => {
+        let filterFromOperatorContract: ethers.ethers.EventFilter
+
+        // Get event filter to get internal tx event
+        filterFromOperatorContract = niftyswapExchangeContract.filters.BaseTokenPurchase(null, null, null, null, null);
+
+        // Get logs from internal transaction event
+        // @ts-ignore (https://github.com/ethers-io/ethers.js/issues/204#issuecomment-427059031)
+        filterFromOperatorContract.fromBlock = 0;
+        let logs = await operatorProvider.getLogs(filterFromOperatorContract);
+        expect(logs[0].topics[0]).to.be.eql(niftyswapExchangeContract.interface.events.BaseTokenPurchase.topic)
+      })
+
     })
   })
 
   describe('_baseToToken() function', () => {
 
     //Liquidity
-    let tokenAmountToAdd = new BigNumber(500);
-    let baseAmountToAdd = new BigNumber(10).pow(18).mul(500)
-    let baseAmountsToAdd: ethers.utils.BigNumber[] = []
-    let tokenAmountsToAdd: ethers.utils.BigNumber[] = []
-    let addLiquidityData: string;
+    const tokenAmountToAdd = new BigNumber(500);
+    const baseAmountToAdd = new BigNumber(10).pow(18).mul(500)
+    const baseAmountsToAdd: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => baseAmountToAdd)
+    const tokenAmountsToAdd: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => tokenAmountToAdd)
+    const addLiquidityData: string = getAddLiquidityData(baseAmountsToAdd, 10000000)
 
     //Buy
-    let tokenAmountToBuy = new BigNumber(50)
-    let tokensAmountsToBuy: ethers.utils.BigNumber[] = []
+    const tokenAmountToBuy = new BigNumber(50)
+    const tokensAmountsToBuy: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => tokenAmountToBuy)
     let buyTokenData: string;
     let cost: ethers.utils.BigNumber
-
-    before(async () => {
-      for (let i = 0; i < nTokenTypes; i++) {
-        baseAmountsToAdd.push(baseAmountToAdd)
-        tokenAmountsToAdd.push(tokenAmountToAdd)
-        tokensAmountsToBuy.push(tokenAmountToBuy)
-      }
-      addLiquidityData = getAddLiquidityData(baseAmountsToAdd, 10000000)
-    })
 
     beforeEach(async () => {
       // Add liquidity
@@ -894,9 +905,10 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     })
 
     describe('When trade is successful', async () => {
+      let tx;
 
       beforeEach(async () => {
-        await userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
+        tx = await userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
           {gasLimit: 8000000}
         )
       })
@@ -935,9 +947,21 @@ contract('NiftyswapExchange', (accounts: string[]) => {
         let numerator = baseReserve.mul(tokenAmountToBuy).mul(1000)
         let denominator = (tokenReserve.sub(tokenAmountToBuy)).mul(995)
 
-        expect(price[0]).to.be.eql(numerator.div(denominator))
+        expect(price[0]).to.be.eql(numerator.div(denominator).add(1))
       })
 
+      it('should emit TokensPurchase event', async () => {
+        let filterFromOperatorContract: ethers.ethers.EventFilter
+
+        // Get event filter to get internal tx event
+        filterFromOperatorContract = niftyswapExchangeContract.filters.TokensPurchase(null, null, null, null, null);
+
+        // Get logs from internal transaction event
+        // @ts-ignore (https://github.com/ethers-io/ethers.js/issues/204#issuecomment-427059031)
+        filterFromOperatorContract.fromBlock = 0;
+        let logs = await operatorProvider.getLogs(filterFromOperatorContract);
+        expect(logs[0].topics[0]).to.be.eql(niftyswapExchangeContract.interface.events.TokensPurchase.topic)
+      })
     })
 
     it('should send to non msg.sender if specified', async () => {
@@ -995,6 +1019,5 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       expect(exchangeBaseBalance).to.be.eql(baseAmountToAdd.mul(nTokenTypes).add(cost))
       expect(userBaseBalance).to.be.eql(baseTokenAmount.sub(cost))
     })
-
   })
 })

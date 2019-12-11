@@ -23,7 +23,12 @@ interface NiftyswapFactoryInterface extends Interface {
 
   events: {
     NewExchange: TypedEventDescription<{
-      encodeTopics([token, exchange]: [string | null, string | null]): string[];
+      encodeTopics([token, baseToken, baseTokenID, exchange]: [
+        string | null,
+        string | null,
+        null,
+        string | null
+      ]): string[];
     }>;
   };
 }
@@ -56,7 +61,12 @@ export class NiftyswapFactory extends Contract {
   };
 
   filters: {
-    NewExchange(token: string | null, exchange: string | null): EventFilter;
+    NewExchange(
+      token: string | null,
+      baseToken: string | null,
+      baseTokenID: null,
+      exchange: string | null
+    ): EventFilter;
   };
 
   estimate: {
