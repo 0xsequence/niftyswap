@@ -1,8 +1,3 @@
-# Niftyswap Specification
-
-\* *Certain sections of this document were taken directly from the [Uniswap](<https://hackmd.io/@477aQ9OrQTCbVR3fq1Qzxg/HJ9jLsfTz?type=view>) documentation.*
-
-# Table of Content
 - [Overview](#overview)
 - [Contracts](#contracts)
     + [NiftyswapExchange.sol](#niftyswapexchangesol)
@@ -15,7 +10,7 @@
   * [Base Currency](#base-currency)
   * [Tokens](#tokens)
 - [Trades](#trades)
-    + [Base Currency to Token $$i$$](#base-currency-to-token--i-)
+    + [Base Currency to Token $i$](#base-currency-to-token--i-)
     + [Token $i$ to Base Currency](#token--i--to-base-currency)
 - [Liquidity Reserves Management](#liquidity-reserves-management)
     + [Adding Liquidity](#adding-liquidity)
@@ -31,6 +26,8 @@
     + [getPrice_tokenToBase()](#getprice-tokentobase--)
     + [getTokenAddress()](#gettokenaddress--)
     + [getBaseTokenInfo()](#getbasetokeninfo--)
+- [Miscellaneous](#miscellaneous)
+  * [Rounding Errors](#rounding-errors)
     
 # Overview
 
@@ -174,11 +171,11 @@ function _removeLiquidity(
 
 In Niftyswap, like Uniswap, the price of an asset is a function of a base currency reserve and the corresponding token reserve. Indeed, all methods in Niftyswap enforce that the the following equality remains true: 
 
-​												$$BaseReserve_i * TokenReserve_i = K$$
+​												$BaseReserve_i * TokenReserve_i = K$
 
 where $BaseReserve_i$ is the base currency reserve size for the corresponding token id $i$, $TokenReserve_i$ is the reserve size of the ERC-1155 token id $i$ and $K$ is an arbitrary constant. 
 
-**Ignoring the [Liquidity Fee](#liquidity-fee)**, purchasing some tokens $i$ with the base currency (or vice versa) should increase the $BaseReserve_i$ and decrease the $TokenReserve_i$ (or vice versa) such that 
+**Ignoring the [Liquidity Fee](#liquidity-fee)**, purchasing some tokens $i$ with the base currency (or vice versa) should increase the $BaseReserve_i$ and decrease the $TokenReserve_i$ (or vice versa) such that
 
 ​												$BaseReserve_i * TokenReserve_i == K$. 
 
