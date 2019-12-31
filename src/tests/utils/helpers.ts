@@ -71,7 +71,7 @@ export interface JSONRPCRequest {
 
 export const getBuyTokenData = (
   recipient: string,
-  types: any[], 
+  types: number[] | ethers.utils.BigNumber[], 
   tokensAmountsToBuy: ethers.utils.BigNumber[],
   deadline: number) => {
   const buyTokenObj = {

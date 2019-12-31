@@ -23,6 +23,9 @@ import "multi-token-standard/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
  */
 contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
 
+  // TODO
+  //  Check if array length difference causes no problem (removed the requires)
+  //  Optimize SLOAD for tokn reserves balances
 
   /***********************************|
   |       Variables & Constants       |
@@ -89,9 +92,9 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
   mapping(uint256 => uint256) internal baseTokenReserve; // Base Token reserve per Token id
 
 
-  /***********************************|
-  |               Events              |
-  |__________________________________*/
+    /***********************************|
+    |               Events              |
+    |__________________________________*/
 
   event TokensPurchase(
     address indexed buyer,
@@ -294,7 +297,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     * @notice Convert Base Tokens to Tokens _id and transfers Tokens to recipient.
     * @dev User specifies MAXIMUM inputs (_maxBaseTokens) and EXACT outputs.
     * @dev Assumes that all trades will be successful, or revert the whole tx
-    * @dev Sorting IDs can lead to more efficient trades with some ERC-1155 implementations
+    * @dev Sorting IDs is mandatory for efficient way of preventing duplicated IDs (which would lead to error)
     * @param _tokenIds             Array of Tokens ID that are bought
     * @param _tokensBoughtAmounts  Amount of Tokens id bought for each corresponding Token id in _tokenIds
     * @param _maxBaseTokens        Total maximum amount of base tokens to spend for all Token ids
@@ -391,6 +394,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
    * @notice Convert Tokens _id to Base Tokens and transfers Tokens to recipient.
    * @dev User specifies EXACT Tokens _id sold and MINIMUM Base Tokens received.
    * @dev Assumes that all trades will be valid, or the whole tx will fail
+   * @dev Sorting _tokenIds is mandatory for efficient way of preventing duplicated IDs (which would lead to errors)
    * @param _tokenIds          Array of Token IDs that are sold
    * @param _tokensSoldAmounts Array of Amount of Tokens sold for each id in _tokenIds.
    * @param _minBaseTokens     Minimum amount of Base Tokens to receive
@@ -492,6 +496,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
    * @notice Deposit less than max Base Tokens && exact Tokens (token ID) at current ratio to mint liquidity pool tokens.
    * @dev min_liquidity does nothing when total liquidity pool token supply is 0.
    * @dev Assumes that sender approved this contract on the baseToken
+   * @dev Sorting _tokenIds is mandatory for efficient way of preventing duplicated IDs (which would lead to errors)
    * @param _provider      Address that provides liquidity to the reserve
    * @param _tokenIds      Array of Token IDs where liquidity is added
    * @param _tokenAmounts  Array of amount of Tokens deposited corresponding to each ID provided in _tokenIds
@@ -513,8 +518,8 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
 
     //Requirements
     require(_deadline >= block.number, "NiftyswapExchange#_addLiquidity: DEADLINE_EXCEEDED");
-    require(nTokens == _tokenAmounts.length, "NiftyswapExchange#_addLiquidity: INVALID_LENGTH_FOR_IDS_AMOUNTS");
-    require(nTokens == _maxBaseTokens.length, "NiftyswapExchange#_addLiquidity: INVALID_LENGTH_FOR_MAXBASETOKENS");
+    // require(nTokens == _tokenAmounts.length, "NiftyswapExchange#_addLiquidity: INVALID_LENGTH_FOR_IDS_AMOUNTS");
+    // require(nTokens == _maxBaseTokens.length, "NiftyswapExchange#_addLiquidity: INVALID_LENGTH_FOR_MAXBASETOKENS");
 
     // Initialize arrays
     uint256[] memory liquiditiesToMint = new uint256[](nTokens);
@@ -608,6 +613,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
 
   /**
    * @dev Burn liquidity pool tokens to withdraw Base Tokens && Tokens at current ratio.
+   * @dev Sorting _tokenIds is mandatory for efficient way of preventing duplicated IDs (which would lead to errors)
    * @param _provider         Address that removes liquidity to the reserve
    * @param _tokenIds         Array of Token IDs where liquidity is removed
    * @param _poolTokenAmounts Array of Amount of liquidity pool tokens burned for each Token id in _tokenIds.
@@ -639,9 +645,9 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
 
     // Input validation
     require(_deadline > block.number, "NiftyswapExchange#_removeLiquidity: DEADLINE_EXCEEDED");
-    require(_tokenIds.length == _poolTokenAmounts.length, "NiftyswapExchange#_removeLiquidity: INVALID_LENGTH_FOR_IDS_AMOUNTS");
-    require(_tokenIds.length == _minBaseTokens.length, "NiftyswapExchange#_removeLiquidity: INVALID_LENGTH_FOR_MINBASETOKENS");
-    require(_tokenIds.length == _minTokens.length, "NiftyswapExchange#_removeLiquidity: INVALID_LENGTH_FOR__MINTOKENS");
+    // require(_tokenIds.length == _poolTokenAmounts.length, "NiftyswapExchange#_removeLiquidity: INVALID_LENGTH_FOR_IDS_AMOUNTS");
+    // require(_tokenIds.length == _minBaseTokens.length, "NiftyswapExchange#_removeLiquidity: INVALID_LENGTH_FOR_MINBASETOKENS");
+    // require(_tokenIds.length == _minTokens.length, "NiftyswapExchange#_removeLiquidity: INVALID_LENGTH_FOR__MINTOKENS");
 
     // Remove liquidity for each Token ID in _tokenIds
     for (uint256 i = 0; i < nTokens; i++) {
@@ -801,13 +807,16 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     return address(factory);
   }
 
-
   /***********************************|
   |         Utility Functions         |
   |__________________________________*/
 
   /**
-   * @notice Return Niftyswap Token reserves for given Token ids
+   * @notice Return Token reserves for given Token ids
+   * @dev Assumes that ids are sorted from lowest to highest with no duplicates.
+   *      This assumption allows for checking the token reserves only once, otherwise
+   *      token reserves need to be re-checked individually or would have to do more expensive
+   *      duplication checks.
    * @param _tokenIds Array of IDs to query their Reserve balance.
    * @return Array of Token ids' reserves
    */
@@ -823,9 +832,12 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
       tokenReserves[0] = token.balanceOf(address(this), _tokenIds[0]);
 
     } else {
-      // Get current reserve amount for each token ID
+      // Lazy check preventing duplicates & build address array for query
       address[] memory thisAddressArray = new address[](nTokens);
-      for (uint256 i = 0; i < nTokens; i++) {
+      thisAddressArray[0] = address(this);
+
+      for (uint256 i = 1; i < nTokens; i++) {
+        require(_tokenIds[i-1] < _tokenIds[i], "NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS");
         thisAddressArray[i] = address(this);
       }
       tokenReserves = token.balanceOfBatch(thisAddressArray, _tokenIds);
