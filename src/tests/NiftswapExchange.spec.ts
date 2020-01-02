@@ -87,6 +87,8 @@ contract('NiftyswapExchange', (accounts: string[]) => {
   const tokenAmountToAdd = new BigNumber(300);
   const baseAmountToAdd = (new BigNumber(10).pow(18)).mul(300)
 
+  // Transactions parameters
+  const TX_PARAM = {gasLimit: 5000000}
   
   // Arrays
   const types = new Array(nTokenTypes).fill('').map((a, i) => getBig(i))
@@ -212,7 +214,37 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       await expect(tx).to.be.rejectedWith( RevertError("NiftyswapExchange#_addLiquidity: NULL_TOKENS_AMOUNT") )
     })
 
-    it('should fail if any duplicate', async () => {
+    it('should REVERT if arrays are not the same length', async () => {
+      let baseAmount1 = baseAmountToAdd.add(1) 
+
+      // If expected tier is larger, then should be fine
+      let data = getAddLiquidityData([baseAmountToAdd, baseAmountToAdd, baseAmountToAdd], 10000000)
+      const tx1 = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [0, 1], [1, 1], data, TX_PARAM)
+      await expect(tx1).to.be.fulfilled;
+
+      // Everything else should throw
+      data = getAddLiquidityData([baseAmount1, baseAmount1], 10000000)
+      const tx2 = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [0, 1, 2], [1, 1, 1], data, TX_PARAM)
+      await expect(tx2).to.be.rejectedWith(RevertError())
+      
+      data = getAddLiquidityData([baseAmount1, baseAmount1], 10000000)
+      const tx3 = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [0, 1], [1, 1, 1], data, TX_PARAM)
+      await expect(tx3).to.be.rejectedWith(RevertError("ERC1155PackedBalance#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+
+      data = getAddLiquidityData([baseAmount1], 10000000)
+      const tx4 = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [0, 1], [1], data, TX_PARAM)
+      await expect(tx4).to.be.rejectedWith(RevertError("ERC1155PackedBalance#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+
+      data = getAddLiquidityData([baseAmount1, baseAmount1], 10000000)
+      const tx5 = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [0, 1], [1], data, TX_PARAM)
+      await expect(tx5).to.be.rejectedWith(RevertError("ERC1155PackedBalance#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+
+      data = getAddLiquidityData([baseAmount1], 10000000)
+      const tx6 = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [0, 1], [1, 1], data, TX_PARAM)
+      await expect(tx6).to.be.rejectedWith(RevertError())
+    })
+
+    it('should REVERT if any duplicate', async () => {
       const tx1 = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [1, 1], [tokenAmountToAdd, tokenAmountToAdd], addLiquidityData,
         {gasLimit: 50000000}
       )
@@ -557,6 +589,66 @@ contract('NiftyswapExchange', (accounts: string[]) => {
         await expect(tx3).to.be.rejectedWith( RevertError("NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS") )
       })
 
+      it('should REVERT if arrays are not the same length', async () => {  
+        // If expected tier is larger, then should be fine
+        let data = getRemoveLiquidityData([baseAmountToRemove], [tokenAmountToRemove], 10000000)
+        const tx1 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [0, 1], [baseAmountToRemove], data, TX_PARAM)
+        await expect(tx1).to.be.rejectedWith(RevertError("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+  
+        // Everything else should throw
+        data = getRemoveLiquidityData([baseAmountToRemove], [tokenAmountToRemove], 10000000)
+        const tx2 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [2], [baseAmountToRemove, baseAmountToRemove], data, TX_PARAM)
+        await expect(tx2).to.be.rejectedWith(RevertError("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+
+        data = getRemoveLiquidityData([baseAmountToRemove, baseAmountToRemove], [tokenAmountToRemove], 10000000)
+        const tx3 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [3], [baseAmountToRemove], data, TX_PARAM)
+        await expect(tx3).to.be.fulfilled
+
+        data = getRemoveLiquidityData([baseAmountToRemove], [tokenAmountToRemove, tokenAmountToRemove], 10000000)
+        const tx4 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [4], [baseAmountToRemove], data, TX_PARAM)
+        await expect(tx4).to.be.fulfilled
+
+        data = getRemoveLiquidityData([baseAmountToRemove], [tokenAmountToRemove], 10000000)
+        const tx5 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [5, 6], [baseAmountToRemove, baseAmountToRemove], data, TX_PARAM)
+        await expect(tx5).to.be.rejectedWith(RevertError())
+
+        data = getRemoveLiquidityData([baseAmountToRemove, baseAmountToRemove], [tokenAmountToRemove], 10000000)
+        const tx6 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [7, 8], [baseAmountToRemove], data, TX_PARAM)
+        await expect(tx6).to.be.rejectedWith(RevertError("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+
+        data = getRemoveLiquidityData([baseAmountToRemove], [tokenAmountToRemove, baseAmountToRemove], 10000000)
+        const tx7 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [9, 10], [baseAmountToRemove], data, TX_PARAM)
+        await expect(tx7).to.be.rejectedWith(RevertError("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+
+        data = getRemoveLiquidityData([baseAmountToRemove, baseAmountToRemove], [tokenAmountToRemove], 10000000)
+        const tx8 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [11], [baseAmountToRemove, baseAmountToRemove], data, TX_PARAM)
+        await expect(tx8).to.be.rejectedWith(RevertError("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+
+        data = getRemoveLiquidityData([baseAmountToRemove], [tokenAmountToRemove, tokenAmountToRemove], 10000000)
+        const tx9 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [12], [baseAmountToRemove, baseAmountToRemove], data, TX_PARAM)
+        await expect(tx9).to.be.rejectedWith(RevertError("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+
+        data = getRemoveLiquidityData([baseAmountToRemove, baseAmountToRemove], [tokenAmountToRemove, tokenAmountToRemove], 10000000)
+        const tx10 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [13], [baseAmountToRemove], data, TX_PARAM)
+        await expect(tx10).to.be.fulfilled
+
+        data = getRemoveLiquidityData([baseAmountToRemove, baseAmountToRemove], [tokenAmountToRemove], 10000000)
+        const tx11 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [14, 15], [baseAmountToRemove, baseAmountToRemove], data, TX_PARAM)
+        await expect(tx11).to.be.rejectedWith(RevertError())
+
+        data = getRemoveLiquidityData([baseAmountToRemove], [tokenAmountToRemove, tokenAmountToRemove], 10000000)
+        const tx12 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [16, 17], [baseAmountToRemove, baseAmountToRemove], data, TX_PARAM)
+        await expect(tx12).to.be.rejectedWith(RevertError())
+
+        data = getRemoveLiquidityData([baseAmountToRemove, baseAmountToRemove], [tokenAmountToRemove, tokenAmountToRemove], 10000000)
+        const tx13 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [18, 19], [baseAmountToRemove], data, TX_PARAM)
+        await expect(tx13).to.be.rejectedWith(RevertError("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+
+        data = getRemoveLiquidityData([baseAmountToRemove, baseAmountToRemove], [tokenAmountToRemove, tokenAmountToRemove], 10000000)
+        const tx14 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [20], [baseAmountToRemove, baseAmountToRemove], data, TX_PARAM)
+        await expect(tx14).to.be.rejectedWith(RevertError("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+      })
+
       it('should PASS if enough Niftyswap token', async () => {
         const tx = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToRemove, niftyTokenToSend, removeLiquidityData,
           {gasLimit: 8000000}
@@ -790,6 +882,14 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       )
       await expect(tx3).to.be.rejectedWith( RevertError("NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS") )
     })
+
+    it('should REVERT if arrays are not the same length', async () => {
+      const tx1 = userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, [0, 1], [tokenAmountToSell], sellTokenData, TX_PARAM)
+      await expect(tx1).to.be.rejectedWith(RevertError("ERC1155PackedBalance#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+
+      const tx2 = userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, [0], [tokenAmountToSell, tokenAmountToSell], sellTokenData, TX_PARAM)
+      await expect(tx2).to.be.rejectedWith(RevertError("ERC1155PackedBalance#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+    })
     
     it('should sell tokens when balances are sufficient', async () => {
       const tx = userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, types, tokensAmountsToSell, sellTokenData,
@@ -952,6 +1052,16 @@ contract('NiftyswapExchange', (accounts: string[]) => {
         {gasLimit: 8000000}
       )
       await expect(tx3).to.be.rejectedWith( RevertError("NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS") )
+    })
+
+    it('should REVERT if arrays are not the same length', async () => {
+      let data = getBuyTokenData(userAddress, [0, 1], [tokenAmountToBuy], 10000000)
+      const tx1 = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, data, TX_PARAM)
+      await expect(tx1).to.be.rejectedWith(RevertError())
+
+      data = getBuyTokenData(userAddress, [0], [tokenAmountToBuy, tokenAmountToBuy], 10000000)
+      const tx2 = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, data, TX_PARAM)
+      await expect(tx2).to.be.rejectedWith(RevertError("ERC1155PackedBalance#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
     })
     
     it('should buy tokens if base amount is sufficient', async () => {
