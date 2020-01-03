@@ -23,9 +23,6 @@ import "multi-token-standard/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
  */
 contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
 
-  // TODO
-  //  Optimize SLOAD for tokn reserves balances
-
   /***********************************|
   |       Variables & Constants       |
   |__________________________________*/

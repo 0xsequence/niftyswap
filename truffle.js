@@ -26,7 +26,7 @@ module.exports = {
   solc: {
     optimizer: {
       enabled: true, // TO TURN ON for launch
-      runs: 500,
+      runs: 900,
       details: {
         yul: true
       }
