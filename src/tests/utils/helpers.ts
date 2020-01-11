@@ -26,9 +26,9 @@ export const createTestWallet = (web3: any, addressIndex: number = 0) => {
 }
 
 // Check if tx was Reverted with specified message
-export function RevertError(errorMessage: string) {
-  let prefix = 'VM Exception while processing transaction: revert '
-  return prefix + errorMessage
+export function RevertError(errorMessage?: string) {
+  let prefix = 'VM Exception while processing transaction: revert'
+  return errorMessage ? RegExp(`^${prefix + ' ' + errorMessage}$`) : RegExp(`^${prefix}$`)
 }
 
 export const methodsSignature = {
@@ -71,7 +71,7 @@ export interface JSONRPCRequest {
 
 export const getBuyTokenData = (
   recipient: string,
-  types: any[], 
+  types: number[] | ethers.utils.BigNumber[], 
   tokensAmountsToBuy: ethers.utils.BigNumber[],
   deadline: number) => {
   const buyTokenObj = {

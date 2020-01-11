@@ -69,7 +69,7 @@ interface NiftyswapExchangeInterface extends Interface {
     }>;
 
     onERC1155BatchReceived: TypedFunctionDescription<{
-      encode([_operator, _from, _ids, _amounts, _data]: [
+      encode([, _from, _ids, _amounts, _data]: [
         string,
         string,
         (BigNumberish)[],
@@ -290,7 +290,7 @@ export class NiftyswapExchange extends Contract {
     ): Promise<ContractTransaction>;
 
     onERC1155BatchReceived(
-      _operator: string,
+      arg0: string,
       _from: string,
       _ids: (BigNumberish)[],
       _amounts: (BigNumberish)[],
@@ -418,7 +418,7 @@ export class NiftyswapExchange extends Contract {
     ): Promise<BigNumber>;
 
     onERC1155BatchReceived(
-      _operator: string,
+      arg0: string,
       _from: string,
       _ids: (BigNumberish)[],
       _amounts: (BigNumberish)[],

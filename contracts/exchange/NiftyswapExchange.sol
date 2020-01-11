@@ -1,4 +1,4 @@
-pragma solidity ^0.5.14;
+pragma solidity ^0.5.16;
 pragma experimental ABIEncoderV2;
 import "../interfaces/INiftyswapFactory.sol";
 import "../interfaces/INiftyswapExchange.sol";
@@ -23,7 +23,6 @@ import "multi-token-standard/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
  */
 contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
 
-
   /***********************************|
   |       Variables & Constants       |
   |__________________________________*/
@@ -35,59 +34,9 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
   uint256 internal baseTokenID;                   // ID of base token in ERC-1155 base contract
   uint256 internal constant FEE_MULTIPLIER = 995; // Multiplier that calculates the fee (0.5%)
 
-  // OnReceive Objects
-  struct BuyTokensObj {
-    address recipient;             // Who receives the tokens
-    uint256[] tokensBoughtIDs;     // Token IDs to buy
-    uint256[] tokensBoughtAmounts; // Amount of token to buy for each ID
-    uint256 deadline;              // Block # after which the tx isn't valid anymore
-  }
-  struct SellTokensObj {
-    address recipient;       // Who receives the base tokens
-    uint256 minBaseTokens;   // Total minimum number of base tokens expected for all tokens sold
-    uint256 deadline;        // Block # after which the tx isn't valid anymore
-  }
-  struct AddLiquidityObj {
-    uint256[] maxBaseTokens; // Maximum number of base tokens to deposit with tokens
-    uint256 deadline;        // Block # after which the tx isn't valid anymore
-  }
-  struct LiquidityRemovedObj {
-    uint256[] minBaseTokens; // Minimum number of base tokens to withdraw
-    uint256[] minTokens;     // Minimum number of tokens to withdraw
-    uint256 deadline;        // Block # after which the tx isn't valid anymore
-  }
-
-  // Method signatures for onReceive control logic
-
-  // bytes4(keccak256(
-  //   "_baseToToken(uint256[],uint256[],uint256,uint256,address)"
-  // ));
-  bytes4 internal constant BUYTOKENS_SIG = 0x24c186e7;
-
-  // bytes4(keccak256(
-  //   "_tokenToBase(uint256[],uint256[],uint256,uint256,address)"
-  // ));
-  bytes4 internal constant SELLTOKENS_SIG = 0x7db38b4a;
-
-  //  bytes4(keccak256(
-  //   "_addLiquidity(address,uint256[],uint256[],uint256[],uint256)"
-  // ));
-  bytes4 internal constant ADDLIQUIDITY_SIG = 0x82da2b73;
-
-  // bytes4(keccak256(
-  //    "_removeLiquidity(address,uint256[],uint256[],uint256[],uint256[],uint256)"
-  // ));
-  bytes4 internal constant REMOVELIQUIDITY_SIG = 0x5c0bf259;
-
-  // bytes4(keccak256(
-  //   "DepositTokens()"
-  // ));
-  bytes4 internal constant DEPOSIT_SIG = 0xc8c323f9;
-
   // Mapping variables
   mapping(uint256 => uint256) internal totalSupplies;    // Liquidity pool token supply per Token id
   mapping(uint256 => uint256) internal baseTokenReserve; // Base Token reserve per Token id
-
 
   /***********************************|
   |               Events              |
@@ -123,7 +72,6 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     uint256[] baseTokenAmounts
   );
 
-
   /***********************************|
   |            Constructor           |
   |__________________________________*/
@@ -145,24 +93,464 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     baseTokenID = _baseTokenID;
   }
 
+  /***********************************|
+  |        Exchange Functions         |
+  |__________________________________*/
+
   /**
-   * @notice Prevents receiving Ether or calls to unsuported methods
-   */
-  function () external {
-    revert("UNSUPPORTED_METHOD");
+    * @notice Convert Base Tokens to Tokens _id and transfers Tokens to recipient.
+    * @dev User specifies MAXIMUM inputs (_maxBaseTokens) and EXACT outputs.
+    * @dev Assumes that all trades will be successful, or revert the whole tx
+    * @dev Sorting IDs is mandatory for efficient way of preventing duplicated IDs (which would lead to error)
+    * @param _tokenIds             Array of Tokens ID that are bought
+    * @param _tokensBoughtAmounts  Amount of Tokens id bought for each corresponding Token id in _tokenIds
+    * @param _maxBaseTokens        Total maximum amount of base tokens to spend for all Token ids
+    * @param _deadline             Block number after which this transaction can no longer be executed.
+    * @param _recipient            The address that receives output Tokens.
+    */
+  function _baseToToken(
+    uint256[] memory _tokenIds,
+    uint256[] memory _tokensBoughtAmounts,
+    uint256 _maxBaseTokens,
+    uint256 _deadline,
+    address _recipient)
+    internal nonReentrant() returns (uint256[] memory baseTokensSold)
+  {
+    // Input validation
+    require(_deadline >= block.number, "NiftyswapExchange#_baseToToken: DEADLINE_EXCEEDED");
+
+    // Number of Token IDs to deposit
+    uint256 nTokens = _tokenIds.length;
+    uint256 totalRefundBaseTokens = _maxBaseTokens;
+
+    // Initialize variables
+    baseTokensSold = new uint256[](nTokens); // Amount of base tokens sold per ID
+    uint256[] memory tokenReserves = new uint256[](nTokens);  // Amount of tokens in reserve for each Token id
+
+    // Get token reserves
+    tokenReserves = _getTokenReserves(_tokenIds);
+
+    // Assumes he Base Tokens are already received by contract, but not
+    // the Tokens Ids
+
+    // Remove liquidity for each Token ID in _tokenIds
+    for (uint256 i = 0; i < nTokens; i++) {
+      // Store current id and amount from argument arrays
+      uint256 idBought = _tokenIds[i];
+      uint256 amountBought = _tokensBoughtAmounts[i];
+      uint256 tokenReserve = tokenReserves[i];
+
+      require(amountBought > 0, "NiftyswapExchange#_baseToToken: NULL_TOKENS_BOUGHT");
+
+      // Load Base Token and Token _id reserves
+      uint256 baseReserve = baseTokenReserve[idBought];
+
+      // Get amount of Base Tokens to send for purchase
+      // Neither reserves amount have been changed so far in this transaction, so
+      // no adjustment to the inputs is needed
+      uint256 baseTokenAmount = getBuyPrice(amountBought, baseReserve, tokenReserve);
+
+      // Calculate Base Token amount to refund (if any) where whatever is not used will be returned
+      // Will throw if total cost exceeds _maxBaseTokens
+      totalRefundBaseTokens = totalRefundBaseTokens.sub(baseTokenAmount);
+
+      // Append Token id, Token id amount and Base Token amount to tracking arrays
+      baseTokensSold[i] = baseTokenAmount;
+
+      // Update individual base reseve amount
+      baseTokenReserve[idBought] = baseReserve.add(baseTokenAmount);
+    }
+
+    // // Refund Base Token if any
+    if (totalRefundBaseTokens > 0) {
+      baseToken.safeTransferFrom(address(this), _recipient, baseTokenID, totalRefundBaseTokens, "");
+    }
+
+    // Send Tokens all tokens purchased
+    token.safeBatchTransferFrom(address(this), _recipient, _tokenIds, _tokensBoughtAmounts, "");
+    return baseTokensSold;
   }
 
+  /**
+   * @dev Pricing function used for converting between Base Token to Tokens.
+   * @param _assetBoughtAmount  Amount of Tokens being bought.
+   * @param _assetSoldReserve   Amount of Base Tokens in exchange reserves.
+   * @param _assetBoughtReserve Amount of Tokens (output type) in exchange reserves.
+   * @return Amount of Base Tokens to send to Niftyswap.
+   */
+  function getBuyPrice(
+    uint256 _assetBoughtAmount,
+    uint256 _assetSoldReserve,
+    uint256 _assetBoughtReserve)
+    public view returns (uint256)
+  {
+    // Reserves must not be empty
+    require(_assetSoldReserve > 0 && _assetBoughtReserve > 0, "NiftyswapExchange#getBuyPrice: EMPTY_RESERVE");
+
+    // Calculate price with fee
+    uint256 numerator = _assetSoldReserve.mul(_assetBoughtAmount).mul(1000);
+    uint256 denominator = (_assetBoughtReserve.sub(_assetBoughtAmount)).mul(FEE_MULTIPLIER);
+    return (numerator / denominator).add(1); // Rounding error favors user, hence need +1 to be safe
+  }
+
+  /**
+   * @notice Convert Tokens _id to Base Tokens and transfers Tokens to recipient.
+   * @dev User specifies EXACT Tokens _id sold and MINIMUM Base Tokens received.
+   * @dev Assumes that all trades will be valid, or the whole tx will fail
+   * @dev Sorting _tokenIds is mandatory for efficient way of preventing duplicated IDs (which would lead to errors)
+   * @param _tokenIds          Array of Token IDs that are sold
+   * @param _tokensSoldAmounts Array of Amount of Tokens sold for each id in _tokenIds.
+   * @param _minBaseTokens     Minimum amount of Base Tokens to receive
+   * @param _deadline          Block number after which this transaction can no longer be executed.
+   * @param _recipient         The address that receives output Base Tokens.
+   */
+  function _tokenToBase(
+    uint256[] memory _tokenIds,
+    uint256[] memory _tokensSoldAmounts,
+    uint256 _minBaseTokens,
+    uint256 _deadline,
+    address _recipient)
+    internal nonReentrant() returns (uint256[] memory baseTokensBougth)
+  {
+    // Number of Token IDs to deposit
+    uint256 nTokens = _tokenIds.length;
+
+    // Input validation
+    require(_deadline >= block.number, "NiftyswapExchange#_tokenToBase: DEADLINE_EXCEEDED");
+
+    // Initialize variables
+    uint256 totalBaseTokens = 0; // Total amount of Base tokens to transfer
+    baseTokensBougth = new uint256[](nTokens);
+    uint256[] memory tokenReserves = new uint256[](nTokens);
+
+    // Get token reserves
+    tokenReserves = _getTokenReserves(_tokenIds);
+
+    // Assumes the Tokens ids are already received by contract, but not
+    // the Tokens Ids. Will return cards not sold if invalid price.
+
+    // Remove liquidity for each Token ID in _tokenIds
+    for (uint256 i = 0; i < nTokens; i++) {
+      // Store current id and amount from argument arrays
+      uint256 idSold = _tokenIds[i];
+      uint256 amountSold = _tokensSoldAmounts[i];
+      uint256 tokenReserve = tokenReserves[i];
+
+      // If 0 tokens send for this ID, revert
+      require(amountSold > 0, "NiftyswapExchange#_tokenToBase: NULL_TOKENS_SOLD");
+
+      // Load Base Token and Token _id reserves
+      uint256 baseReserve = baseTokenReserve[idSold];
+
+      // Get amount of Based Tokens that will be received
+      // Need to sub amountSold because tokens already added in reserve, which would bias the calculation
+      // Don't need to add it for baseReserve because the amount is added after this calculation
+      uint256 baseTokenAmount = getSellPrice(amountSold, tokenReserve.sub(amountSold), baseReserve);
+
+      // Increase cost of transaction
+      totalBaseTokens = totalBaseTokens.add(baseTokenAmount);
+
+      // Update individual base reseve amount
+      baseTokenReserve[idSold] = baseReserve.sub(baseTokenAmount);
+
+      // Append Token id, Token id amount and Base Token amount to tracking arrays
+      baseTokensBougth[i] = baseTokenAmount;
+    }
+
+    // If minBaseTokens is not met
+    require(totalBaseTokens >= _minBaseTokens, "NiftyswapExchange#_tokenToBase: INSUFFICIENT_BASE_TOKENS");
+
+    // Transfer baseTokens here
+    baseToken.safeTransferFrom(address(this), _recipient, baseTokenID, totalBaseTokens, "");
+
+    return baseTokensBougth;
+  }
+
+  /**
+   * @dev Pricing function used for converting Tokens to Base Token.
+   * @param _assetSoldAmount    Amount of Tokens being sold.
+   * @param _assetSoldReserve   Amount of Tokens in exchange reserves.
+   * @param _assetBoughtReserve Amount of Base Tokens in exchange reserves.
+   * @return Amount of Base Tokens to receive from Niftyswap.
+   */
+  function getSellPrice(
+    uint256 _assetSoldAmount,
+    uint256 _assetSoldReserve,
+    uint256 _assetBoughtReserve)
+    public view returns (uint256)
+  {
+    //Reserves must not be empty
+    require(_assetSoldReserve > 0 && _assetBoughtReserve > 0, "NiftyswapExchange#getSellPrice: EMPTY_RESERVE");
+
+    // Calculate amount to receive (with fee)
+    uint256 _assetSoldAmount_withFee = _assetSoldAmount.mul(FEE_MULTIPLIER);
+    uint256 numerator = _assetSoldAmount_withFee.mul(_assetBoughtReserve);
+    uint256 denominator = _assetSoldReserve.mul(1000).add(_assetSoldAmount_withFee);
+    return numerator / denominator; //Rounding errors will favor Niftyswap, hence safe
+  }
 
   /***********************************|
-  |      Receiver Method Handler      |
+  |        Liquidity Functions        |
   |__________________________________*/
+
+  /**
+   * @notice Deposit less than max Base Tokens && exact Tokens (token ID) at current ratio to mint liquidity pool tokens.
+   * @dev min_liquidity does nothing when total liquidity pool token supply is 0.
+   * @dev Assumes that sender approved this contract on the baseToken
+   * @dev Sorting _tokenIds is mandatory for efficient way of preventing duplicated IDs (which would lead to errors)
+   * @param _provider      Address that provides liquidity to the reserve
+   * @param _tokenIds      Array of Token IDs where liquidity is added
+   * @param _tokenAmounts  Array of amount of Tokens deposited corresponding to each ID provided in _tokenIds
+   * @param _maxBaseTokens Array of maximum number of tokens deposited for each ID provided in _tokenIds.
+   *                       Deposits max amount if total liquidity pool token supply is 0.
+   * @param _deadline      Block number after which this transaction can no longer be executed.
+   */
+  function _addLiquidity(
+    address _provider,
+    uint256[] memory _tokenIds,
+    uint256[] memory _tokenAmounts,
+    uint256[] memory _maxBaseTokens,
+    uint256 _deadline)
+    internal nonReentrant()
+  {
+    // Requirements
+    require(_deadline >= block.number, "NiftyswapExchange#_addLiquidity: DEADLINE_EXCEEDED");
+
+    // Initialize variables
+    uint256 nTokens = _tokenIds.length; // Number of Token IDs to deposit
+    uint256 totalBaseTokens = 0;        // Total amount of Base tokens to transfer
+
+    // Initialize arrays
+    uint256[] memory liquiditiesToMint = new uint256[](nTokens);
+    uint256[] memory baseTokenAmounts = new uint256[](nTokens);
+    uint256[] memory tokenReserves = new uint256[](nTokens);
+
+    // Get token reserves
+    tokenReserves = _getTokenReserves(_tokenIds);
+
+    // Assumes tokens _ids are deposited already, but not Base Tokens
+    // as this is calculated and executed below.
+
+    // Loop over all Token IDs to deposit
+    for (uint256 i = 0; i < nTokens; i ++) {
+      // Store current id and amount from argument arrays
+      uint256 tokenId = _tokenIds[i];
+      uint256 amount = _tokenAmounts[i];
+
+      // Check if input values are acceptable
+      require(_maxBaseTokens[i] > 0, "NiftyswapExchange#_addLiquidity: NULL_MAX_BASE_TOKEN");
+      require(amount > 0, "NiftyswapExchange#_addLiquidity: NULL_TOKENS_AMOUNT");
+
+      // Current total liquidity calculated in base token
+      uint256 totalLiquidity = totalSupplies[tokenId];
+
+      // When reserve for this token already exists
+      if (totalLiquidity > 0) {
+
+        // Load Base Token and Token reserve's supply of Token id
+        uint256 baseReserve = baseTokenReserve[tokenId]; // Amount not yet in reserve
+        uint256 tokenReserve = tokenReserves[i];
+
+        /**
+        * Amount of base tokens to send to token id reserve:
+        * X/Y = dx/dy
+        * dx = X*dy/Y
+        * where
+        *   X:  Base token total liquidity
+        *   Y:  Token _id total liquidity (before tokens were received)
+        *   dy: Amount of token _id deposited
+        *   dx: Amount of base token to deposit
+        *
+        * Adding .add(1) to make sure rounding errors don't favor users incorrectly
+        */
+        uint256 baseTokenAmount = (amount.mul(baseReserve) / (tokenReserve.sub(amount))).add(1);
+        require(_maxBaseTokens[i] >= baseTokenAmount, "NiftyswapExchange#_addLiquidity: MAX_BASE_TOKENS_EXCEEDED");
+
+        // Update Base Token reserve size for Token id before transfer
+        baseTokenReserve[tokenId] = baseReserve.add(baseTokenAmount);
+
+        // Update totalBaseTokens
+        totalBaseTokens = totalBaseTokens.add(baseTokenAmount);
+
+        // Proportion of the liquidity pool to give to current liquidity provider
+        liquiditiesToMint[i] = baseTokenAmount.mul(totalLiquidity) / baseReserve;
+        baseTokenAmounts[i] = baseTokenAmount;
+
+        // Mint liquidity ownership tokens and increase liquidity supply accordingly
+        totalSupplies[tokenId] = totalLiquidity.add(liquiditiesToMint[i]);
+
+      } else {
+        uint256 maxBaseToken = _maxBaseTokens[i];
+
+        // Otherwise rounding error could end up being significant on second deposit
+        require(maxBaseToken >= 1000000000, "NiftyswapExchange#_addLiquidity: INVALID_BASE_TOKEN_AMOUNT");
+
+        // Update Base Token reserve size for Token id before transfer
+        baseTokenReserve[tokenId] = maxBaseToken;
+
+        // Update totalBaseTokens
+        totalBaseTokens = totalBaseTokens.add(maxBaseToken);
+
+        // Initial liquidity is amount deposited (Incorrect pricing will be arbitraged)
+        // uint256 initialLiquidity = _maxBaseTokens;
+        totalSupplies[tokenId] = maxBaseToken;
+
+        // Liquidity to mints
+        liquiditiesToMint[i] = maxBaseToken;
+        baseTokenAmounts[i] = maxBaseToken;
+      }
+    }
+    // Mint liquidity pool tokens
+    _batchMint(_provider, _tokenIds, liquiditiesToMint, "");
+
+    // Transfer all Base Tokens to this contract
+    baseToken.safeTransferFrom(_provider, address(this), baseTokenID, totalBaseTokens, abi.encodePacked(DEPOSIT_SIG));
+
+    // Emit event
+    emit LiquidityAdded(_provider, _tokenIds, _tokenAmounts, baseTokenAmounts);
+  }
+
+  /**
+   * @dev Burn liquidity pool tokens to withdraw Base Tokens && Tokens at current ratio.
+   * @dev Sorting _tokenIds is mandatory for efficient way of preventing duplicated IDs (which would lead to errors)
+   * @param _provider         Address that removes liquidity to the reserve
+   * @param _tokenIds         Array of Token IDs where liquidity is removed
+   * @param _poolTokenAmounts Array of Amount of liquidity pool tokens burned for each Token id in _tokenIds.
+   * @param _minBaseTokens    Minimum Base Tokens withdrawn for each Token id in _tokenIds.
+   * @param _minTokens        Minimum Tokens id withdrawn for each Token id in _tokenIds.
+   * @param _deadline         Block number after which this transaction can no longer be executed.
+   */
+  function _removeLiquidity(
+    address _provider,
+    uint256[] memory _tokenIds,
+    uint256[] memory _poolTokenAmounts,
+    uint256[] memory _minBaseTokens,
+    uint256[] memory _minTokens,
+    uint256 _deadline)
+    internal nonReentrant()
+  {
+    // Input validation
+    require(_deadline > block.number, "NiftyswapExchange#_removeLiquidity: DEADLINE_EXCEEDED");
+
+    // Initialize variables
+    uint256 nTokens = _tokenIds.length;                     // Number of Token IDs to deposit
+    uint256 totalBaseTokens = 0;                            // Total amount of Base tokens to transfer
+    uint256[] memory tokenAmounts = new uint256[](nTokens); // Amount of Tokens to transfer for each id
+    uint256[] memory baseTokenAmounts = new uint256[](nTokens); // Amount of Base Tokens to transfer for each id
+    uint256[] memory tokenReserves = new uint256[](nTokens);
+
+    // Get token reserves
+    tokenReserves = _getTokenReserves(_tokenIds);
+
+    // Assumes NITFY liquidity tokens are already received by contract, but not
+    // the Base Tokens nor the Tokens Ids
+
+    // Remove liquidity for each Token ID in _tokenIds
+    for (uint256 i = 0; i < nTokens; i++) {
+      // Store current id and amount from argument arrays
+      uint256 id = _tokenIds[i];
+      uint256 amountPool = _poolTokenAmounts[i];
+      uint256 tokenReserve = tokenReserves[i];
+
+      // Load total liquidity pool token supply for Token _id
+      uint256 totalLiquidity = totalSupplies[id];
+      require(totalLiquidity > 0, "NiftyswapExchange#_removeLiquidity: NULL_TOTAL_LIQUIDITY");
+
+      // Load Base Token and Token reserve's supply of Token id
+      uint256 baseReserve = baseTokenReserve[id];
+
+      // Calculate amount to withdraw for Base Tokens and Token _id
+      uint256 baseTokenAmount = amountPool.mul(baseReserve) / totalLiquidity;
+      uint256 tokenAmount = amountPool.mul(tokenReserve) / totalLiquidity;
+
+      // Verify if amounts to withdraw respect minimums specified
+      require(baseTokenAmount >= _minBaseTokens[i], "NiftyswapExchange#_removeLiquidity: INSUFFICIENT_BASE_TOKENS");
+      require(tokenAmount >= _minTokens[i], "NiftyswapExchange#_removeLiquidity: INSUFFICIENT_TOKENS");
+
+      // Update total liquidity pool token supply of Token _id
+      totalSupplies[id] = totalLiquidity.sub(amountPool);
+
+      // Update Base Token reserve size for Token id
+      baseTokenReserve[id] = baseReserve.sub(baseTokenAmount);
+
+      // Update totalBaseToken and tokenAmounts
+      totalBaseTokens = totalBaseTokens.add(baseTokenAmount);
+      tokenAmounts[i] = tokenAmount;
+      baseTokenAmounts[i] = baseTokenAmount;
+    }
+
+    // Burn liquidity pool tokens for offchain supplies
+    _batchBurn(address(this), _tokenIds, _poolTokenAmounts);
+
+    // Transfer total Base Tokens and all Tokens ids
+    baseToken.safeTransferFrom(address(this), _provider, baseTokenID, totalBaseTokens, "");
+    token.safeBatchTransferFrom(address(this), _provider, _tokenIds, tokenAmounts, "");
+
+    // Emit event
+    emit LiquidityRemoved(_provider, _tokenIds, tokenAmounts, baseTokenAmounts);
+  }
+
+  /***********************************|
+  |     Receiver Methods Handler      |
+  |__________________________________*/
+
+  // OnReceive Objects
+  struct BuyTokensObj {
+    address recipient;             // Who receives the tokens
+    uint256[] tokensBoughtIDs;     // Token IDs to buy
+    uint256[] tokensBoughtAmounts; // Amount of token to buy for each ID
+    uint256 deadline;              // Block # after which the tx isn't valid anymore
+  }
+
+  struct SellTokensObj {
+    address recipient;       // Who receives the base tokens
+    uint256 minBaseTokens;   // Total minimum number of base tokens expected for all tokens sold
+    uint256 deadline;        // Block # after which the tx isn't valid anymore
+  }
+
+  struct AddLiquidityObj {
+    uint256[] maxBaseTokens; // Maximum number of base tokens to deposit with tokens
+    uint256 deadline;        // Block # after which the tx isn't valid anymore
+  }
+
+  struct LiquidityRemovedObj {
+    uint256[] minBaseTokens; // Minimum number of base tokens to withdraw
+    uint256[] minTokens;     // Minimum number of tokens to withdraw
+    uint256 deadline;        // Block # after which the tx isn't valid anymore
+  }
+
+  // Method signatures for onReceive control logic
+
+  // bytes4(keccak256(
+  //   "_baseToToken(uint256[],uint256[],uint256,uint256,address)"
+  // ));
+  bytes4 internal constant BUYTOKENS_SIG = 0x24c186e7;
+
+  // bytes4(keccak256(
+  //   "_tokenToBase(uint256[],uint256[],uint256,uint256,address)"
+  // ));
+  bytes4 internal constant SELLTOKENS_SIG = 0x7db38b4a;
+
+  //  bytes4(keccak256(
+  //   "_addLiquidity(address,uint256[],uint256[],uint256[],uint256)"
+  // ));
+  bytes4 internal constant ADDLIQUIDITY_SIG = 0x82da2b73;
+
+  // bytes4(keccak256(
+  //    "_removeLiquidity(address,uint256[],uint256[],uint256[],uint256[],uint256)"
+  // ));
+  bytes4 internal constant REMOVELIQUIDITY_SIG = 0x5c0bf259;
+
+  // bytes4(keccak256(
+  //   "DepositTokens()"
+  // ));
+  bytes4 internal constant DEPOSIT_SIG = 0xc8c323f9;
 
   /**
    * @notice Handle which method is being called on transfer
    * @dev `_data` must be encoded as follow: abi.encode(bytes4, MethodObj)
    *   where bytes4 argument is the MethodObj object signature passed as defined
    *   in the `Signatures for onReceive control logic` section above
-   * @param _operator The address which called the `safeTransferFrom` function
    * @param _from     The address which previously owned the Token
    * @param _ids      An array containing ids of each Token being transferred
    * @param _amounts  An array containing amounts of each Token being transferred
@@ -170,7 +558,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
    * @return bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)")
    */
   function onERC1155BatchReceived(
-    address _operator,
+    address, // _operator,
     address _from,
     uint256[] memory _ids,
     uint256[] memory _amounts,
@@ -285,409 +673,12 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     return ERC1155_RECEIVED_VALUE;
   }
 
-
-  /***********************************|
-  |        Exchange Functions         |
-  |__________________________________*/
-
   /**
-    * @notice Convert Base Tokens to Tokens _id and transfers Tokens to recipient.
-    * @dev User specifies MAXIMUM inputs (_maxBaseTokens) and EXACT outputs.
-    * @dev Assumes that all trades will be successful, or revert the whole tx
-    * @dev Sorting IDs can lead to more efficient trades with some ERC-1155 implementations
-    * @param _tokenIds             Array of Tokens ID that are bought
-    * @param _tokensBoughtAmounts  Amount of Tokens id bought for each corresponding Token id in _tokenIds
-    * @param _maxBaseTokens        Total maximum amount of base tokens to spend for all Token ids
-    * @param _deadline             Block number after which this transaction can no longer be executed.
-    * @param _recipient            The address that receives output Tokens.
-    */
-  function _baseToToken(
-    uint256[] memory _tokenIds,
-    uint256[] memory _tokensBoughtAmounts,
-    uint256 _maxBaseTokens,
-    uint256 _deadline,
-    address _recipient)
-    internal nonReentrant() returns (uint256[] memory baseTokensSold)
-  {
-    // Number of Token IDs to deposit
-    uint256 nTokens = _tokenIds.length;
-    uint256 totalRefundBaseTokens = _maxBaseTokens;
-
-    // Input validation
-    require(_deadline >= block.number, "NiftyswapExchange#_baseToToken: DEADLINE_EXCEEDED");
-    require(nTokens == _tokensBoughtAmounts.length, "NiftyswapExchange#_baseToToken: INVALID_LENGTH_FOR_IDS_AMOUNTS");
-
-    // Initialize variables
-    baseTokensSold = new uint256[](nTokens); // Amount of base tokens sold per ID
-    uint256[] memory tokenReserves = new uint256[](nTokens);  // Amount of tokens in reserve for each Token id
-
-    // Get token reserves
-    tokenReserves = _getTokenReserves(_tokenIds);
-
-    // Assumes he Base Tokens are already received by contract, but not
-    // the Tokens Ids
-
-    // Remove liquidity for each Token ID in _tokenIds
-    for (uint256 i = 0; i < nTokens; i++) {
-      // Store current id and amount from argument arrays
-      uint256 idBought = _tokenIds[i];
-      uint256 amountBought = _tokensBoughtAmounts[i];
-      uint256 tokenReserve = tokenReserves[i];
-
-      require(amountBought > 0, "NiftyswapExchange#_baseToToken: NULL_TOKENS_BOUGHT");
-
-      // Load Base Token and Token _id reserves
-      uint256 baseReserve = baseTokenReserve[idBought];
-
-      // Get amount of Base Tokens to send for purchase
-      // Neither reserves amount have been changed so far in this transaction, so
-      // no adjustment to the inputs is needed
-      uint256 baseTokenAmount = getBuyPrice(amountBought, baseReserve, tokenReserve);
-
-      // Calculate Base Token amount to refund (if any) where whatever is not used will be returned
-      // Will throw if total cost exceeds _maxBaseTokens
-      totalRefundBaseTokens = totalRefundBaseTokens.sub(baseTokenAmount);
-
-      // Append Token id, Token id amount and Base Token amount to tracking arrays
-      baseTokensSold[i] = baseTokenAmount;
-
-      // Update individual base reseve amount
-      baseTokenReserve[idBought] = baseReserve.add(baseTokenAmount);
-    }
-
-    // // Refund Base Token if any
-    if (totalRefundBaseTokens > 0) {
-      baseToken.safeTransferFrom(address(this), _recipient, baseTokenID, totalRefundBaseTokens, "");
-    }
-
-    // Send Tokens all tokens purchased
-    token.safeBatchTransferFrom(address(this), _recipient, _tokenIds, _tokensBoughtAmounts, "");
-    return baseTokensSold;
-  }
-
-  /**
-   * @dev Pricing function used for converting between Base Token to Tokens.
-   * @param _assetBoughtAmount  Amount of Tokens being bought.
-   * @param _assetSoldReserve   Amount of Base Tokens in exchange reserves.
-   * @param _assetBoughtReserve Amount of Tokens (output type) in exchange reserves.
-   * @return Amount of Base Tokens to send to Niftyswap.
+   * @notice Prevents receiving Ether or calls to unsuported methods
    */
-  function getBuyPrice(
-    uint256 _assetBoughtAmount,
-    uint256 _assetSoldReserve,
-    uint256 _assetBoughtReserve)
-    public view returns (uint256)
-  {
-    // Reserves must not be empty
-    require(_assetSoldReserve > 0 && _assetBoughtReserve > 0, "NiftyswapExchange#getBuyPrice: EMPTY_RESERVE");
-
-    // Calculate price with fee
-    uint256 numerator = _assetSoldReserve.mul(_assetBoughtAmount).mul(1000);
-    uint256 denominator = (_assetBoughtReserve.sub(_assetBoughtAmount)).mul(FEE_MULTIPLIER);
-    return (numerator / denominator).add(1); // Rounding error favors user, hence need +1 to be safe
+  function () external {
+    revert("NiftyswapExchange:UNSUPPORTED_METHOD");
   }
-
-  /**
-   * @notice Convert Tokens _id to Base Tokens and transfers Tokens to recipient.
-   * @dev User specifies EXACT Tokens _id sold and MINIMUM Base Tokens received.
-   * @dev Assumes that all trades will be valid, or the whole tx will fail
-   * @param _tokenIds          Array of Token IDs that are sold
-   * @param _tokensSoldAmounts Array of Amount of Tokens sold for each id in _tokenIds.
-   * @param _minBaseTokens     Minimum amount of Base Tokens to receive
-   * @param _deadline          Block number after which this transaction can no longer be executed.
-   * @param _recipient         The address that receives output Base Tokens.
-   */
-  function _tokenToBase(
-    uint256[] memory _tokenIds,
-    uint256[] memory _tokensSoldAmounts,
-    uint256 _minBaseTokens,
-    uint256 _deadline,
-    address _recipient)
-    internal nonReentrant() returns (uint256[] memory baseTokensBougth)
-  {
-    // Number of Token IDs to deposit
-    uint256 nTokens = _tokenIds.length;
-
-    // Input validation
-    require(_deadline >= block.number, "NiftyswapExchange#_tokenToBase: DEADLINE_EXCEEDED");
-    require(nTokens == _tokensSoldAmounts.length, "NiftyswapExchange#_tokenToBase: INVALID_LENGTH_FOR_IDS_AMOUNTS");
-
-    // Initialize variables
-    uint256 totalBaseTokens = 0; // Total amount of Base tokens to transfer
-    baseTokensBougth = new uint256[](nTokens);
-    uint256[] memory tokenReserves = new uint256[](nTokens);
-
-    // Get token reserves
-    tokenReserves = _getTokenReserves(_tokenIds);
-
-    // Assumes the Tokens ids are already received by contract, but not
-    // the Tokens Ids. Will return cards not sold if invalid price.
-
-    // Remove liquidity for each Token ID in _tokenIds
-    for (uint256 i = 0; i < nTokens; i++) {
-      // Store current id and amount from argument arrays
-      uint256 idSold = _tokenIds[i];
-      uint256 amountSold = _tokensSoldAmounts[i];
-      uint256 tokenReserve = tokenReserves[i];
-
-      // If 0 tokens send for this ID, revert
-      require(amountSold > 0, "NiftyswapExchange#_tokenToBase: NULL_TOKENS_SOLD");
-
-      // Load Base Token and Token _id reserves
-      uint256 baseReserve = baseTokenReserve[idSold];
-
-      // Get amount of Based Tokens that will be received
-      // Need to sub amountSold because tokens already added in reserve, which would bias the calculation
-      // Don't need to add it for baseReserve because the amount is added after this calculation
-      uint256 baseTokenAmount = getSellPrice(amountSold, tokenReserve.sub(amountSold), baseReserve);
-
-      // Increase cost of transaction
-      totalBaseTokens = totalBaseTokens.add(baseTokenAmount);
-
-      // Update individual base reseve amount
-      baseTokenReserve[idSold] = baseReserve.sub(baseTokenAmount);
-
-      // Append Token id, Token id amount and Base Token amount to tracking arrays
-      baseTokensBougth[i] = baseTokenAmount;
-    }
-
-    // If minBaseTokens is not met
-    require(totalBaseTokens >= _minBaseTokens, "NiftyswapExchange#_tokenToBase: INSUFFICIENT_BASE_TOKENS");
-
-    // Transfer baseTokens here
-    baseToken.safeTransferFrom(address(this), _recipient, baseTokenID, totalBaseTokens, "");
-
-    return baseTokensBougth;
-  }
-
-  /**
-   * @dev Pricing function used for converting Tokens to Base Token.
-   * @param _assetSoldAmount    Amount of Tokens being sold.
-   * @param _assetSoldReserve   Amount of Tokens in exchange reserves.
-   * @param _assetBoughtReserve Amount of Base Tokens in exchange reserves.
-   * @return Amount of Base Tokens to receive from Niftyswap.
-   */
-  function getSellPrice(
-    uint256 _assetSoldAmount,
-    uint256 _assetSoldReserve,
-    uint256 _assetBoughtReserve)
-    public view returns (uint256)
-  {
-    //Reserves must not be empty
-    require(_assetSoldReserve > 0 && _assetBoughtReserve > 0, "NiftyswapExchange#getSellPrice: EMPTY_RESERVE");
-
-    // Calculate amount to receive (with fee)
-    uint256 _assetSoldAmount_withFee = _assetSoldAmount.mul(FEE_MULTIPLIER);
-    uint256 numerator = _assetSoldAmount_withFee.mul(_assetBoughtReserve);
-    uint256 denominator = _assetSoldReserve.mul(1000).add(_assetSoldAmount_withFee);
-    return numerator / denominator; //Rounding errors will favor Niftyswap, hence safe
-  }
-
-
-  /***********************************|
-  |        Liquidity Functions        |
-  |__________________________________*/
-
-  /**
-   * @notice Deposit less than max Base Tokens && exact Tokens (token ID) at current ratio to mint liquidity pool tokens.
-   * @dev min_liquidity does nothing when total liquidity pool token supply is 0.
-   * @dev Assumes that sender approved this contract on the baseToken
-   * @param _provider      Address that provides liquidity to the reserve
-   * @param _tokenIds      Array of Token IDs where liquidity is added
-   * @param _tokenAmounts  Array of amount of Tokens deposited corresponding to each ID provided in _tokenIds
-   * @param _maxBaseTokens Array of maximum number of tokens deposited for each ID provided in _tokenIds.
-   *                       Deposits max amount if total liquidity pool token supply is 0.
-   * @param _deadline      Block number after which this transaction can no longer be executed.
-   */
-  function _addLiquidity(
-    address _provider,
-    uint256[] memory _tokenIds,
-    uint256[] memory _tokenAmounts,
-    uint256[] memory _maxBaseTokens,
-    uint256 _deadline)
-    internal nonReentrant()
-  {
-    // // Initialize variables
-    uint256 nTokens = _tokenIds.length; // Number of Token IDs to deposit
-    uint256 totalBaseTokens = 0;        // Total amount of Base tokens to transfer
-
-    //Requirements
-    require(_deadline >= block.number, "NiftyswapExchange#_addLiquidity: DEADLINE_EXCEEDED");
-    require(nTokens == _tokenAmounts.length, "NiftyswapExchange#_addLiquidity: INVALID_LENGTH_FOR_IDS_AMOUNTS");
-    require(nTokens == _maxBaseTokens.length, "NiftyswapExchange#_addLiquidity: INVALID_LENGTH_FOR_MAXBASETOKENS");
-
-    // Initialize arrays
-    uint256[] memory liquiditiesToMint = new uint256[](nTokens);
-    uint256[] memory baseTokenAmounts = new uint256[](nTokens);
-    uint256[] memory tokenReserves = new uint256[](nTokens);
-
-    // Get token reserves
-    tokenReserves = _getTokenReserves(_tokenIds);
-
-    // Assumes tokens _ids are deposited already, but not Base Tokens
-    // as this is calculated and executed below.
-
-    // Loop over all Token IDs to deposit
-    for (uint256 i = 0; i < nTokens; i ++) {
-      // Store current id and amount from argument arrays
-      uint256 tokenId = _tokenIds[i];
-      uint256 amount = _tokenAmounts[i];
-
-      // Check if input values are acceptable
-      require(_maxBaseTokens[i] > 0, "NiftyswapExchange#_addLiquidity: NULL_MAX_BASE_TOKEN");
-      require(amount > 0, "NiftyswapExchange#_addLiquidity: NULL_TOKENS_AMOUNT");
-
-      // Current total liquidity calculated in base token
-      uint256 totalLiquidity = totalSupplies[tokenId];
-
-      // When reserve for this token already exists
-      if (totalLiquidity > 0) {
-
-        // Load Base Token and Token reserve's supply of Token id
-        uint256 baseReserve = baseTokenReserve[tokenId]; // Amount not yet in reserve
-        uint256 tokenReserve = tokenReserves[i];
-
-        /**
-        * Amount of base tokens to send to token id reserve:
-        * X/Y = dx/dy
-        * dx = X*dy/Y
-        * where
-        *   X:  Base token total liquidity
-        *   Y:  Token _id total liquidity (before tokens were received)
-        *   dy: Amount of token _id deposited
-        *   dx: Amount of base token to deposit
-        *
-        * Adding .add(1) to make sure rounding errors don't favor users incorrectly
-        */
-        uint256 baseTokenAmount = (amount.mul(baseReserve) / (tokenReserve.sub(amount))).add(1);
-        require(_maxBaseTokens[i] >= baseTokenAmount, "NiftyswapExchange#_addLiquidity: MAX_BASE_TOKENS_EXCEEDED");
-
-        // Update Base Token reserve size for Token id before transfer
-        baseTokenReserve[tokenId] = baseReserve.add(baseTokenAmount);
-
-        // Update totalBaseTokens
-        totalBaseTokens = totalBaseTokens.add(baseTokenAmount);
-
-        // Proportion of the liquidity pool to give to current liquidity provider
-        liquiditiesToMint[i] = baseTokenAmount.mul(totalLiquidity) / baseReserve;
-        baseTokenAmounts[i] = baseTokenAmount;
-
-        // Mint liquidity ownership tokens and increase liquidity supply accordingly
-        totalSupplies[tokenId] = totalLiquidity.add(liquiditiesToMint[i]);
-
-      } else {
-        uint256 maxBaseToken = _maxBaseTokens[i];
-
-        // Otherwise rounding error could end up being significant on second deposit
-        require(maxBaseToken >= 1000000000, "NiftyswapExchange#_addLiquidity: INVALID_BASE_TOKEN_AMOUNT");
-
-        // // Update Base Token reserve size for Token id before transfer
-        baseTokenReserve[tokenId] = maxBaseToken;
-
-        // Update totalBaseTokens
-        totalBaseTokens = totalBaseTokens.add(maxBaseToken);
-
-        // // Initial liquidity is amount deposited (Incorrect pricing will be arbitraged)
-        // // uint256 initialLiquidity = _maxBaseTokens;
-        totalSupplies[tokenId] = maxBaseToken;
-
-        // Liquidity to mints
-        liquiditiesToMint[i] = maxBaseToken;
-        baseTokenAmounts[i] = maxBaseToken;
-      }
-    }
-    // Mint liquidity pool tokens
-    _batchMint(_provider, _tokenIds, liquiditiesToMint, "");
-
-    // Transfer all Base Tokens to this contract
-    baseToken.safeTransferFrom(_provider, address(this), baseTokenID, totalBaseTokens, abi.encodePacked(DEPOSIT_SIG));
-
-    // Emit event
-    emit LiquidityAdded(_provider, _tokenIds, _tokenAmounts, baseTokenAmounts);
-  }
-
-  /**
-   * @dev Burn liquidity pool tokens to withdraw Base Tokens && Tokens at current ratio.
-   * @param _provider         Address that removes liquidity to the reserve
-   * @param _tokenIds         Array of Token IDs where liquidity is removed
-   * @param _poolTokenAmounts Array of Amount of liquidity pool tokens burned for each Token id in _tokenIds.
-   * @param _minBaseTokens    Minimum Base Tokens withdrawn for each Token id in _tokenIds.
-   * @param _minTokens        Minimum Tokens id withdrawn for each Token id in _tokenIds.
-   * @param _deadline         Block number after which this transaction can no longer be executed.
-   */
-  function _removeLiquidity(
-    address _provider,
-    uint256[] memory _tokenIds,
-    uint256[] memory _poolTokenAmounts,
-    uint256[] memory _minBaseTokens,
-    uint256[] memory _minTokens,
-    uint256 _deadline)
-    internal nonReentrant()
-  {
-    // Initialize variables
-    uint256 nTokens = _tokenIds.length;                     // Number of Token IDs to deposit
-    uint256 totalBaseTokens = 0;                            // Total amount of Base tokens to transfer
-    uint256[] memory tokenAmounts = new uint256[](nTokens); // Amount of Tokens to transfer for each id
-    uint256[] memory baseTokenAmounts = new uint256[](nTokens); // Amount of Base Tokens to transfer for each id
-    uint256[] memory tokenReserves = new uint256[](nTokens);
-
-    // Get token reserves
-    tokenReserves = _getTokenReserves(_tokenIds);
-
-    // Assumes NITFY liquidity tokens are already received by contract, but not
-    // the Base Tokens nor the Tokens Ids
-
-    // Input validation
-    require(_deadline > block.number, "NiftyswapExchange#_removeLiquidity: DEADLINE_EXCEEDED");
-    require(_tokenIds.length == _poolTokenAmounts.length, "NiftyswapExchange#_removeLiquidity: INVALID_LENGTH_FOR_IDS_AMOUNTS");
-    require(_tokenIds.length == _minBaseTokens.length, "NiftyswapExchange#_removeLiquidity: INVALID_LENGTH_FOR_MINBASETOKENS");
-    require(_tokenIds.length == _minTokens.length, "NiftyswapExchange#_removeLiquidity: INVALID_LENGTH_FOR__MINTOKENS");
-
-    // Remove liquidity for each Token ID in _tokenIds
-    for (uint256 i = 0; i < nTokens; i++) {
-      // Store current id and amount from argument arrays
-      uint256 id = _tokenIds[i];
-      uint256 amountPool = _poolTokenAmounts[i];
-      uint256 tokenReserve = tokenReserves[i];
-
-      // Load total liquidity pool token supply for Token _id
-      uint256 totalLiquidity = totalSupplies[id];
-      require(totalLiquidity > 0, "NiftyswapExchange#_removeLiquidity: NULL_TOTAL_LIQUIDITY");
-
-      // Load Base Token and Token reserve's supply of Token id
-      uint256 baseReserve = baseTokenReserve[id];
-
-      // Calculate amount to withdraw for Base Tokens and Token _id
-      uint256 baseTokenAmount = amountPool.mul(baseReserve) / totalLiquidity;
-      uint256 tokenAmount = amountPool.mul(tokenReserve) / totalLiquidity;
-
-      // Verify if amounts to withdraw respect minimums specified
-      require(baseTokenAmount >= _minBaseTokens[i], "NiftyswapExchange#_removeLiquidity: INSUFFICIENT_BASE_TOKENS");
-      require(tokenAmount >= _minTokens[i], "NiftyswapExchange#_removeLiquidity: INSUFFICIENT_TOKENS");
-
-      // Update total liquidity pool token supply of Token _id
-      totalSupplies[id] = totalLiquidity.sub(amountPool);
-
-      // Update Base Token reserve size for Token id
-      baseTokenReserve[id] = baseReserve.sub(baseTokenAmount);
-
-      // Update totalBaseToken and tokenAmounts
-      totalBaseTokens = totalBaseTokens.add(baseTokenAmount);
-      tokenAmounts[i] = tokenAmount;
-      baseTokenAmounts[i] = baseTokenAmount;
-    }
-
-    // Burn liquidity pool tokens for offchain supplies
-    _batchBurn(address(this), _tokenIds, _poolTokenAmounts);
-
-    // Transfer total Base Tokens and all Tokens ids
-    baseToken.safeTransferFrom(address(this), _provider, baseTokenID, totalBaseTokens, "");
-    token.safeBatchTransferFrom(address(this), _provider, _tokenIds, tokenAmounts, "");
-
-    // Emit event
-    emit LiquidityRemoved(_provider, _tokenIds, tokenAmounts, baseTokenAmounts);
-  }
-
 
   /***********************************|
   |         Getter Functions          |
@@ -801,13 +792,16 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     return address(factory);
   }
 
-
   /***********************************|
   |         Utility Functions         |
   |__________________________________*/
 
   /**
-   * @notice Return Niftyswap Token reserves for given Token ids
+   * @notice Return Token reserves for given Token ids
+   * @dev Assumes that ids are sorted from lowest to highest with no duplicates.
+   *      This assumption allows for checking the token reserves only once, otherwise
+   *      token reserves need to be re-checked individually or would have to do more expensive
+   *      duplication checks.
    * @param _tokenIds Array of IDs to query their Reserve balance.
    * @return Array of Token ids' reserves
    */
@@ -823,9 +817,12 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
       tokenReserves[0] = token.balanceOf(address(this), _tokenIds[0]);
 
     } else {
-      // Get current reserve amount for each token ID
+      // Lazy check preventing duplicates & build address array for query
       address[] memory thisAddressArray = new address[](nTokens);
-      for (uint256 i = 0; i < nTokens; i++) {
+      thisAddressArray[0] = address(this);
+
+      for (uint256 i = 1; i < nTokens; i++) {
+        require(_tokenIds[i-1] < _tokenIds[i], "NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS");
         thisAddressArray[i] = address(this);
       }
       tokenReserves = token.balanceOfBatch(thisAddressArray, _tokenIds);

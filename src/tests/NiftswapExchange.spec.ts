@@ -83,9 +83,19 @@ contract('NiftyswapExchange', (accounts: string[]) => {
   const baseTokenID = 666;
   const baseTokenAmount = new BigNumber(10000000).mul(new BigNumber(10).pow(18))
 
+  // Add liquidity data
+  const tokenAmountToAdd = new BigNumber(300);
+  const baseAmountToAdd = (new BigNumber(10).pow(18)).mul(300)
+
+  // Transactions parameters
+  const TX_PARAM = {gasLimit: 5000000}
+  
   // Arrays
   const types = new Array(nTokenTypes).fill('').map((a, i) => getBig(i))
   const values = new Array(nTokenTypes).fill('').map((a, i) => nTokensPerType)
+  const baseAmountsToAdd: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => baseAmountToAdd)
+  const tokenAmountsToAdd: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => tokenAmountToAdd)
+  const addLiquidityData: string = getAddLiquidityData(baseAmountsToAdd, 10000000)
 
   // load contract abi and deploy to test server
   before(async () => {
@@ -103,7 +113,6 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     ownerBaseTokenContract = await erc1155Abstract.deploy(ownerWallet) as ERC1155Mock
     userBaseTokenContract = await ownerBaseTokenContract.connect(userSigner) as ERC1155Mock
     operatorBaseTokenContract = await ownerBaseTokenContract.connect(operatorSigner) as ERC1155Mock
-
 
     // Deploy ERC-1155
     ownerERC1155Contract = await erc1155PackedAbstract.deploy(ownerWallet) as ERC1155PackedBalanceMock
@@ -164,20 +173,23 @@ contract('NiftyswapExchange', (accounts: string[]) => {
         await expect(factory_address).to.be.eql(niftyswapFactoryContract.address)
       })
     })
+
+    describe('supportsInterface()', () => {
+      it('should return true for 0x01ffc9a7 (ERC165)', async () => {
+        const support = await niftyswapExchangeContract.functions.supportsInterface('0x01ffc9a7')
+        expect(support).to.be.eql(true)
+      })
+
+      it('should return true for 0x4e2312e0 (ERC1155Receiver)', async () => {
+        const support = await niftyswapExchangeContract.functions.supportsInterface('0x4e2312e0')
+        expect(support).to.be.eql(true)
+      })
+    })
   })
 
   describe('_addLiquidity() function', () => {
-    const nTypesToAdd = 30;
-    const tokenAmountToAdd = new BigNumber(10);
-    const baseAmountToAdd = new BigNumber(10).pow(18)
-    
-    const typesToAdd = new Array(nTypesToAdd).fill('').map((a, i) => getBig(i))
-    const baseAmountsToAdd = new Array(nTypesToAdd).fill('').map((a, i) => baseAmountToAdd)
-    const tokenAmountsToAdd =  new Array(nTypesToAdd).fill('').map((a, i) => tokenAmountToAdd)
-    const addLiquidityData: string = getAddLiquidityData(baseAmountsToAdd, 10000000)
-
     it('should pass when balances are sufficient', async () => {
-      const tx = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityData,
+      const tx = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, types, tokenAmountsToAdd, addLiquidityData,
         {gasLimit: 50000000}
       )
       await expect(tx).to.be.fulfilled
@@ -187,18 +199,18 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       let blocknumber = await userProvider.getBlockNumber()
       let addLiquidityData = getAddLiquidityData(baseAmountsToAdd, blocknumber)
 
-      const tx = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityData,
+      const tx = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, types, tokenAmountsToAdd, addLiquidityData,
         {gasLimit: 8000000}
       )
       await expect(tx).to.be.rejectedWith( RevertError("NiftyswapExchange#_addLiquidity: DEADLINE_EXCEEDED") )
     })
 
     it('should REVERT if a maxBaseToken is null', async () => {
-      let baseAmountsToAdd = new Array(nTypesToAdd).fill('').map((a, i) => baseAmountToAdd)
+      let baseAmountsToAdd = new Array(nTokenTypes).fill('').map((a, i) => baseAmountToAdd)
       baseAmountsToAdd[5] = new BigNumber(0)
       let addLiquidityData = getAddLiquidityData(baseAmountsToAdd, 10000000)
 
-      const tx = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityData,
+      const tx = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, types, tokenAmountsToAdd, addLiquidityData,
         {gasLimit: 8000000}
       )
       await expect(tx).to.be.rejectedWith( RevertError("NiftyswapExchange#_addLiquidity: NULL_MAX_BASE_TOKEN") )
@@ -208,19 +220,66 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       let tokenAmountsToAddCopy = [...tokenAmountsToAdd]
       tokenAmountsToAddCopy[5] = new BigNumber(0)
 
-      const tx = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAddCopy, addLiquidityData,
+      const tx = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, types, tokenAmountsToAddCopy, addLiquidityData,
         {gasLimit: 8000000}
       )
       await expect(tx).to.be.rejectedWith( RevertError("NiftyswapExchange#_addLiquidity: NULL_TOKENS_AMOUNT") )
     })
 
+    it('should REVERT if arrays are not the same length', async () => {
+      let baseAmount1 = baseAmountToAdd.add(1) 
+
+      // If expected tier is larger, then should be fine
+      let data = getAddLiquidityData([baseAmountToAdd, baseAmountToAdd, baseAmountToAdd], 10000000)
+      const tx1 = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [0, 1], [1, 1], data, TX_PARAM)
+      await expect(tx1).to.be.fulfilled;
+
+      // Everything else should throw
+      data = getAddLiquidityData([baseAmount1, baseAmount1], 10000000)
+      const tx2 = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [0, 1, 2], [1, 1, 1], data, TX_PARAM)
+      await expect(tx2).to.be.rejectedWith(RevertError())
+      
+      data = getAddLiquidityData([baseAmount1, baseAmount1], 10000000)
+      const tx3 = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [0, 1], [1, 1, 1], data, TX_PARAM)
+      await expect(tx3).to.be.rejectedWith(RevertError("ERC1155PackedBalance#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+
+      data = getAddLiquidityData([baseAmount1], 10000000)
+      const tx4 = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [0, 1], [1], data, TX_PARAM)
+      await expect(tx4).to.be.rejectedWith(RevertError("ERC1155PackedBalance#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+
+      data = getAddLiquidityData([baseAmount1, baseAmount1], 10000000)
+      const tx5 = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [0, 1], [1], data, TX_PARAM)
+      await expect(tx5).to.be.rejectedWith(RevertError("ERC1155PackedBalance#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+
+      data = getAddLiquidityData([baseAmount1], 10000000)
+      const tx6 = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [0, 1], [1, 1], data, TX_PARAM)
+      await expect(tx6).to.be.rejectedWith(RevertError())
+    })
+
+    it('should REVERT if any duplicate', async () => {
+      const tx1 = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [1, 1], [tokenAmountToAdd, tokenAmountToAdd], addLiquidityData,
+        {gasLimit: 50000000}
+      )
+      await expect(tx1).to.be.rejectedWith( RevertError("NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS") )
+
+      const tx2 = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [1, 2, 2], [tokenAmountToAdd, tokenAmountToAdd, tokenAmountToAdd], addLiquidityData,
+        {gasLimit: 50000000}
+      )
+      await expect(tx2).to.be.rejectedWith( RevertError("NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS") )
+
+      const tx3 = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [1, 2, 1], [tokenAmountToAdd, tokenAmountToAdd, tokenAmountToAdd], addLiquidityData,
+        {gasLimit: 50000000}
+      )
+      await expect(tx3).to.be.rejectedWith( RevertError("NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS") )
+    })
+
     context('When liquidity was added', () => {
       let tx;
-      const baseAmountsToAddOne = new Array(nTypesToAdd).fill('').map((a, i) => baseAmountToAdd.add(1))
+      const baseAmountsToAddOne = new Array(nTokenTypes).fill('').map((a, i) => baseAmountToAdd.add(1))
       const addLiquidityDataOne = getAddLiquidityData(baseAmountsToAddOne, 10000000)
 
       beforeEach( async () => {
-        tx = await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityData,
+        tx = await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, types, tokenAmountsToAdd, addLiquidityData,
           {gasLimit: 50000000}
         )
       })
@@ -268,13 +327,13 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       })
 
       it('should DECREASE the BUY prices for 2ND deposit', async () => {
-        const ones = new Array(nTypesToAdd).fill('').map((a, i) => 1)
+        const ones = new Array(nTokenTypes).fill('').map((a, i) => 1)
         
         // After 1st deposit
         const prePrices = await niftyswapExchangeContract.functions.getPrice_baseToToken(types, ones)
 
         // After 2nd deposit
-        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityDataOne,
+        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, types, tokenAmountsToAdd, addLiquidityDataOne,
           {gasLimit: 50000000}
         )
         const postPrices = await niftyswapExchangeContract.functions.getPrice_baseToToken(types, ones)
@@ -285,16 +344,16 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       })
 
       it('should DECREASE the BUY prices for 3RD deposit', async () => {
-        const ones = new Array(nTypesToAdd).fill('').map((a, i) => 1)
+        const ones = new Array(nTokenTypes).fill('').map((a, i) => 1)
         
         // After 2nd deposit
-        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityDataOne,
+        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, types, tokenAmountsToAdd, addLiquidityDataOne,
           {gasLimit: 50000000}
         )
         const prePrices = await niftyswapExchangeContract.functions.getPrice_baseToToken(types, ones)
 
         // After 3rd deposit
-        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityDataOne,
+        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, types, tokenAmountsToAdd, addLiquidityDataOne,
           {gasLimit: 50000000}
         )
         const postPrices = await niftyswapExchangeContract.functions.getPrice_baseToToken(types, ones)
@@ -305,13 +364,13 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       })
 
       it('should INCREASE the SELL prices for 2ND deposit', async () => {
-        const ones = new Array(nTypesToAdd).fill('').map((a, i) => 1)
+        const ones = new Array(nTokenTypes).fill('').map((a, i) => 1)
         
         // After 1st deposit
         const prePrices = await niftyswapExchangeContract.functions.getPrice_tokenToBase(types, ones)
 
         // After 2nd deposit
-        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityDataOne,
+        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, types, tokenAmountsToAdd, addLiquidityDataOne,
           {gasLimit: 50000000}
         )
         const postPrices = await niftyswapExchangeContract.functions.getPrice_tokenToBase(types, ones)
@@ -322,16 +381,16 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       })
 
       it('should INCREASE the SELL prices for 3RD deposit', async () => {
-        const ones = new Array(nTypesToAdd).fill('').map((a, i) => 1)
+        const ones = new Array(nTokenTypes).fill('').map((a, i) => 1)
         
         // After 2nd deposit
-        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityDataOne,
+        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, types, tokenAmountsToAdd, addLiquidityDataOne,
           {gasLimit: 50000000}
         )
         const prePrices = await niftyswapExchangeContract.functions.getPrice_tokenToBase(types, ones)
 
         // After 3rd deposit
-        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityDataOne,
+        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, types, tokenAmountsToAdd, addLiquidityDataOne,
           {gasLimit: 50000000}
         )
         const postPrices = await niftyswapExchangeContract.functions.getPrice_tokenToBase(types, ones)
@@ -357,24 +416,24 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     })
 
     context('When liquidity was added for the second time', () => {
-      const baseAmountsToAddOne = new Array(nTypesToAdd).fill('').map((a, i) => baseAmountToAdd.add(1))
+      const baseAmountsToAddOne = new Array(nTokenTypes).fill('').map((a, i) => baseAmountToAdd.add(1))
       const addLiquidityDataOne = getAddLiquidityData(baseAmountsToAddOne, 10000000)
 
       beforeEach( async () => {
-        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityData,
+        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, types, tokenAmountsToAdd, addLiquidityData,
           {gasLimit: 50000000}
         )
-        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityDataOne,
+        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, types, tokenAmountsToAdd, addLiquidityDataOne,
           {gasLimit: 50000000}
         )
       })
 
       it('should REVERT if a maxBaseToken is exceeded', async () => {
-        let baseAmountsToAdd = new Array(nTypesToAdd).fill('').map((a, i) => baseAmountToAdd)
+        let baseAmountsToAdd = new Array(nTokenTypes).fill('').map((a, i) => baseAmountToAdd)
         baseAmountsToAdd[5] = new BigNumber(1000)
         let addLiquidityData = getAddLiquidityData(baseAmountsToAdd, 10000000)
   
-        const tx = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityData,
+        const tx = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, types, tokenAmountsToAdd, addLiquidityData,
           {gasLimit: 8000000}
         )
         await expect(tx).to.be.rejectedWith( RevertError("NiftyswapExchange#_addLiquidity: MAX_BASE_TOKENS_EXCEEDED") )
@@ -442,7 +501,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
 
     describe('When liquidity > 0', () => {
       beforeEach(async () => {
-        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityData,
+        await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, types, tokenAmountsToAdd, addLiquidityData,
           {gasLimit: 8000000}
         )
       })
@@ -450,12 +509,12 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       it('should pass when balances are sufficient', async () => {
         let maxBaseTokens: ethers.utils.BigNumber[] = []
 
-        for (let i = 0; i < nTypesToAdd; i++) {
+        for (let i = 0; i < nTokenTypes; i++) {
           maxBaseTokens.push(baseAmountToAdd.mul(2))
         }
         let addLiquidityData2 = getAddLiquidityData(maxBaseTokens, 10000000)
 
-        const tx = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToAdd, tokenAmountsToAdd, addLiquidityData2,
+        const tx = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, types, tokenAmountsToAdd, addLiquidityData2,
           {gasLimit: 8000000}
         )
         await expect(tx).to.be.fulfilled
@@ -465,23 +524,18 @@ contract('NiftyswapExchange', (accounts: string[]) => {
   })
 
   describe('_removeLiquidity() function', () => {
-    const nTypesToRemove = 30;
-    const tokenAmountToAdd = new BigNumber(20);
-    const baseAmountToAdd = new BigNumber(20).pow(18)
+    const nTokenTypesToRemove = 30;
 
-    const tokenAmountToRemove = new BigNumber(5);
-    const baseAmountToRemove = (new BigNumber(20).pow(18)).div(4)
+    const tokenAmountToRemove = new BigNumber(75);
+    const baseAmountToRemove = ((new BigNumber(10).pow(18)).mul(300)).div(4)
     
-    const typesToRemove = new Array(nTypesToRemove).fill('').map((a, i) => getBig(i))
-    const tokenAmountsToAdd = new Array(nTypesToRemove).fill('').map((a, i) => tokenAmountToAdd)
-    const baseAmountsToAdd = new Array(nTypesToRemove).fill('').map((a, i) => baseAmountToAdd)
+    const typesToRemove = new Array(nTokenTypesToRemove).fill('').map((a, i) => getBig(i))
 
-    const tokenAmountsToRemove = new Array(nTypesToRemove).fill('').map((a, i) => tokenAmountToRemove)
-    const baseAmountsToRemove = new Array(nTypesToRemove).fill('').map((a, i) => baseAmountToRemove)
+    const tokenAmountsToRemove = new Array(nTokenTypesToRemove).fill('').map((a, i) => tokenAmountToRemove)
+    const baseAmountsToRemove = new Array(nTokenTypesToRemove).fill('').map((a, i) => baseAmountToRemove)
 
-    const niftyTokenToSend = new Array(nTypesToRemove).fill('').map((a, i) => baseAmountToRemove)
+    const niftyTokenToSend = new Array(nTokenTypesToRemove).fill('').map((a, i) => baseAmountToRemove)
 
-    const addLiquidityData: string = getAddLiquidityData(baseAmountsToAdd, 10000000)
     const removeLiquidityData: string = getRemoveLiquidityData(baseAmountsToRemove, tokenAmountsToRemove, 10000000)
 
     it('should revert if no Niftyswap token', async () => {
@@ -492,7 +546,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     })
 
     it('should revert if empty reserve', async () => {
-      const zeroArray = new Array(nTypesToRemove).fill('').map((a, i) => new BigNumber(0))
+      const zeroArray = new Array(nTokenTypesToRemove).fill('').map((a, i) => new BigNumber(0))
       const tx = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToRemove, zeroArray, removeLiquidityData,
         {gasLimit: 8000000}
       )
@@ -530,6 +584,83 @@ contract('NiftyswapExchange', (accounts: string[]) => {
         await expect(tx).to.be.rejectedWith(RevertError("NiftyswapExchange#_removeLiquidity: INSUFFICIENT_TOKENS"))
       })
 
+      it('should fail if any duplicate', async () => {
+        const tx1 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [1, 1], [baseAmountToRemove, baseAmountToRemove], removeLiquidityData,
+          {gasLimit: 8000000}
+        )
+        await expect(tx1).to.be.rejectedWith( RevertError("NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS") )
+  
+        const tx2 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [1, 2, 2], [baseAmountToRemove, baseAmountToRemove, baseAmountToRemove], removeLiquidityData,
+          {gasLimit: 8000000}
+        )
+        await expect(tx2).to.be.rejectedWith( RevertError("NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS") )
+  
+        const tx3 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [1, 2, 1], [baseAmountToRemove, baseAmountToRemove, baseAmountToRemove], removeLiquidityData,
+          {gasLimit: 8000000}
+        )
+        await expect(tx3).to.be.rejectedWith( RevertError("NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS") )
+      })
+
+      it('should REVERT if arrays are not the same length', async () => {  
+        // If expected tier is larger, then should be fine
+        let data = getRemoveLiquidityData([baseAmountToRemove], [tokenAmountToRemove], 10000000)
+        const tx1 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [0, 1], [baseAmountToRemove], data, TX_PARAM)
+        await expect(tx1).to.be.rejectedWith(RevertError("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+  
+        // Everything else should throw
+        data = getRemoveLiquidityData([baseAmountToRemove], [tokenAmountToRemove], 10000000)
+        const tx2 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [2], [baseAmountToRemove, baseAmountToRemove], data, TX_PARAM)
+        await expect(tx2).to.be.rejectedWith(RevertError("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+
+        data = getRemoveLiquidityData([baseAmountToRemove, baseAmountToRemove], [tokenAmountToRemove], 10000000)
+        const tx3 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [3], [baseAmountToRemove], data, TX_PARAM)
+        await expect(tx3).to.be.fulfilled
+
+        data = getRemoveLiquidityData([baseAmountToRemove], [tokenAmountToRemove, tokenAmountToRemove], 10000000)
+        const tx4 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [4], [baseAmountToRemove], data, TX_PARAM)
+        await expect(tx4).to.be.fulfilled
+
+        data = getRemoveLiquidityData([baseAmountToRemove], [tokenAmountToRemove], 10000000)
+        const tx5 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [5, 6], [baseAmountToRemove, baseAmountToRemove], data, TX_PARAM)
+        await expect(tx5).to.be.rejectedWith(RevertError())
+
+        data = getRemoveLiquidityData([baseAmountToRemove, baseAmountToRemove], [tokenAmountToRemove], 10000000)
+        const tx6 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [7, 8], [baseAmountToRemove], data, TX_PARAM)
+        await expect(tx6).to.be.rejectedWith(RevertError("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+
+        data = getRemoveLiquidityData([baseAmountToRemove], [tokenAmountToRemove, baseAmountToRemove], 10000000)
+        const tx7 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [9, 10], [baseAmountToRemove], data, TX_PARAM)
+        await expect(tx7).to.be.rejectedWith(RevertError("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+
+        data = getRemoveLiquidityData([baseAmountToRemove, baseAmountToRemove], [tokenAmountToRemove], 10000000)
+        const tx8 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [11], [baseAmountToRemove, baseAmountToRemove], data, TX_PARAM)
+        await expect(tx8).to.be.rejectedWith(RevertError("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+
+        data = getRemoveLiquidityData([baseAmountToRemove], [tokenAmountToRemove, tokenAmountToRemove], 10000000)
+        const tx9 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [12], [baseAmountToRemove, baseAmountToRemove], data, TX_PARAM)
+        await expect(tx9).to.be.rejectedWith(RevertError("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+
+        data = getRemoveLiquidityData([baseAmountToRemove, baseAmountToRemove], [tokenAmountToRemove, tokenAmountToRemove], 10000000)
+        const tx10 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [13], [baseAmountToRemove], data, TX_PARAM)
+        await expect(tx10).to.be.fulfilled
+
+        data = getRemoveLiquidityData([baseAmountToRemove, baseAmountToRemove], [tokenAmountToRemove], 10000000)
+        const tx11 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [14, 15], [baseAmountToRemove, baseAmountToRemove], data, TX_PARAM)
+        await expect(tx11).to.be.rejectedWith(RevertError())
+
+        data = getRemoveLiquidityData([baseAmountToRemove], [tokenAmountToRemove, tokenAmountToRemove], 10000000)
+        const tx12 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [16, 17], [baseAmountToRemove, baseAmountToRemove], data, TX_PARAM)
+        await expect(tx12).to.be.rejectedWith(RevertError())
+
+        data = getRemoveLiquidityData([baseAmountToRemove, baseAmountToRemove], [tokenAmountToRemove, tokenAmountToRemove], 10000000)
+        const tx13 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [18, 19], [baseAmountToRemove], data, TX_PARAM)
+        await expect(tx13).to.be.rejectedWith(RevertError("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+
+        data = getRemoveLiquidityData([baseAmountToRemove, baseAmountToRemove], [tokenAmountToRemove, tokenAmountToRemove], 10000000)
+        const tx14 = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [20], [baseAmountToRemove, baseAmountToRemove], data, TX_PARAM)
+        await expect(tx14).to.be.rejectedWith(RevertError("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+      })
+
       it('should PASS if enough Niftyswap token', async () => {
         const tx = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToRemove, niftyTokenToSend, removeLiquidityData,
           {gasLimit: 8000000}
@@ -538,7 +669,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       })
 
       it('should INCREASE the BUY prices for 2ND withdraw', async () => {
-        const ones = new Array(nTypesToRemove).fill('').map((a, i) => 1)
+        const ones = new Array(nTokenTypesToRemove).fill('').map((a, i) => 1)
         
         // After 1st deposit
         const prePrices = await niftyswapExchangeContract.functions.getPrice_baseToToken(types, ones)
@@ -555,7 +686,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       })
 
       it('should INCREASE the BUY prices for 3RD withdraw', async () => {
-        const ones = new Array(nTypesToRemove).fill('').map((a, i) => 1)
+        const ones = new Array(nTokenTypesToRemove).fill('').map((a, i) => 1)
         
         // After 2nd deposit
         await operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToRemove, niftyTokenToSend, removeLiquidityData,
@@ -575,7 +706,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       })
 
       it('should DECREASE the SELL prices for 2ND withdraw', async () => {
-        const ones = new Array(nTypesToRemove).fill('').map((a, i) => 1)
+        const ones = new Array(nTokenTypesToRemove).fill('').map((a, i) => 1)
         
         // After 1st deposit
         const prePrices = await niftyswapExchangeContract.functions.getPrice_tokenToBase(types, ones)
@@ -592,7 +723,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       })
 
       it('should DECREASE the SELL prices for 3RD withdraw', async () => {
-        const ones = new Array(nTypesToRemove).fill('').map((a, i) => 1)
+        const ones = new Array(nTokenTypesToRemove).fill('').map((a, i) => 1)
         
         // After 2nd deposit
         await operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToRemove, niftyTokenToSend, removeLiquidityData,
@@ -678,13 +809,6 @@ contract('NiftyswapExchange', (accounts: string[]) => {
 
   describe('_tokenToBase() function', () => {
 
-    //Liquidity
-    const tokenAmountToAdd = new BigNumber(10);
-    const baseAmountToAdd = new BigNumber(10).pow(18)
-    const baseAmountsToAdd: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => baseAmountToAdd)
-    const tokenAmountsToAdd: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => tokenAmountToAdd)
-    const addLiquidityData: string = getAddLiquidityData(baseAmountsToAdd, 10000000) 
-
     //Sell
     const tokenAmountToSell = new BigNumber(50)
     const tokensAmountsToSell: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => tokenAmountToSell)
@@ -754,6 +878,31 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       await expect(tx).to.be.rejectedWith( RevertError("NiftyswapExchange#_tokenToBase: INSUFFICIENT_BASE_TOKENS") )
     })
 
+    it('should fail if any duplicate', async () => {
+      const tx1 = userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, [1, 1], [tokenAmountToSell, tokenAmountToSell], sellTokenData,
+        {gasLimit: 8000000}
+      )
+      await expect(tx1).to.be.rejectedWith( RevertError("NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS") )
+
+      const tx2 = userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, [1, 2, 2], [tokenAmountToSell, tokenAmountToSell, tokenAmountToSell], sellTokenData,
+        {gasLimit: 8000000}
+      )
+      await expect(tx2).to.be.rejectedWith( RevertError("NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS") )
+
+      const tx3 = userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, [1, 2, 1], [tokenAmountToSell, tokenAmountToSell, tokenAmountToSell], sellTokenData,
+        {gasLimit: 8000000}
+      )
+      await expect(tx3).to.be.rejectedWith( RevertError("NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS") )
+    })
+
+    it('should REVERT if arrays are not the same length', async () => {
+      const tx1 = userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, [0, 1], [tokenAmountToSell], sellTokenData, TX_PARAM)
+      await expect(tx1).to.be.rejectedWith(RevertError("ERC1155PackedBalance#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+
+      const tx2 = userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, [0], [tokenAmountToSell, tokenAmountToSell], sellTokenData, TX_PARAM)
+      await expect(tx2).to.be.rejectedWith(RevertError("ERC1155PackedBalance#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+    })
+    
     it('should sell tokens when balances are sufficient', async () => {
       const tx = userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, types, tokensAmountsToSell, sellTokenData,
         {gasLimit: 8000000}
@@ -829,13 +978,6 @@ contract('NiftyswapExchange', (accounts: string[]) => {
 
   describe('_baseToToken() function', () => {
 
-    //Liquidity
-    const tokenAmountToAdd = new BigNumber(500);
-    const baseAmountToAdd = new BigNumber(10).pow(18).mul(500)
-    const baseAmountsToAdd: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => baseAmountToAdd)
-    const tokenAmountsToAdd: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => tokenAmountToAdd)
-    const addLiquidityData: string = getAddLiquidityData(baseAmountsToAdd, 10000000)
-
     //Buy
     const tokenAmountToBuy = new BigNumber(50)
     const tokensAmountsToBuy: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => tokenAmountToBuy)
@@ -897,6 +1039,43 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       await expect(tx).to.be.rejectedWith( RevertError("SafeMath#sub: UNDERFLOW") )
     })
 
+    it('should fail if any duplicate', async () => {
+
+      let One = new BigNumber(1)
+
+      // Tokens to buy
+      let invalid_buyTokenData1 = getBuyTokenData(randomWallet.address, [1, 1], [One, One], 10000000)
+      const tx1 = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, invalid_buyTokenData1,
+        {gasLimit: 8000000}
+      )
+
+      await expect(tx1).to.be.rejectedWith( RevertError("NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS") )
+
+      // Tokens to buy
+      let invalid_buyTokenData2 = getBuyTokenData(randomWallet.address, [1, 2, 2], [One, One, One], 10000000)
+      const tx2 = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, invalid_buyTokenData2,
+        {gasLimit: 8000000}
+      )
+      await expect(tx2).to.be.rejectedWith( RevertError("NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS") )
+
+      // Tokens to buy
+      let invalid_buyTokenData3 = getBuyTokenData(randomWallet.address, [1, 2, 1], [One, One, One], 10000000)
+      const tx3 = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, invalid_buyTokenData3,
+        {gasLimit: 8000000}
+      )
+      await expect(tx3).to.be.rejectedWith( RevertError("NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS") )
+    })
+
+    it('should REVERT if arrays are not the same length', async () => {
+      let data = getBuyTokenData(userAddress, [0, 1], [tokenAmountToBuy], 10000000)
+      const tx1 = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, data, TX_PARAM)
+      await expect(tx1).to.be.rejectedWith(RevertError())
+
+      data = getBuyTokenData(userAddress, [0], [tokenAmountToBuy, tokenAmountToBuy], 10000000)
+      const tx2 = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, data, TX_PARAM)
+      await expect(tx2).to.be.rejectedWith(RevertError("ERC1155PackedBalance#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
+    })
+    
     it('should buy tokens if base amount is sufficient', async () => {
       const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
         {gasLimit: 8000000}
@@ -969,8 +1148,8 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       cost = cost.mul(nTokenTypes)
       buyTokenData = getBuyTokenData(randomWallet.address, types, tokensAmountsToBuy, 10000000)
 
+      {gasLimit: 8000000}
       const tx = userBaseTokenContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, baseTokenID, cost, buyTokenData,
-        {gasLimit: 8000000}
       )
       await expect(tx).to.be.fulfilled
       
