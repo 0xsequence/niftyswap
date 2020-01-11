@@ -1,4 +1,4 @@
-pragma solidity ^0.5.14;
+pragma solidity ^0.5.16;
 pragma experimental ABIEncoderV2;
 import "../interfaces/INiftyswapFactory.sol";
 import "../interfaces/INiftyswapExchange.sol";
@@ -385,14 +385,14 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
         // Otherwise rounding error could end up being significant on second deposit
         require(maxBaseToken >= 1000000000, "NiftyswapExchange#_addLiquidity: INVALID_BASE_TOKEN_AMOUNT");
 
-        // // Update Base Token reserve size for Token id before transfer
+        // Update Base Token reserve size for Token id before transfer
         baseTokenReserve[tokenId] = maxBaseToken;
 
         // Update totalBaseTokens
         totalBaseTokens = totalBaseTokens.add(maxBaseToken);
 
-        // // Initial liquidity is amount deposited (Incorrect pricing will be arbitraged)
-        // // uint256 initialLiquidity = _maxBaseTokens;
+        // Initial liquidity is amount deposited (Incorrect pricing will be arbitraged)
+        // uint256 initialLiquidity = _maxBaseTokens;
         totalSupplies[tokenId] = maxBaseToken;
 
         // Liquidity to mints
@@ -551,7 +551,6 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
    * @dev `_data` must be encoded as follow: abi.encode(bytes4, MethodObj)
    *   where bytes4 argument is the MethodObj object signature passed as defined
    *   in the `Signatures for onReceive control logic` section above
-   * @param _operator The address which called the `safeTransferFrom` function
    * @param _from     The address which previously owned the Token
    * @param _ids      An array containing ids of each Token being transferred
    * @param _amounts  An array containing amounts of each Token being transferred
@@ -559,7 +558,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
    * @return bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)")
    */
   function onERC1155BatchReceived(
-    address _operator,
+    address, // _operator,
     address _from,
     uint256[] memory _ids,
     uint256[] memory _amounts,

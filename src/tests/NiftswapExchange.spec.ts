@@ -173,6 +173,18 @@ contract('NiftyswapExchange', (accounts: string[]) => {
         await expect(factory_address).to.be.eql(niftyswapFactoryContract.address)
       })
     })
+
+    describe('supportsInterface()', () => {
+      it('should return true for 0x01ffc9a7 (ERC165)', async () => {
+        const support = await niftyswapExchangeContract.functions.supportsInterface('0x01ffc9a7')
+        expect(support).to.be.eql(true)
+      })
+
+      it('should return true for 0x4e2312e0 (ERC1155Receiver)', async () => {
+        const support = await niftyswapExchangeContract.functions.supportsInterface('0x4e2312e0')
+        expect(support).to.be.eql(true)
+      })
+    })
   })
 
   describe('_addLiquidity() function', () => {
