@@ -5186,7 +5186,7 @@ lodash@^4.13.1, lodash@^4.14.2, lodash@^4.17.10, lodash@^4.17.11, lodash@^4.17.4
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.11.tgz#b39ea6229ef607ecd89e2c8df12536891cac9b8d"
   integrity sha512-cQKh8igo5QUhZ7lg38DYWAxMvjSAKG0A8wGSVimP07SIUEK2UO+arSRKbRZWtelMtN5V0Hkwh5ryOto/SshYIg==
 
-lodash@^4.17.14, lodash@^4.17.15:
+lodash@^4.17.14:
   version "4.17.15"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.15.tgz#b447f6670a0455bbfeedd11392eff330ea097548"
   integrity sha512-8xOcRHvCjnocdS5cpwXQXVzmmh5e5+saE2QGoeQmbKmRS6J3VQppPOIt0MnmE+4xlZoumy0GPG0D0MVIQbNA1A==
@@ -5588,12 +5588,10 @@ ms@^2.1.1:
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.1.tgz#30a5864eb3ebb0a66f2ebe6d727af06a09d86e0a"
   integrity sha512-tgp+dl5cGk28utYktBsrFqA7HKgrhgPsg6Z/EfhWI4gl1Hwq8B/GmY/0oXZ6nF8hDVesS/FpnYaD/kOWhYQvyg==
 
-multi-token-standard@^0.8.9:
-  version "0.8.9"
-  resolved "https://registry.yarnpkg.com/multi-token-standard/-/multi-token-standard-0.8.9.tgz#2b3c7b1628727abaf147beaffeb3316af6178fb3"
-  integrity sha512-rwpET74KrCTVi9/C2jIVEyfbns011IdkoYJfDegr2D1/AvBD47IRhRvqbUw9SuDKpxkEM4hS68Wsc3kXScTvhA==
-  dependencies:
-    typechain-target-ethers "^1.0.2"
+multi-token-standard@^0.8.10:
+  version "0.8.10"
+  resolved "https://registry.yarnpkg.com/multi-token-standard/-/multi-token-standard-0.8.10.tgz#441ada0da94fd29d405e4c4db642d8510d7ed591"
+  integrity sha512-uZh6/rkxteGGW4ZzCNdSjEbf99wmSoT0efG1fCCbGc2SVvRD+6QJJAeevfzq7yE9lya2gakWKoJz93Ajp730Ew==
 
 mute-stdout@^1.0.0:
   version "1.0.1"
@@ -8173,13 +8171,6 @@ type@^1.0.1:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/type/-/type-1.0.3.tgz#16f5d39f27a2d28d86e48f8981859e9d3296c179"
   integrity sha512-51IMtNfVcee8+9GJvj0spSuFcZHe9vSib6Xtgsny1Km9ugyz2mbS08I3rsUIRYgJohFRFU1160sgRodYz378Hg==
-
-typechain-target-ethers@^1.0.2:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/typechain-target-ethers/-/typechain-target-ethers-1.0.3.tgz#2a55eead6190c87082a3237c55a315695ef0cd43"
-  integrity sha512-01bzf/eJW9QATZcGAXhaVc1WuEup7CIW22xEu22IaNuUlRCWW0yhNGA3H0UInUBVzT7yfsSapyLB8gYTqQnDjg==
-  dependencies:
-    lodash "^4.17.15"
 
 typechain@^0.3.17:
   version "0.3.17"
