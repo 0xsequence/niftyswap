@@ -28,7 +28,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
 
   // Variables
   IERC1155 internal token;                        // address of the ERC-1155 token contract
-  IERC1155 internal baseToken;                    // address of the ERC-1155 base token traded on this contract
+  IERC1155 internal baseToken;                    // address of the ERC-1155 base currency used for exchange
   address internal factory;                       // address for the factory that created this contract
   uint256 internal baseTokenID;                   // ID of base token in ERC-1155 base contract
   uint256 internal constant FEE_MULTIPLIER = 995; // Multiplier that calculates the fee (0.5%)

@@ -8,7 +8,8 @@ contract NiftyswapFactory {
   |       Events And Variables        |
   |__________________________________*/
 
-  mapping (address => address) internal tokenToExchange;
+  // tokensToExchange[erc1155_token_address][base_currency_address][base_currency_token_id]
+  mapping(address => mapping(address => mapping(uint256 => address))) public tokensToExchange;
   event NewExchange(address indexed token, address indexed baseToken, uint256 baseTokenID, address indexed exchange);
 
   /***********************************|
@@ -23,30 +24,16 @@ contract NiftyswapFactory {
    * @param _baseTokenID   The ID of the ERC-1155 Base Token (must be divisible, ideally > 12 decimals)
    */
   function createExchange(address _token, address _baseTokenAddr, uint256 _baseTokenID) public {
-    // require(_token != address(0x0), "NiftyswapFactory#createExchange: INVALID_TOKEN_ADDRESS");
-    // require(_baseTokenAddr != address(0x0), "NiftyswapFactory#createExchange: INVALID_BASE_TOKEN_ADDRESS");
-    // ^^^ Checked in NiftyswapExchange.sol constructor
-    require(tokenToExchange[_token] == address(0x0), "NiftyswapFactory#createExchange: EXCHANGE_ALREADY_CREATED");
+    require(tokensToExchange[_token][_baseTokenAddr][_baseTokenID] == address(0x0), "NiftyswapFactory#createExchange: EXCHANGE_ALREADY_CREATED");
 
     // Create new exchange contract
     NiftyswapExchange exchange = new NiftyswapExchange(_token, _baseTokenAddr, _baseTokenID);
 
     // Store exchange and token addresses
-    tokenToExchange[_token] = address(exchange);
+    tokensToExchange[_token][_baseTokenAddr][_baseTokenID] = address(exchange);
 
     // Emit event
     emit NewExchange(_token, _baseTokenAddr, _baseTokenID, address(exchange));
   }
 
-  /***********************************|
-  |         Getter Functions          |
-  |__________________________________*/
-
-  /**
-   * @notice Return address of exchange for corresponding ERC-1155 token contract
-   * @param _token The address of the ERC-1155 Token
-   */
-  function getExchange(address _token) public view returns (address) {
-    return tokenToExchange[_token];
-  }
 }

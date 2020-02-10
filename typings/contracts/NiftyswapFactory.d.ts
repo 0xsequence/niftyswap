@@ -50,7 +50,11 @@ export class NiftyswapFactory extends Contract {
   interface: NiftyswapFactoryInterface;
 
   functions: {
-    getExchange(_token: string): Promise<string>;
+    tokensToExchange(
+      arg0: string,
+      arg1: string,
+      arg2: BigNumberish
+    ): Promise<string>;
 
     createExchange(
       _token: string,

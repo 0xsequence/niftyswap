@@ -130,7 +130,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
     )
     
     // Retrieve exchange address
-    const exchangeAddress = await niftyswapFactoryContract.functions.getExchange(ownerERC1155Contract.address)
+    const exchangeAddress = await niftyswapFactoryContract.functions.tokensToExchange(ownerERC1155Contract.address, ownerBaseTokenContract.address, baseTokenID)
     
     // Type exchange contract
     niftyswapExchangeContract = new ethers.Contract(exchangeAddress, exchangeABI, ownerProvider) as NiftyswapExchange
