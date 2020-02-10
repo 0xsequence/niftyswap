@@ -1,6 +1,5 @@
 pragma solidity ^0.5.16;
 pragma experimental ABIEncoderV2;
-import "../interfaces/INiftyswapFactory.sol";
 import "../interfaces/INiftyswapExchange.sol";
 import "../utils/ReentrancyGuard.sol";
 import "multi-token-standard/contracts/interfaces/IERC1155.sol";
@@ -30,7 +29,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
   // Variables
   IERC1155 internal token;                        // address of the ERC-1155 token contract
   IERC1155 internal baseToken;                    // address of the ERC-1155 base token traded on this contract
-  INiftyswapFactory internal factory;             // interface for the factory that created this contract
+  address internal factory;                       // address for the factory that created this contract
   uint256 internal baseTokenID;                   // ID of base token in ERC-1155 base contract
   uint256 internal constant FEE_MULTIPLIER = 995; // Multiplier that calculates the fee (0.5%)
 
@@ -87,7 +86,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
       address(_tokenAddr) != address(0) && _baseTokenAddr != address(0),
       "NiftyswapExchange#constructor:INVALID_INPUT"
     );
-    factory = INiftyswapFactory(msg.sender);
+    factory = msg.sender;
     token = IERC1155(_tokenAddr);
     baseToken = IERC1155(_baseTokenAddr);
     baseTokenID = _baseTokenID;
@@ -400,11 +399,12 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
         baseTokenAmounts[i] = maxBaseToken;
       }
     }
+
     // Mint liquidity pool tokens
     _batchMint(_provider, _tokenIds, liquiditiesToMint, "");
 
     // Transfer all Base Tokens to this contract
-    baseToken.safeTransferFrom(_provider, address(this), baseTokenID, totalBaseTokens, abi.encodePacked(DEPOSIT_SIG));
+    baseToken.safeTransferFrom(_provider, address(this), baseTokenID, totalBaseTokens, abi.encode(DEPOSIT_SIG));
 
     // Emit event
     emit LiquidityAdded(_provider, _tokenIds, _tokenAmounts, baseTokenAmounts);
@@ -513,7 +513,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     uint256 deadline;        // Block # after which the tx isn't valid anymore
   }
 
-  struct LiquidityRemovedObj {
+  struct RemoveLiquidityObj {
     uint256[] minBaseTokens; // Minimum number of base tokens to withdraw
     uint256[] minTokens;     // Minimum number of tokens to withdraw
     uint256 deadline;        // Block # after which the tx isn't valid anymore
@@ -571,11 +571,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     // contract with ERC-1155 compliant token contracts.
 
     // Obtain method to call via object signature
-    bytes4 functionSignature;
-    assembly {
-      functionSignature := mload(add(_data, 32))
-      functionSignature := and(functionSignature, 0xFFFFFFFF00000000000000000000000000000000000000000000000000000000)
-    }
+    bytes4 functionSignature = abi.decode(_data, (bytes4));
 
     /***********************************|
     |           Buying Tokens           |
@@ -589,7 +585,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
 
       // Decode BuyTokensObj from _data to call _baseToToken()
       BuyTokensObj memory obj;
-      (functionSignature, obj) = abi.decode(_data, (bytes4, BuyTokensObj));
+      (, obj) = abi.decode(_data, (bytes4, BuyTokensObj));
       address recipient = obj.recipient == address(0x0) ? _from : obj.recipient;
 
       // Execute trade and retrieve amount of baseTokens spent
@@ -601,12 +597,13 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     |__________________________________*/
 
     } else if (functionSignature == SELLTOKENS_SIG) {
+
       // Tokens received need to be Token contract
       require(msg.sender == address(token), "NiftyswapExchange#onERC1155BatchReceived: INVALID_TOKENS_TRANSFERRED");
 
       // Decode SellTokensObj from _data to call _tokenToBase()
       SellTokensObj memory obj;
-      (functionSignature, obj) = abi.decode(_data, (bytes4, SellTokensObj));
+      (, obj) = abi.decode(_data, (bytes4, SellTokensObj));
       address recipient = obj.recipient == address(0x0) ? _from : obj.recipient;
 
       // Execute trade and retrieve amount of baseTokens received
@@ -623,7 +620,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
 
       // Decode AddLiquidityObj from _data to call _addLiquidity()
       AddLiquidityObj memory obj;
-      (functionSignature, obj) = abi.decode(_data, (bytes4, AddLiquidityObj));
+      (, obj) = abi.decode(_data, (bytes4, AddLiquidityObj));
       _addLiquidity(_from, _ids, _amounts, obj.maxBaseTokens, obj.deadline);
 
     /***********************************|
@@ -634,9 +631,9 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
       // Tokens received need to be NIFTY-1155 tokens
       require(msg.sender == address(this), "NiftyswapExchange#onERC1155BatchReceived: INVALID_NIFTY_TOKENS_TRANSFERRED");
 
-      // Decode LiquidityRemovedObj from _data to call _removeLiquidity()
-      LiquidityRemovedObj memory obj;
-      (functionSignature, obj) = abi.decode(_data, (bytes4, LiquidityRemovedObj));
+      // Decode RemoveLiquidityObj from _data to call _removeLiquidity()
+      RemoveLiquidityObj memory obj;
+      (, obj) = abi.decode(_data, (bytes4, RemoveLiquidityObj));
       _removeLiquidity(_from, _ids, _amounts, obj.minBaseTokens, obj.minTokens, obj.deadline);
 
     /***********************************|
@@ -644,7 +641,10 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     |__________________________________*/
 
     } else if (functionSignature == DEPOSIT_SIG) {
-      /** Do nothing for when contract is self depositing */
+      // Do nothing for when contract is self depositing
+      // This could be use to deposit base tokens "by accident", which would be locked
+      require(msg.sender == address(baseToken), "NiftyswapExchange#onERC1155BatchReceived: INVALID_TOKENS_DEPOSITED");
+      require(_ids[0] == baseTokenID, "NiftyswapExchange#onERC1155BatchReceived: INVALID_BASE_TOKEN_ID");
 
     } else {
       revert("NiftyswapExchange#onERC1155BatchReceived: INVALID_METHOD");
@@ -789,7 +789,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
    * @return Address of factory that created this exchange.
    */
   function getFactoryAddress() external view returns (address) {
-    return address(factory);
+    return factory;
   }
 
   /***********************************|

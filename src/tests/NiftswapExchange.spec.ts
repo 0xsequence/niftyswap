@@ -860,9 +860,11 @@ contract('NiftyswapExchange', (accounts: string[]) => {
 
       let sellTokenData = getSellTokenData(userAddress, cost, 10000000)
 
+      console.log(1)
       const tx = userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, types, tokensAmountsToSell, sellTokenData,
         {gasLimit: 8000000}
       )
+      console.log(2)
       await expect(tx).to.be.fulfilled
     })
 
