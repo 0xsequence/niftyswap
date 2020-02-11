@@ -21,5 +21,9 @@ There are pros and cons to these differences and we welcome you to discuss these
 
 ## To Install
 1. Git clone this repository
-2. `yarn install && yarn build && yarn test`
+2. Install node v11 and yarn (npm install -g yarn)
+3. `yarn install`
+4. `yarn build`
+5. `yarn ganache`
+6. in another terminal run, `yarn test` - executes test suite
 
