@@ -29,6 +29,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
   // Variables
   IERC1155 internal token;                        // address of the ERC-1155 token contract
   IERC1155 internal baseToken;                    // address of the ERC-1155 base currency used for exchange
+  bool internal basePoolBanned;                   // Whether the base currency token ID can have a pool or not
   address internal factory;                       // address for the factory that created this contract
   uint256 internal baseTokenID;                   // ID of base token in ERC-1155 base contract
   uint256 internal constant FEE_MULTIPLIER = 995; // Multiplier that calculates the fee (0.5%)
@@ -90,6 +91,10 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     token = IERC1155(_tokenAddr);
     baseToken = IERC1155(_baseTokenAddr);
     baseTokenID = _baseTokenID;
+
+    // If token and base currency are the same contract,
+    // need to prevent base/base pool to be created.
+    basePoolBanned = _baseTokenAddr == _tokenAddr ? true : false;
   }
 
   /***********************************|
@@ -339,6 +344,12 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
       // Check if input values are acceptable
       require(_maxBaseTokens[i] > 0, "NiftyswapExchange#_addLiquidity: NULL_MAX_BASE_TOKEN");
       require(amount > 0, "NiftyswapExchange#_addLiquidity: NULL_TOKENS_AMOUNT");
+
+      // If the token contract and base currency contract are the same, prevent the creation
+      // of a base currency pool.
+      if (basePoolBanned) {
+        require(tokenId != baseTokenID, "NiftyswapExchange#_addLiquidity: BASE_POOL_FORBIDDEN");
+      }
 
       // Current total liquidity calculated in base token
       uint256 totalLiquidity = totalSupplies[tokenId];
