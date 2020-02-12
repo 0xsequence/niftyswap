@@ -135,11 +135,11 @@ contract('NiftyswapExchange', (accounts: string[]) => {
         )
         
         // Retrieve exchange address
-        exchangeAddress = await niftyswapFactoryContract.functions.getExchange(ownerERC1155Contract.address)
+        exchangeAddress = await niftyswapFactoryContract.functions.tokensToExchange(ownerERC1155Contract.address, ownerBaseTokenContract.address, baseTokenID)
       })
 
       it('should return exchange address', async () => {
-        const exchange_address = await niftyswapFactoryContract.functions.getExchange(ownerERC1155Contract.address)
+        const exchange_address = await niftyswapFactoryContract.functions.tokensToExchange(ownerERC1155Contract.address, ownerBaseTokenContract.address, baseTokenID)
         await expect(exchange_address).to.be.eql(exchangeAddress)
       })
     })
@@ -177,6 +177,33 @@ contract('NiftyswapExchange', (accounts: string[]) => {
       await expect(tx).to.be.fulfilled;
     })
 
+    it("should PASS if creating an exchange with a new base ID", async () => {
+      const tx = niftyswapFactoryContract.functions.createExchange(
+        ownerERC1155Contract.address, 
+        ownerBaseTokenContract.address, 
+        baseTokenID + 1
+      )
+      await expect(tx).to.be.fulfilled;
+    })
+
+    it("should PASS if creating an exchange with a new base currency contract", async () => {
+      const tx = niftyswapFactoryContract.functions.createExchange(
+        ownerERC1155Contract.address, 
+        userAddress, 
+        baseTokenID
+      )
+      await expect(tx).to.be.fulfilled;
+    })
+
+    it("should PASS if creating an exchange with both token contract being the same", async () => {
+      const tx = niftyswapFactoryContract.functions.createExchange(
+        ownerERC1155Contract.address, 
+        ownerERC1155Contract.address, 
+        baseTokenID
+      )
+      await expect(tx).to.be.fulfilled;
+    })
+
     context('When successful transfer', () => {
       let tx: ethers.ContractTransaction
       let exchangeAddress: string
@@ -189,7 +216,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
         )
 
         // Retrieve exchange address
-        exchangeAddress = await niftyswapFactoryContract.functions.getExchange(ownerERC1155Contract.address)
+        exchangeAddress = await niftyswapFactoryContract.functions.tokensToExchange(ownerERC1155Contract.address, ownerBaseTokenContract.address, baseTokenID)
       })
 
       it("should REVERT if creating an existing exchange", async () => {

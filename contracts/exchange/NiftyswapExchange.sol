@@ -28,7 +28,8 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
 
   // Variables
   IERC1155 internal token;                        // address of the ERC-1155 token contract
-  IERC1155 internal baseToken;                    // address of the ERC-1155 base token traded on this contract
+  IERC1155 internal baseToken;                    // address of the ERC-1155 base currency used for exchange
+  bool internal basePoolBanned;                   // Whether the base currency token ID can have a pool or not
   address internal factory;                       // address for the factory that created this contract
   uint256 internal baseTokenID;                   // ID of base token in ERC-1155 base contract
   uint256 internal constant FEE_MULTIPLIER = 995; // Multiplier that calculates the fee (0.5%)
@@ -90,6 +91,10 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     token = IERC1155(_tokenAddr);
     baseToken = IERC1155(_baseTokenAddr);
     baseTokenID = _baseTokenID;
+
+    // If token and base currency are the same contract,
+    // need to prevent base/base pool to be created.
+    basePoolBanned = _baseTokenAddr == _tokenAddr ? true : false;
   }
 
   /***********************************|
@@ -100,12 +105,13 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     * @notice Convert Base Tokens to Tokens _id and transfers Tokens to recipient.
     * @dev User specifies MAXIMUM inputs (_maxBaseTokens) and EXACT outputs.
     * @dev Assumes that all trades will be successful, or revert the whole tx
-    * @dev Sorting IDs is mandatory for efficient way of preventing duplicated IDs (which would lead to error)
+    * @dev Exceeding base tokens sent will be refunded to recipient
+    * @dev Sorting IDs is mandatory for efficient way of preventing duplicated IDs (which would lead to exploit)
     * @param _tokenIds             Array of Tokens ID that are bought
     * @param _tokensBoughtAmounts  Amount of Tokens id bought for each corresponding Token id in _tokenIds
     * @param _maxBaseTokens        Total maximum amount of base tokens to spend for all Token ids
     * @param _deadline             Block number after which this transaction can no longer be executed.
-    * @param _recipient            The address that receives output Tokens.
+    * @param _recipient            The address that receives output Tokens and refund
     */
   function _baseToToken(
     uint256[] memory _tokenIds,
@@ -181,7 +187,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     uint256 _assetBoughtAmount,
     uint256 _assetSoldReserve,
     uint256 _assetBoughtReserve)
-    public view returns (uint256)
+    public pure returns (uint256 price)
   {
     // Reserves must not be empty
     require(_assetSoldReserve > 0 && _assetBoughtReserve > 0, "NiftyswapExchange#getBuyPrice: EMPTY_RESERVE");
@@ -189,7 +195,8 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     // Calculate price with fee
     uint256 numerator = _assetSoldReserve.mul(_assetBoughtAmount).mul(1000);
     uint256 denominator = (_assetBoughtReserve.sub(_assetBoughtAmount)).mul(FEE_MULTIPLIER);
-    return (numerator / denominator).add(1); // Rounding error favors user, hence need +1 to be safe
+    (price, ) = divRound(numerator, denominator);
+    return price; // Will add 1 if rounding error
   }
 
   /**
@@ -276,7 +283,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     uint256 _assetSoldAmount,
     uint256 _assetSoldReserve,
     uint256 _assetBoughtReserve)
-    public view returns (uint256)
+    public pure returns (uint256)
   {
     //Reserves must not be empty
     require(_assetSoldReserve > 0 && _assetBoughtReserve > 0, "NiftyswapExchange#getSellPrice: EMPTY_RESERVE");
@@ -285,7 +292,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     uint256 _assetSoldAmount_withFee = _assetSoldAmount.mul(FEE_MULTIPLIER);
     uint256 numerator = _assetSoldAmount_withFee.mul(_assetBoughtReserve);
     uint256 denominator = _assetSoldReserve.mul(1000).add(_assetSoldAmount_withFee);
-    return numerator / denominator; //Rounding errors will favor Niftyswap, hence safe
+    return numerator / denominator; //Rounding errors will favor Niftyswap, so nothing to do
   }
 
   /***********************************|
@@ -340,6 +347,12 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
       require(_maxBaseTokens[i] > 0, "NiftyswapExchange#_addLiquidity: NULL_MAX_BASE_TOKEN");
       require(amount > 0, "NiftyswapExchange#_addLiquidity: NULL_TOKENS_AMOUNT");
 
+      // If the token contract and base currency contract are the same, prevent the creation
+      // of a base currency pool.
+      if (basePoolBanned) {
+        require(tokenId != baseTokenID, "NiftyswapExchange#_addLiquidity: BASE_POOL_FORBIDDEN");
+      }
+
       // Current total liquidity calculated in base token
       uint256 totalLiquidity = totalSupplies[tokenId];
 
@@ -360,9 +373,9 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
         *   dy: Amount of token _id deposited
         *   dx: Amount of base token to deposit
         *
-        * Adding .add(1) to make sure rounding errors don't favor users incorrectly
+        * Adding .add(1) if rounding errors so to not favor users incorrectly
         */
-        uint256 baseTokenAmount = (amount.mul(baseReserve) / (tokenReserve.sub(amount))).add(1);
+        (uint256 baseTokenAmount, bool rounded) = divRound(amount.mul(baseReserve), tokenReserve.sub(amount));
         require(_maxBaseTokens[i] >= baseTokenAmount, "NiftyswapExchange#_addLiquidity: MAX_BASE_TOKENS_EXCEEDED");
 
         // Update Base Token reserve size for Token id before transfer
@@ -372,7 +385,9 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
         totalBaseTokens = totalBaseTokens.add(baseTokenAmount);
 
         // Proportion of the liquidity pool to give to current liquidity provider
-        liquiditiesToMint[i] = baseTokenAmount.mul(totalLiquidity) / baseReserve;
+        // If rounding error occured, round down to favor previous liquidity providers
+        // See https://github.com/arcadeum/niftyswap/issues/19
+        liquiditiesToMint[i] = (baseTokenAmount.sub(rounded ? 1 : 0)).mul(totalLiquidity) / baseReserve;
         baseTokenAmounts[i] = baseTokenAmount;
 
         // Mint liquidity ownership tokens and increase liquidity supply accordingly
@@ -797,6 +812,15 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
   |__________________________________*/
 
   /**
+   * @notice Divides two numbers and add 1 if there is a rounding error
+   * @param a Numerator
+   * @param b Denominator
+   */
+  function divRound(uint256 a, uint256 b) internal pure returns (uint256 val, bool rounded) {
+    return a % b == 0 ? (a/b, false) : ((a/b).add(1), true);
+  }
+
+  /**
    * @notice Return Token reserves for given Token ids
    * @dev Assumes that ids are sorted from lowest to highest with no duplicates.
    *      This assumption allows for checking the token reserves only once, otherwise
@@ -810,11 +834,12 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     internal view returns (uint256[] memory)
   {
     uint256 nTokens = _tokenIds.length;
-    uint256[] memory tokenReserves = new uint256[](nTokens);
 
     // Regular balance query if only 1 token, otherwise batch query
     if (nTokens == 1) {
+      uint256[] memory tokenReserves = new uint256[](1);
       tokenReserves[0] = token.balanceOf(address(this), _tokenIds[0]);
+      return tokenReserves;
 
     } else {
       // Lazy check preventing duplicates & build address array for query
@@ -825,10 +850,8 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
         require(_tokenIds[i-1] < _tokenIds[i], "NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS");
         thisAddressArray[i] = address(this);
       }
-      tokenReserves = token.balanceOfBatch(thisAddressArray, _tokenIds);
+      return token.balanceOfBatch(thisAddressArray, _tokenIds);
     }
-
-    return tokenReserves;
   }
 
   /**
