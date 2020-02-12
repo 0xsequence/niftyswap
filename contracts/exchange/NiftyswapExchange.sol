@@ -194,7 +194,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     // Calculate price with fee
     uint256 numerator = _assetSoldReserve.mul(_assetBoughtAmount).mul(1000);
     uint256 denominator = (_assetBoughtReserve.sub(_assetBoughtAmount)).mul(FEE_MULTIPLIER);
-    return (numerator / denominator).add(1); // Rounding error favors user, hence need +1 to be safe
+    return divRound(numerator, denominator); // Will add 1 if rounding error
   }
 
   /**
@@ -290,7 +290,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     uint256 _assetSoldAmount_withFee = _assetSoldAmount.mul(FEE_MULTIPLIER);
     uint256 numerator = _assetSoldAmount_withFee.mul(_assetBoughtReserve);
     uint256 denominator = _assetSoldReserve.mul(1000).add(_assetSoldAmount_withFee);
-    return numerator / denominator; //Rounding errors will favor Niftyswap, hence safe
+    return numerator / denominator; //Rounding errors will favor Niftyswap, so 
   }
 
   /***********************************|
@@ -371,9 +371,9 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
         *   dy: Amount of token _id deposited
         *   dx: Amount of base token to deposit
         *
-        * Adding .add(1) to make sure rounding errors don't favor users incorrectly
+        * Adding .add(1) if rounding errors so to not favor users incorrectly
         */
-        uint256 baseTokenAmount = (amount.mul(baseReserve) / (tokenReserve.sub(amount))).add(1);
+        uint256 baseTokenAmount = divRound(amount.mul(baseReserve), tokenReserve.sub(amount));
         require(_maxBaseTokens[i] >= baseTokenAmount, "NiftyswapExchange#_addLiquidity: MAX_BASE_TOKENS_EXCEEDED");
 
         // Update Base Token reserve size for Token id before transfer
@@ -806,6 +806,15 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
   /***********************************|
   |         Utility Functions         |
   |__________________________________*/
+
+  /**
+   * @notice Divides two numbers and add 1 if there is a rounding error
+   * @param a Numerator
+   * @param b Denominator
+   */
+  function divRound(uint256 a, uint256 b) internal pure returns (uint256) {
+    return a / b + (a % b == 0 ? 0 : 1);
+  }
 
   /**
    * @notice Return Token reserves for given Token ids
