@@ -105,12 +105,13 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     * @notice Convert Base Tokens to Tokens _id and transfers Tokens to recipient.
     * @dev User specifies MAXIMUM inputs (_maxBaseTokens) and EXACT outputs.
     * @dev Assumes that all trades will be successful, or revert the whole tx
-    * @dev Sorting IDs is mandatory for efficient way of preventing duplicated IDs (which would lead to error)
+    * @dev Exceeding base tokens sent will be refunded to recipient
+    * @dev Sorting IDs is mandatory for efficient way of preventing duplicated IDs (which would lead to exploit)
     * @param _tokenIds             Array of Tokens ID that are bought
     * @param _tokensBoughtAmounts  Amount of Tokens id bought for each corresponding Token id in _tokenIds
     * @param _maxBaseTokens        Total maximum amount of base tokens to spend for all Token ids
     * @param _deadline             Block number after which this transaction can no longer be executed.
-    * @param _recipient            The address that receives output Tokens.
+    * @param _recipient            The address that receives output Tokens and refund
     */
   function _baseToToken(
     uint256[] memory _tokenIds,
