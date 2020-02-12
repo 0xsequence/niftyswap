@@ -833,11 +833,12 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     internal view returns (uint256[] memory)
   {
     uint256 nTokens = _tokenIds.length;
-    uint256[] memory tokenReserves = new uint256[](nTokens);
 
     // Regular balance query if only 1 token, otherwise batch query
     if (nTokens == 1) {
+      uint256[] memory tokenReserves = new uint256[](1);
       tokenReserves[0] = token.balanceOf(address(this), _tokenIds[0]);
+      return tokenReserves;
 
     } else {
       // Lazy check preventing duplicates & build address array for query
@@ -848,10 +849,8 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
         require(_tokenIds[i-1] < _tokenIds[i], "NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS");
         thisAddressArray[i] = address(this);
       }
-      tokenReserves = token.balanceOfBatch(thisAddressArray, _tokenIds);
+      return token.balanceOfBatch(thisAddressArray, _tokenIds);
     }
-
-    return tokenReserves;
   }
 
   /**
