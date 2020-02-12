@@ -186,7 +186,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     uint256 _assetBoughtAmount,
     uint256 _assetSoldReserve,
     uint256 _assetBoughtReserve)
-    public view returns (uint256)
+    public view returns (uint256 price)
   {
     // Reserves must not be empty
     require(_assetSoldReserve > 0 && _assetBoughtReserve > 0, "NiftyswapExchange#getBuyPrice: EMPTY_RESERVE");
@@ -194,7 +194,8 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     // Calculate price with fee
     uint256 numerator = _assetSoldReserve.mul(_assetBoughtAmount).mul(1000);
     uint256 denominator = (_assetBoughtReserve.sub(_assetBoughtAmount)).mul(FEE_MULTIPLIER);
-    return divRound(numerator, denominator); // Will add 1 if rounding error
+    (price, ) = divRound(numerator, denominator);
+    return price; // Will add 1 if rounding error
   }
 
   /**
@@ -290,7 +291,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     uint256 _assetSoldAmount_withFee = _assetSoldAmount.mul(FEE_MULTIPLIER);
     uint256 numerator = _assetSoldAmount_withFee.mul(_assetBoughtReserve);
     uint256 denominator = _assetSoldReserve.mul(1000).add(_assetSoldAmount_withFee);
-    return numerator / denominator; //Rounding errors will favor Niftyswap, so 
+    return numerator / denominator; //Rounding errors will favor Niftyswap, so nothing to do
   }
 
   /***********************************|
@@ -373,7 +374,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
         *
         * Adding .add(1) if rounding errors so to not favor users incorrectly
         */
-        uint256 baseTokenAmount = divRound(amount.mul(baseReserve), tokenReserve.sub(amount));
+        (uint256 baseTokenAmount, bool rounded) = divRound(amount.mul(baseReserve), tokenReserve.sub(amount));
         require(_maxBaseTokens[i] >= baseTokenAmount, "NiftyswapExchange#_addLiquidity: MAX_BASE_TOKENS_EXCEEDED");
 
         // Update Base Token reserve size for Token id before transfer
@@ -383,7 +384,9 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
         totalBaseTokens = totalBaseTokens.add(baseTokenAmount);
 
         // Proportion of the liquidity pool to give to current liquidity provider
-        liquiditiesToMint[i] = baseTokenAmount.mul(totalLiquidity) / baseReserve;
+        // If rounding error occured, round down to favor previous liquidity providers
+        // See https://github.com/arcadeum/niftyswap/issues/19
+        liquiditiesToMint[i] = (baseTokenAmount.sub(rounded ? 1 : 0)).mul(totalLiquidity) / baseReserve;
         baseTokenAmounts[i] = baseTokenAmount;
 
         // Mint liquidity ownership tokens and increase liquidity supply accordingly
@@ -812,8 +815,8 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
    * @param a Numerator
    * @param b Denominator
    */
-  function divRound(uint256 a, uint256 b) internal pure returns (uint256) {
-    return a / b + (a % b == 0 ? 0 : 1);
+  function divRound(uint256 a, uint256 b) internal pure returns (uint256 val, bool rounded) {
+    return a % b == 0 ? (a/b, false) : ((a/b).add(1), true);
   }
 
   /**
