@@ -226,8 +226,6 @@ export class NiftyswapExchange extends Contract {
     ): Promise<(BigNumber)[]>;
 
     getBaseTokenInfo(): Promise<{
-      _baseTokenAddress: string;
-      _baseTokenID: BigNumber;
       0: string;
       1: BigNumber;
     }>;

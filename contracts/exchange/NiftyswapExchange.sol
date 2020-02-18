@@ -216,7 +216,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     uint256 _minBaseTokens,
     uint256 _deadline,
     address _recipient)
-    internal nonReentrant() returns (uint256[] memory baseTokensBougth)
+    internal nonReentrant() returns (uint256[] memory baseTokensBought)
   {
     // Number of Token IDs to deposit
     uint256 nTokens = _tokenIds.length;
@@ -226,7 +226,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
 
     // Initialize variables
     uint256 totalBaseTokens = 0; // Total amount of Base tokens to transfer
-    baseTokensBougth = new uint256[](nTokens);
+    baseTokensBought = new uint256[](nTokens);
     uint256[] memory tokenReserves = new uint256[](nTokens);
 
     // Get token reserves
@@ -260,7 +260,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
       baseTokenReserve[idSold] = baseReserve.sub(baseTokenAmount);
 
       // Append Token id, Token id amount and Base Token amount to tracking arrays
-      baseTokensBougth[i] = baseTokenAmount;
+      baseTokensBought[i] = baseTokenAmount;
     }
 
     // If minBaseTokens is not met
@@ -269,7 +269,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     // Transfer baseTokens here
     baseToken.safeTransferFrom(address(this), _recipient, baseTokenID, totalBaseTokens, "");
 
-    return baseTokensBougth;
+    return baseTokensBought;
   }
 
   /**
@@ -622,8 +622,8 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
       address recipient = obj.recipient == address(0x0) ? _from : obj.recipient;
 
       // Execute trade and retrieve amount of baseTokens received
-      uint256[] memory baseTokensBougth = _tokenToBase(_ids, _amounts, obj.minBaseTokens, obj.deadline, recipient);
-      emit BaseTokenPurchase(_from, recipient, _ids, _amounts, baseTokensBougth);
+      uint256[] memory baseTokensBought = _tokenToBase(_ids, _amounts, obj.minBaseTokens, obj.deadline, recipient);
+      emit BaseTokenPurchase(_from, recipient, _ids, _amounts, baseTokensBought);
 
     /***********************************|
     |      Adding Liquidity Tokens      |
@@ -774,7 +774,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
   /**
    * @return Address of the Base Token contract that is used as currency and its corresponding id
    */
-  function getBaseTokenInfo() external view returns (address _baseTokenAddress, uint256 _baseTokenID) {
+  function getBaseTokenInfo() external view returns (address, uint256) {
     return (address(baseToken), baseTokenID);
   }
 
@@ -816,7 +816,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
    * @param a Numerator
    * @param b Denominator
    */
-  function divRound(uint256 a, uint256 b) internal pure returns (uint256 val, bool rounded) {
+  function divRound(uint256 a, uint256 b) internal pure returns (uint256, bool) {
     return a % b == 0 ? (a/b, false) : ((a/b).add(1), true);
   }
 
