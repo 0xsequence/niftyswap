@@ -248,6 +248,9 @@ contract('NiftyswapExchange', (accounts: string[]) => {
             {gasLimit: 50000000}
           )
 
+          let reserve1 = (await niftyswapExchangeContract.functions.getBaseTokenReserves([0]))[0]
+          expect(reserve1).to.be.eql(new BigNumber(1000000001)) 
+
           let addLiquidityData2 = getAddLiquidityData([new BigNumber(1000000001)], 10000000)
           let tokenAmountsToAdd2 = [new BigNumber(1)] // 1 less
 
@@ -256,8 +259,32 @@ contract('NiftyswapExchange', (accounts: string[]) => {
             {gasLimit: 50000000}
           )
 
-          let reserve = (await niftyswapExchangeContract.functions.getBaseTokenReserves([0]))[0]
-          expect(reserve).to.be.eql(new BigNumber(1500000002)) // Should be 1500000001.5
+          let reserve2 = (await niftyswapExchangeContract.functions.getBaseTokenReserves([0]))[0]
+          expect(reserve2).to.be.eql(new BigNumber(1500000002)) // Should be 1500000001.5
+        })
+
+        it('should ROUND DOWN the amount of base liquidity to mint on second deposit', async () => {
+          let addLiquidityData1 = getAddLiquidityData([new BigNumber(1000000001)], 10000000)
+          let tokenAmountsToAdd1 = [new BigNumber(2)]
+
+          // first deposit
+          await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [0], tokenAmountsToAdd1, addLiquidityData1,
+            {gasLimit: 50000000}
+          )
+
+          let liquidity_supply1 = (await niftyswapExchangeContract.functions.getTotalSupply([0]))[0]
+          expect(liquidity_supply1).to.be.eql(new BigNumber(1000000001))
+
+          let addLiquidityData2 = getAddLiquidityData([new BigNumber(1000000001)], 10000000)
+          let tokenAmountsToAdd2 = [new BigNumber(1)] // 1 less
+
+          // After 2nd deposit
+          await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [0], tokenAmountsToAdd2, addLiquidityData2,
+            {gasLimit: 50000000}
+          )
+
+          let liquidity_supply2 = (await niftyswapExchangeContract.functions.getTotalSupply([0]))[0]
+          expect(liquidity_supply2).to.be.eql(new BigNumber(1500000001)) // Should be 1500000001.5
         })
 
         it('should REVERT if trying to crease base/base pool', async () => {
@@ -401,7 +428,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
             }
           })
 
-          it('should update total supples for Niftyswap Token ids balances', async () => {
+          it('should update total supplies for Niftyswap Token ids balances', async () => {
             const exchangeTotalSupplies = await niftyswapExchangeContract.functions.getTotalSupply(types)
             for (let i = 0; i < types.length; i++) {
               expect(exchangeTotalSupplies[i]).to.be.eql(new BigNumber(baseAmountToAdd))
