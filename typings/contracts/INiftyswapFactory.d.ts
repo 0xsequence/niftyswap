@@ -13,13 +13,22 @@ import {
 interface INiftyswapFactoryInterface extends Interface {
   functions: {
     createExchange: TypedFunctionDescription<{
-      encode([_token]: [string]): string;
+      encode([_token, _currency, _currencyID]: [
+        string,
+        string,
+        BigNumberish
+      ]): string;
     }>;
   };
 
   events: {
     NewExchange: TypedEventDescription<{
-      encodeTopics([token, exchange]: [string | null, string | null]): string[];
+      encodeTopics([token, currency, currencyID, exchange]: [
+        string | null,
+        string | null,
+        BigNumberish | null,
+        null
+      ]): string[];
     }>;
   };
 }
@@ -41,21 +50,34 @@ export class INiftyswapFactory extends Contract {
   interface: INiftyswapFactoryInterface;
 
   functions: {
-    getExchange(_token: string): Promise<string>;
-
-    getToken(_exchange: string): Promise<string>;
+    tokensToExchange(
+      _token: string,
+      _currency: string,
+      _currencyID: BigNumberish
+    ): Promise<string>;
 
     createExchange(
       _token: string,
+      _currency: string,
+      _currencyID: BigNumberish,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
   };
 
   filters: {
-    NewExchange(token: string | null, exchange: string | null): EventFilter;
+    NewExchange(
+      token: string | null,
+      currency: string | null,
+      currencyID: BigNumberish | null,
+      exchange: null
+    ): EventFilter;
   };
 
   estimate: {
-    createExchange(_token: string): Promise<BigNumber>;
+    createExchange(
+      _token: string,
+      _currency: string,
+      _currencyID: BigNumberish
+    ): Promise<BigNumber>;
   };
 }

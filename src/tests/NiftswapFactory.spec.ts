@@ -248,13 +248,13 @@ contract('NiftyswapExchange', (accounts: string[]) => {
         })
 
 
-        it('should have Base Token address as `baseToken` field', async () => {
-          expect(args.baseToken).to.be.eql(ownerBaseTokenContract.address)
+        it('should have Base Token address as `currency` field', async () => {
+          expect(args.currency).to.be.eql(ownerBaseTokenContract.address)
         })
 
 
-        it('should have base token ID as `baseTokenID` field', async () => {
-          expect(args.baseTokenID).to.be.eql(new BigNumber(baseTokenID))
+        it('should have base token ID as `currencyID` field', async () => {
+          expect(args.currencyID).to.be.eql(new BigNumber(baseTokenID))
         })
 
 
