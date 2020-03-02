@@ -32,8 +32,8 @@ export function RevertError(errorMessage?: string) {
 }
 
 export const methodsSignature = {
-  BUYTOKENS: "0x24c186e7",
-  SELLTOKENS: "0x7db38b4a",
+  BUYTOKENS: "0xb2d81047",
+  SELLTOKENS: "0xdb08ec97",
   ADDLIQUIDITY: "0x82da2b73",
   REMOVELIQUIDITY: "0x5c0bf259"
 }

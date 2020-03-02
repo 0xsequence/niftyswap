@@ -6,7 +6,7 @@ interface INiftyswapFactory {
   |               Events              |
   |__________________________________*/
 
-  event NewExchange(address indexed token, address indexed exchange);
+  event NewExchange(address indexed token, address indexed currency, uint256 indexed currencyID, address exchange);
 
 
   /***********************************|
@@ -15,19 +15,18 @@ interface INiftyswapFactory {
 
   /**
    * @notice Creates a NiftySwap Exchange for given token contract
-   * @param _token The address of the ERC-1155 token to create an NiftySwap exchange for
+   * @param _token      The address of the ERC-1155 token contract
+   * @param _currency   The address of the currency token contract
+   * @param _currencyID The id of the currency token
    */
-  function createExchange(address _token) external;
+  function createExchange(address _token, address _currency, uint256 _currencyID) external;
 
   /**
    * @notice Return address of exchange for corresponding ERC-1155 token contract
-   * @param _token The address of the ERC-1155 Token
+   * @param _token      The address of the ERC-1155 token contract
+   * @param _currency   The address of the currency token contract
+   * @param _currencyID The id of the currency token
    */
-  function getExchange(address _token) external view returns (address);
+  function tokensToExchange(address _token, address _currency, uint256 _currencyID) external view returns (address);
 
-  /**
-   * @notice Return address of ERC-1155 token for corresponding NiftySwap exchange contract
-   * @param _exchange The address of the ERC-1155 Token
-   */
-  function getToken(address _exchange) external view returns (address);
 }
