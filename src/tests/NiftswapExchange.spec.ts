@@ -1312,6 +1312,70 @@ contract('NiftyswapExchange', (accounts: string[]) => {
           expect(userCurrencyBalance).to.be.eql(currencyAmount.sub(cost))
         })
       })
+
+      describe('Edge cases', () => {
+  
+        it('Pool can not go to zero token in reserve', async () => {
+          const minBaseCurrency = new BigNumber(1000000000)
+          const currencyAmountsToAdd: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => minBaseCurrency)
+          const tokenAmountsToAdd: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => new BigNumber(1))
+          const addLiquidityData: string = getAddLiquidityData(currencyAmountsToAdd, 10000000)
+          
+          // Add 1000000000:1 for all pools
+          await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, types, tokenAmountsToAdd, addLiquidityData,
+            {gasLimit: 50000000}
+          )
+    
+          // Trying to buy the only tokn will fail as it will cause a division by 0
+          let tx = niftyswapExchangeContract.functions.getPrice_currencyToToken([types[0]], [1])
+          await expect(tx).to.be.rejected
+        })
+
+        it('Pool stuck at 1 token can go back up to normal with loss', async () => {
+          const initialBaseCurrency = new BigNumber(10**9)
+          const currencyAmountsToAdd: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => initialBaseCurrency)
+          const tokenAmountsToAdd: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => new BigNumber(1))
+          const addLiquidityData: string = getAddLiquidityData(currencyAmountsToAdd, 10000000)
+          
+          // Add 1000000000:1 for all pools
+          await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, types, tokenAmountsToAdd, addLiquidityData,
+            {gasLimit: 50000000}
+          )
+
+          // Correct price should be 10**18 currency per token, not 10**9
+          // To correct for this, we will add small amount of liquidity and correct the price
+          // then withdraw liquidity.
+
+          // To bring the price to around 10**18, we need to add at least sqrt(10**9)-1 tokens (~31622), ignoring fee
+          // to liquidity pool then sell but 1 token. This will will give us a price of ~ 10**18 per 1 token,
+          // which is the desired price for users to start selling the assets or add liquidity.
+
+          // Add 31622 tokens to pool
+          let maxBaseCurrency_1 = (new BigNumber(10)).pow(18)
+          let currencyAmountsToAdd_1 = new Array(nTokenTypes).fill('').map((a, i) => maxBaseCurrency_1)
+          const tokenAmountsToAdd_1 = new Array(nTokenTypes).fill('').map((a, i) => new BigNumber(31622))
+          const addLiquidityData_1 = getAddLiquidityData(currencyAmountsToAdd_1, 10000000)          
+          await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, types, tokenAmountsToAdd_1, addLiquidityData_1,
+            {gasLimit: 50000000}
+          )
+
+          // Buy 31622 tokens, to leave a ratio of 10**18 : 1, testing with 1 pool
+          let amount_to_buy = new BigNumber(31622)
+          let cost = (await niftyswapExchangeContract.functions.getPrice_currencyToToken([types[0]], [amount_to_buy]))[0]
+          let buyTokenData = getBuyTokenData(userAddress, [types[0]], [amount_to_buy], 10000000)
+          await userCurrencyContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, currencyID, cost, buyTokenData,
+            {gasLimit: 8000000}
+          )
+
+          // Pool should have more than 10**18 currency and 1 token
+          let expected_price = cost.add(amount_to_buy.add(1).mul((new BigNumber(10)).pow(9)))
+          let currency_reserve = (await niftyswapExchangeContract.functions.getCurrencyReserves([types[0]]))[0]
+          let token_reserve = await userERC1155Contract.functions.balanceOf(niftyswapExchangeContract.address, types[0])
+          expect(token_reserve).to.be.eql(new BigNumber(1))
+          expect(currency_reserve).to.be.eql(expected_price)
+        })
+        
+      })
     })
   })
 })
