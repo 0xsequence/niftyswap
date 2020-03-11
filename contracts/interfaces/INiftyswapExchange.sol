@@ -6,11 +6,35 @@ interface INiftyswapExchange {
   |               Events              |
   |__________________________________*/
 
-  event TokenPurchase(address indexed buyer, uint256 indexed baseTokeSold, uint256 indexed tokensBought);
-  event BaseTokenPurchase(address indexed buyer, uint256 indexed tokensSold, uint256 indexed baseTokensBought);
-  event AddLiquidity(address indexed provider, uint256 indexed baseTokenAmount, uint256 indexed tokenAmount);
-  event RemoveLiquidity(address indexed provider, uint256 indexed baseTokenAmount, uint256 indexed tokenAmount);
+  event TokensPurchase(
+    address indexed buyer,
+    address indexed recipient,
+    uint256[] tokensBoughtIds,
+    uint256[] tokensBoughtAmounts,
+    uint256[] currencySoldAmounts
+  );
 
+  event CurrencyPurchase(
+    address indexed buyer,
+    address indexed recipient,
+    uint256[] tokensSoldIds,
+    uint256[] tokensSoldAmounts,
+    uint256[] currencyBoughtAmounts
+  );
+
+  event LiquidityAdded(
+    address indexed provider,
+    uint256[] tokenIds,
+    uint256[] tokenAmounts,
+    uint256[] currencyAmounts
+  );
+
+  event LiquidityRemoved(
+    address indexed provider,
+    uint256[] tokenIds,
+    uint256[] tokenAmounts,
+    uint256[] currencyAmounts
+  );
 
   /***********************************|
   |        OnReceive Functions        |
@@ -30,44 +54,71 @@ interface INiftyswapExchange {
    */
   function onERC1155Received(address _operator, address _from, uint256 _id, uint256 _amount, bytes calldata _data) external returns(bytes4);
 
+  /**
+   * @notice Handle which method is being called on transfer
+   * @dev `_data` must be encoded as follow: abi.encode(bytes4, MethodObj)
+   *   where bytes4 argument is the MethodObj object signature passed as defined
+   *   in the `Signatures for onReceive control logic` section above
+   * @param _from     The address which previously owned the Token
+   * @param _ids      An array containing ids of each Token being transferred
+   * @param _amounts  An array containing amounts of each Token being transferred
+   * @param _data     Method signature and corresponding encoded arguments for method to call on *this* contract
+   * @return bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)")
+   */
+  function onERC1155BatchReceived(address, address _from, uint256[] calldata _ids, uint256[] calldata _amounts, bytes calldata _data) external returns(bytes4);
+
 
   /***********************************|
   |         Getter Functions          |
   |__________________________________*/
 
   /**
-   * @dev Pricing function for converting between Base Tokens && Tokens.
-   * @param _assetBoughtAmount  Amount of Base Tokens or Tokens being bought.
-   * @param _assetSoldReserve   Amount of Base Tokens or Tokens (input type) in exchange reserves.
-   * @param _assetBoughtReserve Amount of Base Tokens or Tokens (output type) in exchange reserves.
-   * @return Amount of Base Tokens or Tokens sold.
+   * @dev Pricing function used for converting between currency token to Tokens.
+   * @param _assetBoughtAmount  Amount of Tokens being bought.
+   * @param _assetSoldReserve   Amount of currency tokens in exchange reserves.
+   * @param _assetBoughtReserve Amount of Tokens (output type) in exchange reserves.
+   * @return Amount of currency tokens to send to Niftyswap.
    */
-  function getBuyPrice(uint256 _assetBoughtAmount, uint256 _assetSoldReserve, uint256 _assetBoughtReserve) external view returns (uint256);
+  function getBuyPrice(uint256 _assetBoughtAmount, uint256 _assetSoldReserve, uint256 _assetBoughtReserve) external pure returns (uint256);
 
   /**
-   * @dev Pricing function for converting between Base Tokens && Tokens.
-   * @param _assetSoldAmount    Amount of Base Tokens or Tokens being sold.
-   * @param _assetSoldReserve   Amount of Base Tokens or Tokens (output type) in exchange reserves.
-   * @param _assetBoughtReserve Amount of Base Tokens or Tokens (input type) in exchange reserves.
-   * @return Amount of Base Tokens or Tokens to receive from Uniswap.
+   * @dev Pricing function used for converting Tokens to currency token.
+   * @param _assetSoldAmount    Amount of Tokens being sold.
+   * @param _assetSoldReserve   Amount of Tokens in exchange reserves.
+   * @param _assetBoughtReserve Amount of currency tokens in exchange reserves.
+   * @return Amount of currency tokens to receive from Niftyswap.
    */
-  function getSellPrice(uint256 _assetSoldAmount,uint256 _assetSoldReserve, uint256 _assetBoughtReserve) external view returns (uint256);
+  function getSellPrice(uint256 _assetSoldAmount,uint256 _assetSoldReserve, uint256 _assetBoughtReserve) external pure returns (uint256);
 
   /**
-   * @notice Return price for `Base Token => Token _id` trades with an exact token amount.
-   * @param _id          ID of token bought.
+   * @notice Get amount of currency in reserve for each Token _id in _ids
+   * @param _ids Array of ID sto query currency reserve of
+   * @return amount of currency in reserve for each Token _id
+   */
+  function getCurrencyReserves(uint256[] calldata _ids) external view returns (uint256[] memory);
+
+  /**
+   * @notice Return price for `currency => Token _id` trades with an exact token amount.
+   * @param _ids          Array of ID of tokens bought.
    * @param _tokensBought Amount of Tokens bought.
-   * @return Amount of Base Tokens needed to buy Tokens.
+   * @return Amount of currency needed to buy Tokens in _ids for amounts in _tokensBought
    */
-  function getPrice_baseToToken(uint256 _id, uint256 _tokensBought) external view returns (uint256 baseTokenAmountSold);
+  function getPrice_currencyToToken(uint256[] calldata _ids, uint256[] calldata _tokensBought) external view returns (uint256[] memory);
 
   /**
-   * @notice Return price for `Token _id => Base Token` trades with an exact token amount.
-   * @param _id        ID of token bought.
-   * @param _tokensSold Amount of Tokens sold.
-   * @return Amount of Base Tokens that can be bought with Tokens.
+   * @notice Return price for `Token _id => currency` trades with an exact token amount.
+   * @param _ids        Array of IDs  token sold.
+   * @param _tokensSold Array of amount of each Token sold.
+   * @return Amount of currency that can be bought for Tokens in _ids for amounts in _tokensSold
    */
-  function getPrice_tokenToBase(uint256 _id, uint256 _tokensSold) external view returns (uint256 baseTokenAmountBought);
+  function getPrice_tokenToCurrency(uint256[] calldata _ids, uint256[] calldata _tokensSold) external view returns (uint256[] memory);
+
+  /**
+   * @notice Get total supply of liquidity tokens
+   * @param _ids ID of the Tokens
+   * @return The total supply of each liquidity token id provided in _ids
+   */
+  function getTotalSupply(uint256[] calldata _ids) external view returns (uint256[] memory);
 
   /**
    * @return Address of Token that is sold on this exchange.
@@ -75,9 +126,9 @@ interface INiftyswapExchange {
   function getTokenAddress() external view returns (address);
 
   /**
-   * @return Address of the Base Token that is used as Currency and its ID
+   * @return Address of the currency contract that is used as currency and its corresponding id
    */
-  function getBaseTokenInfo() external view returns (address, uint256);
+  function getCurrencyInfo() external view returns (address, uint256);
 
   /**
    * @return Address of factory that created this exchange.

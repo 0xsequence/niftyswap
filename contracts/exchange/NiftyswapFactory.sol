@@ -1,8 +1,9 @@
 pragma solidity ^0.5.16;
 import "./NiftyswapExchange.sol";
+import "../interfaces/INiftyswapFactory.sol";
 
 
-contract NiftyswapFactory {
+contract NiftyswapFactory is INiftyswapFactory {
 
   /***********************************|
   |       Events And Variables        |

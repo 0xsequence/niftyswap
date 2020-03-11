@@ -721,12 +721,12 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
   /**
    * @notice Return price for `currency => Token _id` trades with an exact token amount.
    * @param _ids           Array of ID of tokens bought.
-   * @param _tokensBoughts Amount of Tokens bought.
-   * @return Amount of currency needed to buy Tokens in _ids for amounts in _tokensBoughts
+   * @param _tokensBought Amount of Tokens bought.
+   * @return Amount of currency needed to buy Tokens in _ids for amounts in _tokensBought
    */
   function getPrice_currencyToToken(
     uint256[] calldata _ids,
-    uint256[] calldata _tokensBoughts)
+    uint256[] calldata _tokensBought)
     external view returns (uint256[] memory)
   {
     uint256 nIds = _ids.length;
@@ -735,7 +735,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     for (uint256 i = 0; i < nIds; i++) {
       // Load Token id reserve
       uint256 tokenReserve = token.balanceOf(address(this), _ids[i]);
-      prices[i] = getBuyPrice(_tokensBoughts[i], currencyReserves[_ids[i]], tokenReserve);
+      prices[i] = getBuyPrice(_tokensBought[i], currencyReserves[_ids[i]], tokenReserve);
     }
 
     // Return prices

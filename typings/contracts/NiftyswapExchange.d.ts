@@ -217,7 +217,7 @@ export class NiftyswapExchange extends Contract {
 
     getPrice_currencyToToken(
       _ids: (BigNumberish)[],
-      _tokensBoughts: (BigNumberish)[]
+      _tokensBought: (BigNumberish)[]
     ): Promise<(BigNumber)[]>;
 
     getPrice_tokenToCurrency(

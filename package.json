@@ -1,6 +1,6 @@
 {
   "name": "niftyswap",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Non-custodial exchange for ERC-1155 tokens, based on Uniswap",
   "repository": "https://github.com/niftyswap/niftyswap",
   "license": "MIT",
@@ -74,6 +74,6 @@
     "zos-lib": "^2.4.1"
   },
   "dependencies": {
-    "multi-token-standard": "^0.8.10"
+    "multi-token-standard": "^0.8.13"
   }
 }

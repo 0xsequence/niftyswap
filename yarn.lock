@@ -5588,10 +5588,10 @@ ms@^2.1.1:
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.1.tgz#30a5864eb3ebb0a66f2ebe6d727af06a09d86e0a"
   integrity sha512-tgp+dl5cGk28utYktBsrFqA7HKgrhgPsg6Z/EfhWI4gl1Hwq8B/GmY/0oXZ6nF8hDVesS/FpnYaD/kOWhYQvyg==
 
-multi-token-standard@^0.8.10:
-  version "0.8.10"
-  resolved "https://registry.yarnpkg.com/multi-token-standard/-/multi-token-standard-0.8.10.tgz#441ada0da94fd29d405e4c4db642d8510d7ed591"
-  integrity sha512-uZh6/rkxteGGW4ZzCNdSjEbf99wmSoT0efG1fCCbGc2SVvRD+6QJJAeevfzq7yE9lya2gakWKoJz93Ajp730Ew==
+multi-token-standard@^0.8.13:
+  version "0.8.13"
+  resolved "https://registry.yarnpkg.com/multi-token-standard/-/multi-token-standard-0.8.13.tgz#fa075fb4359770fb0ae6bcab33e7f2d78be36e9e"
+  integrity sha512-8Y6AyH01aCh+rZnKMNLfg4bYl1SDbXYCRiia/0lBYaJyBRKJLwzgcqf0wAWxO7btm5dKSGrOLSmHeORrKzluOA==
 
 mute-stdout@^1.0.0:
   version "1.0.1"
