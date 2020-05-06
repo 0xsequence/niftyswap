@@ -1,5 +1,8 @@
 niftyswap
 =========
+Uniswap for ERC-1155.  
+
+*We are incredibly thankful for the work done by the Uniswap team, without which Niftyswap wouldn't exists.*
 
 # Description
 
@@ -12,7 +15,7 @@ An important feature of Nitfyswap is the utilization of a factory/registry contr
 For more details, see [Specification.pdf](https://github.com/arcadeum/niftyswap/blob/master/SPECIFICATIONS.pdf)
 
 # Differences with Uniswap
-Niftyswap is an open-source, community built ERC-1155 compatible version of **Uniswap** (https://uniswap.io/). There are some differences compared to the original Uniswap that we would like to outline below:
+There are some differences compared to the original Uniswap that we would like to outline below:
 
 1. For ERC-1155 tokens, not ERC-20s
 2. Base currency is not ETH, but needs to be an ERC-1155
@@ -23,7 +26,7 @@ Niftyswap is an open-source, community built ERC-1155 compatible version of **Un
 6. Front-end implementations can add arbitrary fee (in addition to the 0.5%) for tokens with native meta-transactions.
 7. Less functions than Uniswap
 
-There are pros and cons to these differences and we welcome you to discuss these by openning issues in this repository.We are incredibly thankful for the work done by the Uniswap team, without which Niftyswap wouldn't exists.
+There are pros and cons to these differences and we welcome you to discuss these by openning issues in this repository.
 
 ## Contracts
 
