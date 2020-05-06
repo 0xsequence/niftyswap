@@ -21,10 +21,10 @@ There are pros and cons to these differences and we welcome you to discuss these
 
 ## Security
 Niftyswap has been audited by two independant parties and all issues discovered were addressed. 
-- [Agustín Aguilar*](https://github.com/arcadeum/niftyswap/blob/master/audits/Security_Audit_Nitfyswap_Horizon_Games_1.pdf)
+- [Agustín Aguilar**](https://github.com/arcadeum/niftyswap/blob/master/audits/Security_Audit_Nitfyswap_Horizon_Games_1.pdf)
 - [Consensys Diligence](https://github.com/arcadeum/niftyswap/blob/master/audits/April_2020_Balance_Patch_1.md) 
 
-* Agustín was hired as a full-time employee at Horizon after the audit was completed. Agustín did not take part in the writing of Niftyswap contracts.
+** Agustín was hired as a full-time employee at Horizon after the audit was completed. Agustín did not take part in the writing of Niftyswap contracts.
 
 ## To Install
 1. Git clone this repository
