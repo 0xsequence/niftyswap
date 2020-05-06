@@ -1,4 +1,4 @@
-niftyswap
+Niftyswap
 =========
 Uniswap for ERC-1155.  
 
@@ -40,11 +40,18 @@ Niftyswap has been audited by two independant parties and all issues discovered 
 
 ** Agustín was hired as a full-time employee at Horizon after the audit was completed. Agustín did not take part in the writing of Niftyswap contracts.
 
-## To Install
-1. Git clone this repository
-2. Install node v11 and yarn (npm install -g yarn)
-3. `yarn install`
-4. `yarn build`
-5. `yarn ganache`
-6. in another terminal run, `yarn test` - executes test suite
+# Usage
+
+## Dependencies
+1. Install node v11, 
+2. Install yarn : `npm install -g yarn`
+3. Install Truffle npm package: `npm install truffle` or `yarn add truffle`
+2. Install the multi-token-standard npm package `npm install niftyswap` or `yarn add niftyswap` 
+
+## Dev / running the tests
+1. `yarn install`
+2. `yarn build`
+3. `yarn ganache`
+4. in another terminal run, `yarn test` - executes test suite
+
 
