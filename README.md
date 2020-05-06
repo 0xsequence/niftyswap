@@ -1,6 +1,17 @@
 niftyswap
 =========
 
+# Description
+
+Niftyswap is a fork of [Uniswap](<https://hackmd.io/@477aQ9OrQTCbVR3fq1Qzxg/HJ9jLsfTz?type=view>), a protocol for automated token exchange on Ethereum. While Uniswap is for trading [ERC-20](<https://eips.ethereum.org/EIPS/eip-20>) tokens, Niftyswap is a protocol for [ERC-1155](<https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1155.md>) tokens. Both are designed to favor ease of use and provide guaranteed access to liquidity on-chain. 
+
+Most exchanges maintain an order book and facilitate matches between buyers and sellers. Niftyswap smart contracts hold liquidity reserves of various tokens, and trades are executed directly against these reserves. Prices are set automatically using the [constant product](https://ethresear.ch/t/improving-front-running-resistance-of-x-y-k-market-makers/1281)  $x*y = K$ market maker mechanism, which keeps overall reserves in relative equilibrium. Reserves are pooled between a network of liquidity providers who supply the system with tokens in exchange for a proportional share of transaction fees. 
+
+An important feature of Nitfyswap is the utilization of a factory/registry contract that deploys a separate exchange contract for each ERC-1155 token contract. These exchange contracts each hold independent reserves of a single fungible ERC-1155 currency and their associated ERC-1155 token id. This allows trades between the [Currency](#currency) and the ERC-1155 tokens based on the relative supplies. 
+
+For more details, see [Specification.pdf](https://github.com/arcadeum/niftyswap/blob/master/SPECIFICATIONS.pdf)
+
+# Differences with Uniswap
 Niftyswap is an open-source, community built ERC-1155 compatible version of **Uniswap** (https://uniswap.io/). There are some differences compared to the original Uniswap that we would like to outline below:
 
 1. For ERC-1155 tokens, not ERC-20s
@@ -12,7 +23,7 @@ Niftyswap is an open-source, community built ERC-1155 compatible version of **Un
 6. Front-end implementations can add arbitrary fee (in addition to the 0.5%) for tokens with native meta-transactions.
 7. Less functions than Uniswap
 
-There are pros and cons to these differences and we welcome you to discuss these by openning issues in this repository.
+There are pros and cons to these differences and we welcome you to discuss these by openning issues in this repository.We are incredibly thankful for the work done by the Uniswap team, without which Niftyswap wouldn't exists.
 
 ## Contracts
 
