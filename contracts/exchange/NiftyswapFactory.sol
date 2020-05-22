@@ -1,4 +1,4 @@
-pragma solidity ^0.5.16;
+pragma solidity ^0.6.8;
 import "./NiftyswapExchange.sol";
 import "../interfaces/INiftyswapFactory.sol";
 
@@ -10,7 +10,7 @@ contract NiftyswapFactory is INiftyswapFactory {
   |__________________________________*/
 
   // tokensToExchange[erc1155_token_address][currency_address][currency_token_id]
-  mapping(address => mapping(address => mapping(uint256 => address))) public tokensToExchange;
+  mapping(address => mapping(address => mapping(uint256 => address))) public override tokensToExchange;
   event NewExchange(address indexed token, address indexed currency, uint256 indexed currencyID, address exchange);
 
   /***********************************|
@@ -23,7 +23,7 @@ contract NiftyswapFactory is INiftyswapFactory {
    * @param _currency   The address of the currency token contract
    * @param _currencyID The id of the currency token
    */
-  function createExchange(address _token, address _currency, uint256 _currencyID) public {
+  function createExchange(address _token, address _currency, uint256 _currencyID) public override {
     require(tokensToExchange[_token][_currency][_currencyID] == address(0x0), "NiftyswapFactory#createExchange: EXCHANGE_ALREADY_CREATED");
 
     // Create new exchange contract
