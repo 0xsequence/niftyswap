@@ -1,9 +1,10 @@
 # See https://help.github.com/ignore-files/ for more about ignoring files.
 
+build/
+typings/contracts/
 node_modules/
 
 *.js.map
-build/
 
 .DS_Store
 .vscode

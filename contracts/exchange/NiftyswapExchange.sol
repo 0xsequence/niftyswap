@@ -1,8 +1,10 @@
-pragma solidity ^0.5.16;
+pragma solidity ^0.6.8;
 pragma experimental ABIEncoderV2;
 import "../interfaces/INiftyswapExchange.sol";
 import "../utils/ReentrancyGuard.sol";
+import "multi-token-standard/contracts/interfaces/IERC165.sol";
 import "multi-token-standard/contracts/interfaces/IERC1155.sol";
+import "multi-token-standard/contracts/interfaces/IERC1155TokenReceiver.sol";
 import "multi-token-standard/contracts/tokens/ERC1155/ERC1155Meta.sol";
 import "multi-token-standard/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
 
@@ -114,6 +116,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
    * @param _maxCurrency          Total maximum amount of currency tokens to spend for all Token ids
    * @param _deadline             Block number after which this transaction will be reverted
    * @param _recipient            The address that receives output Tokens and refund
+   * @return currencySold How much currency was actually sold.
    */
   function _currencyToToken(
     uint256[] memory _tokenIds,
@@ -183,7 +186,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
    * @param _assetBoughtAmount  Amount of Tokens being bought.
    * @param _assetSoldReserve   Amount of currency tokens in exchange reserves.
    * @param _assetBoughtReserve Amount of Tokens (output type) in exchange reserves.
-   * @return Amount of currency tokens to send to Niftyswap.
+   * @return price Amount of currency tokens to send to Niftyswap.
    */
   function getBuyPrice(
     uint256 _assetBoughtAmount,
@@ -211,6 +214,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
    * @param _minCurrency       Minimum amount of currency tokens to receive
    * @param _deadline          Block number after which this transaction will be reverted
    * @param _recipient         The address that receives output currency tokens.
+   * @return currencyBought How much currency was actually purchased.
    */
   function _tokenToCurrency(
     uint256[] memory _tokenIds,
@@ -279,13 +283,13 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
    * @param _assetSoldAmount    Amount of Tokens being sold.
    * @param _assetSoldReserve   Amount of Tokens in exchange reserves.
    * @param _assetBoughtReserve Amount of currency tokens in exchange reserves.
-   * @return Amount of currency tokens to receive from Niftyswap.
+   * @return price Amount of currency tokens to receive from Niftyswap.
    */
   function getSellPrice(
     uint256 _assetSoldAmount,
     uint256 _assetSoldReserve,
     uint256 _assetBoughtReserve)
-    public pure returns (uint256)
+    public pure returns (uint256 price)
   {
     //Reserves must not be empty
     require(_assetSoldReserve > 0 && _assetBoughtReserve > 0, "NiftyswapExchange#getSellPrice: EMPTY_RESERVE");
@@ -693,7 +697,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
   /**
    * @notice Prevents receiving Ether or calls to unsuported methods
    */
-  function () external {
+  fallback () external {
     revert("NiftyswapExchange:UNSUPPORTED_METHOD");
   }
 
@@ -860,12 +864,13 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
    * @notice Indicates whether a contract implements the `ERC1155TokenReceiver` functions and so can accept ERC1155 token types.
    * @param  interfaceID The ERC-165 interface ID that is queried for support.s
    * @dev This function MUST return true if it implements the ERC1155TokenReceiver interface and ERC-165 interface.
-   *      This function MUST NOT consume more than 5,000 gas.
-   * @return Wheter ERC-165 or ERC1155TokenReceiver interfaces are supported.
+   *      This function MUST NOT consume more thsan 5,000 gas.
+   * @return Whether a given interface is supported
    */
-  function supportsInterface(bytes4 interfaceID) external view returns (bool) {
-    return  interfaceID == 0x01ffc9a7 || // ERC-165 support (i.e. `bytes4(keccak256('supportsInterface(bytes4)'))`).
-      interfaceID == 0x4e2312e0;         // ERC-1155 `ERC1155TokenReceiver` support (i.e. `bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)")) ^ bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"))`).
+  function supportsInterface(bytes4 interfaceID) external override pure returns (bool) {
+    return  interfaceID == type(IERC165).interfaceId ||
+      interfaceID == type(IERC1155).interfaceId || 
+      interfaceID == type(IERC1155TokenReceiver).interfaceId;        
   }
 
 }
