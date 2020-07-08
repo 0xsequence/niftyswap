@@ -33,14 +33,14 @@ const _abi = [
         type: "address"
       },
       {
-        internalType: "uint256",
-        name: "_id",
-        type: "uint256"
+        internalType: "uint256[]",
+        name: "_ids",
+        type: "uint256[]"
       },
       {
-        internalType: "uint256",
-        name: "_amount",
-        type: "uint256"
+        internalType: "uint256[]",
+        name: "_amounts",
+        type: "uint256[]"
       },
       {
         internalType: "bytes",
@@ -48,7 +48,7 @@ const _abi = [
         type: "bytes"
       }
     ],
-    name: "onERC1155Received",
+    name: "onERC1155BatchReceived",
     outputs: [
       {
         internalType: "bytes4",
@@ -72,14 +72,14 @@ const _abi = [
         type: "address"
       },
       {
-        internalType: "uint256[]",
-        name: "_ids",
-        type: "uint256[]"
+        internalType: "uint256",
+        name: "_id",
+        type: "uint256"
       },
       {
-        internalType: "uint256[]",
-        name: "_amounts",
-        type: "uint256[]"
+        internalType: "uint256",
+        name: "_amount",
+        type: "uint256"
       },
       {
         internalType: "bytes",
@@ -87,7 +87,7 @@ const _abi = [
         type: "bytes"
       }
     ],
-    name: "onERC1155BatchReceived",
+    name: "onERC1155Received",
     outputs: [
       {
         internalType: "bytes4",

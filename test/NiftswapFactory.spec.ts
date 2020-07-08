@@ -5,24 +5,18 @@ import {
   BigNumber, 
   expect,
   RevertError,
-  getBuyTokenData,
-  getSellTokenData,
-  getAddLiquidityData,
-  getRemoveLiquidityData,
 } from './utils'
 
 import * as utils from './utils'
 
-import { ERC1155Mock } from 'typings/contracts/ERC1155Mock'
-import { ERC1155PackedBalanceMock } from 'typings/contracts/ERC1155PackedBalanceMock'
-import { NiftyswapExchange } from 'typings/contracts/NiftyswapExchange'
-import { NiftyswapFactory } from 'typings/contracts/NiftyswapFactory'
+import { ERC1155Mock } from '../typings/contracts/ERC1155Mock'
+import { ERC1155PackedBalanceMock } from '../typings/contracts/ERC1155PackedBalanceMock'
+import { NiftyswapExchange } from '../typings/contracts/NiftyswapExchange'
+import { NiftyswapFactory } from '../typings/contracts/NiftyswapFactory'
 //@ts-ignore
-import { abi as exchangeABI } from './contracts/NiftyswapExchange.json'
-import { Zero } from 'ethers/constants';
+import { web3 } from '@nomiclabs/buidler'
 
 // init test wallets from package.json mnemonic
-const web3 = (global as any).web3
 
 const {
   wallet: ownerWallet,
@@ -50,7 +44,7 @@ const {
 
 const getBig = (id: number) => new BigNumber(id);
 
-contract('NiftyswapExchange', (accounts: string[]) => {
+describe('NiftyswapExchange', () => {
   const MAXVAL = new BigNumber(2).pow(256).sub(1) // 2**256 - 1
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 

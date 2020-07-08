@@ -17,22 +17,22 @@ interface ERC1155PackedBalanceMockInterface extends Interface {
     }>;
 
     balanceOfBatch: TypedFunctionDescription<{
-      encode([_owners, _ids]: [(string)[], (BigNumberish)[]]): string;
+      encode([_owners, _ids]: [string[], BigNumberish[]]): string;
     }>;
 
     batchBurnMock: TypedFunctionDescription<{
       encode([_from, _ids, _values]: [
         string,
-        (BigNumberish)[],
-        (BigNumberish)[]
+        BigNumberish[],
+        BigNumberish[]
       ]): string;
     }>;
 
     batchMintMock: TypedFunctionDescription<{
       encode([_to, _ids, _values, _data]: [
         string,
-        (BigNumberish)[],
-        (BigNumberish)[],
+        BigNumberish[],
+        BigNumberish[],
         Arrayish
       ]): string;
     }>;
@@ -72,8 +72,8 @@ interface ERC1155PackedBalanceMockInterface extends Interface {
       encode([_from, _to, _ids, _amounts, _isGasFee, _data]: [
         string,
         string,
-        (BigNumberish)[],
-        (BigNumberish)[],
+        BigNumberish[],
+        BigNumberish[],
         boolean,
         Arrayish
       ]): string;
@@ -113,8 +113,8 @@ interface ERC1155PackedBalanceMockInterface extends Interface {
       encode([_from, _to, _ids, _amounts, _data]: [
         string,
         string,
-        (BigNumberish)[],
-        (BigNumberish)[],
+        BigNumberish[],
+        BigNumberish[],
         Arrayish
       ]): string;
     }>;
@@ -202,21 +202,21 @@ export class ERC1155PackedBalanceMock extends Contract {
     balanceOf(_owner: string, _id: BigNumberish): Promise<BigNumber>;
 
     balanceOfBatch(
-      _owners: (string)[],
-      _ids: (BigNumberish)[]
-    ): Promise<(BigNumber)[]>;
+      _owners: string[],
+      _ids: BigNumberish[]
+    ): Promise<BigNumber[]>;
 
     batchBurnMock(
       _from: string,
-      _ids: (BigNumberish)[],
-      _values: (BigNumberish)[],
+      _ids: BigNumberish[],
+      _values: BigNumberish[],
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
 
     batchMintMock(
       _to: string,
-      _ids: (BigNumberish)[],
-      _values: (BigNumberish)[],
+      _ids: BigNumberish[],
+      _values: BigNumberish[],
       _data: Arrayish,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
@@ -256,8 +256,8 @@ export class ERC1155PackedBalanceMock extends Contract {
     metaSafeBatchTransferFrom(
       _from: string,
       _to: string,
-      _ids: (BigNumberish)[],
-      _amounts: (BigNumberish)[],
+      _ids: BigNumberish[],
+      _amounts: BigNumberish[],
       _isGasFee: boolean,
       _data: Arrayish,
       overrides?: TransactionOverrides
@@ -293,8 +293,8 @@ export class ERC1155PackedBalanceMock extends Contract {
     safeBatchTransferFrom(
       _from: string,
       _to: string,
-      _ids: (BigNumberish)[],
-      _amounts: (BigNumberish)[],
+      _ids: BigNumberish[],
+      _amounts: BigNumberish[],
       _data: Arrayish,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
@@ -319,22 +319,19 @@ export class ERC1155PackedBalanceMock extends Contract {
 
   balanceOf(_owner: string, _id: BigNumberish): Promise<BigNumber>;
 
-  balanceOfBatch(
-    _owners: (string)[],
-    _ids: (BigNumberish)[]
-  ): Promise<(BigNumber)[]>;
+  balanceOfBatch(_owners: string[], _ids: BigNumberish[]): Promise<BigNumber[]>;
 
   batchBurnMock(
     _from: string,
-    _ids: (BigNumberish)[],
-    _values: (BigNumberish)[],
+    _ids: BigNumberish[],
+    _values: BigNumberish[],
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
   batchMintMock(
     _to: string,
-    _ids: (BigNumberish)[],
-    _values: (BigNumberish)[],
+    _ids: BigNumberish[],
+    _values: BigNumberish[],
     _data: Arrayish,
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
@@ -374,8 +371,8 @@ export class ERC1155PackedBalanceMock extends Contract {
   metaSafeBatchTransferFrom(
     _from: string,
     _to: string,
-    _ids: (BigNumberish)[],
-    _amounts: (BigNumberish)[],
+    _ids: BigNumberish[],
+    _amounts: BigNumberish[],
     _isGasFee: boolean,
     _data: Arrayish,
     overrides?: TransactionOverrides
@@ -411,8 +408,8 @@ export class ERC1155PackedBalanceMock extends Contract {
   safeBatchTransferFrom(
     _from: string,
     _to: string,
-    _ids: (BigNumberish)[],
-    _amounts: (BigNumberish)[],
+    _ids: BigNumberish[],
+    _amounts: BigNumberish[],
     _data: Arrayish,
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
@@ -465,21 +462,18 @@ export class ERC1155PackedBalanceMock extends Contract {
   estimate: {
     balanceOf(_owner: string, _id: BigNumberish): Promise<BigNumber>;
 
-    balanceOfBatch(
-      _owners: (string)[],
-      _ids: (BigNumberish)[]
-    ): Promise<BigNumber>;
+    balanceOfBatch(_owners: string[], _ids: BigNumberish[]): Promise<BigNumber>;
 
     batchBurnMock(
       _from: string,
-      _ids: (BigNumberish)[],
-      _values: (BigNumberish)[]
+      _ids: BigNumberish[],
+      _values: BigNumberish[]
     ): Promise<BigNumber>;
 
     batchMintMock(
       _to: string,
-      _ids: (BigNumberish)[],
-      _values: (BigNumberish)[],
+      _ids: BigNumberish[],
+      _values: BigNumberish[],
       _data: Arrayish
     ): Promise<BigNumber>;
 
@@ -510,8 +504,8 @@ export class ERC1155PackedBalanceMock extends Contract {
     metaSafeBatchTransferFrom(
       _from: string,
       _to: string,
-      _ids: (BigNumberish)[],
-      _amounts: (BigNumberish)[],
+      _ids: BigNumberish[],
+      _amounts: BigNumberish[],
       _isGasFee: boolean,
       _data: Arrayish
     ): Promise<BigNumber>;
@@ -543,8 +537,8 @@ export class ERC1155PackedBalanceMock extends Contract {
     safeBatchTransferFrom(
       _from: string,
       _to: string,
-      _ids: (BigNumberish)[],
-      _amounts: (BigNumberish)[],
+      _ids: BigNumberish[],
+      _amounts: BigNumberish[],
       _data: Arrayish
     ): Promise<BigNumber>;
 

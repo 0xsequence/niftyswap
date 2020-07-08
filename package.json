@@ -16,17 +16,17 @@
   ],
   "files": [
     "LICENSE",
-    "build",
+    "artifacts",
     "contracts",
     "typings"
   ],
   "scripts": {
-    "build": "truffle compile --all && yarn gen:contract-typings && tsc -b",
-    "clean": "rm -rf build test typings/contracts",
-    "migrate": "truffle migrate --network ganache --reset",
-    "migrate:rinkeby": "truffle migrate --network rinkeby",
-    "test": "tsc -b && truffle test --network ganache build/*.spec.js",
-    "test:benchmark": "tsc -b && truffle test --network ganache build/*.bench.js",
+    "build": "rm -rf typings && buidler clean && yarn compile && yarn gen:typings",
+    "compile": "buidler --max-memory 4096 compile",
+    "gen:typings": "rm -f typings/contracts/* && typechain --target ethers --outDir typings/contracts './artifacts/*.json'",
+    "test": "buidler --network ganache test ./test/*.spec.ts",
+    "test:gas-report": "REPORT_GAS=true yarn test ./test/*.spec.ts",
+    "test:benchmark": "buidler --network ganache test ./test/*.bench.ts",
     "gen:contract-typings": "typechain --target ethers --outDir typings/contracts './build/contracts/*.json'",
     "lint": "yarn lint:ts && yarn lint:sol",
     "lint:fix": "yarn lint:ts:fix && yarn lint:sol:fix",
@@ -36,8 +36,7 @@
     "lint:ts:fix": "tslint -c tslint.json -p . --fix",
     "ganache": "ganache-cli --networkId ${npm_package_config_ganacheNetworkID} --port ${npm_package_config_ganachePort} --gasLimit ${npm_package_config_ganacheGasLimit} --gasPrice ${npm_package_config_ganacheGasPrice} --defaultBalanceEther ${npm_package_config_etherBalance} --deterministic --mnemonic \"${npm_package_config_mnemonic}\" ${npm_package_config_extra}",
     "ganache:verbose": "ganache-cli --networkId ${npm_package_config_ganacheNetworkID} --verbose --port ${npm_package_config_ganachePort} --gasLimit ${npm_package_config_ganacheGasLimit} --gasPrice ${npm_package_config_ganacheGasPrice} --defaultBalanceEther ${npm_package_config_etherBalance} --deterministic --mnemonic \"${npm_package_config_mnemonic}\" ${npm_package_config_extra}",
-    "ganache:stop": "ps aux | grep ganache-cli | grep -v grep | awk '{print $2}' | xargs kill -9",
-    "console": "truffle console"
+    "ganache:stop": "ps aux | grep ganache-cli | grep -v grep | awk '{print $2}' | xargs kill -9"
   },
   "config": {
     "mnemonic": "fossil metal angry goat echo rookie victory fault impact recycle boring movie",
@@ -49,30 +48,30 @@
     "extra": ""
   },
   "devDependencies": {
+    "@nomiclabs/buidler-ethers": "^1.3.0",
+    "@nomiclabs/buidler-truffle5": "^1.3.4",
+    "@nomiclabs/buidler-web3": "^1.3.4",
+    "@nomiclabs/buidler": "^1.3.0",
     "@types/chai-as-promised": "^7.1.0",
     "@types/chai-string": "^1.4.1",
     "@types/mocha": "^7.0.2",
     "@types/node": "^14.0.4",
-    "chai": "^4.2.0",
+    "buidler-gas-reporter": "^0.1.3",
     "chai-as-promised": "^7.1.1",
     "chai-bignumber": "^3.0.0",
     "chai-string": "^1.5.0",
+    "chai": "^4.2.0",
     "dotenv": "^8.2.0",
-    "eth-gas-reporter": "^0.2.14",
-    "ethers": "^4.0.40",
+    "ethers": "^4.0.47",
     "ganache-cli": "6.4.4",
-    "ganache-core": "2.5.6",
-    "solc": "^0.6.8",
     "solium": "^1.2.5",
-    "truffle": "^5.1.3",
-    "truffle-contract": "^4.0.31",
-    "truffle-hdwallet-provider": "1.0.17",
+    "ts-node": "^8.9.0",
     "tslint": "^6.1.2",
-    "typechain": "^1.0.3",
     "typechain-target-ethers": "^1.0.3",
+    "typechain": "^1.0.3",
     "typescript": "3.9.2"
   },
   "dependencies": {
-    "multi-token-standard": "^0.9.3"
+    "multi-token-standard": "^0.9.4"
   }
 }
