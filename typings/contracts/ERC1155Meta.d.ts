@@ -17,8 +17,10 @@ interface ERC1155MetaInterface extends Interface {
     }>;
 
     balanceOfBatch: TypedFunctionDescription<{
-      encode([_owners, _ids]: [(string)[], (BigNumberish)[]]): string;
+      encode([_owners, _ids]: [string[], BigNumberish[]]): string;
     }>;
+
+    getNonce: TypedFunctionDescription<{ encode([_signer]: [string]): string }>;
 
     isApprovedForAll: TypedFunctionDescription<{
       encode([_owner, _operator]: [string, string]): string;
@@ -33,12 +35,44 @@ interface ERC1155MetaInterface extends Interface {
       ]): string;
     }>;
 
+    metaSafeBatchTransferFrom: TypedFunctionDescription<{
+      encode([_from, _to, _ids, _amounts, _isGasFee, _data]: [
+        string,
+        string,
+        BigNumberish[],
+        BigNumberish[],
+        boolean,
+        Arrayish
+      ]): string;
+    }>;
+
+    metaSafeTransferFrom: TypedFunctionDescription<{
+      encode([_from, _to, _id, _amount, _isGasFee, _data]: [
+        string,
+        string,
+        BigNumberish,
+        BigNumberish,
+        boolean,
+        Arrayish
+      ]): string;
+    }>;
+
+    metaSetApprovalForAll: TypedFunctionDescription<{
+      encode([_owner, _operator, _approved, _isGasFee, _data]: [
+        string,
+        string,
+        boolean,
+        boolean,
+        Arrayish
+      ]): string;
+    }>;
+
     safeBatchTransferFrom: TypedFunctionDescription<{
       encode([_from, _to, _ids, _amounts, _data]: [
         string,
         string,
-        (BigNumberish)[],
-        (BigNumberish)[],
+        BigNumberish[],
+        BigNumberish[],
         Arrayish
       ]): string;
     }>;
@@ -60,40 +94,6 @@ interface ERC1155MetaInterface extends Interface {
     supportsInterface: TypedFunctionDescription<{
       encode([_interfaceID]: [Arrayish]): string;
     }>;
-
-    metaSafeTransferFrom: TypedFunctionDescription<{
-      encode([_from, _to, _id, _amount, _isGasFee, _data]: [
-        string,
-        string,
-        BigNumberish,
-        BigNumberish,
-        boolean,
-        Arrayish
-      ]): string;
-    }>;
-
-    metaSafeBatchTransferFrom: TypedFunctionDescription<{
-      encode([_from, _to, _ids, _amounts, _isGasFee, _data]: [
-        string,
-        string,
-        (BigNumberish)[],
-        (BigNumberish)[],
-        boolean,
-        Arrayish
-      ]): string;
-    }>;
-
-    metaSetApprovalForAll: TypedFunctionDescription<{
-      encode([_owner, _operator, _approved, _isGasFee, _data]: [
-        string,
-        string,
-        boolean,
-        boolean,
-        Arrayish
-      ]): string;
-    }>;
-
-    getNonce: TypedFunctionDescription<{ encode([_signer]: [string]): string }>;
   };
 
   events: {
@@ -152,9 +152,11 @@ export class ERC1155Meta extends Contract {
     balanceOf(_owner: string, _id: BigNumberish): Promise<BigNumber>;
 
     balanceOfBatch(
-      _owners: (string)[],
-      _ids: (BigNumberish)[]
-    ): Promise<(BigNumber)[]>;
+      _owners: string[],
+      _ids: BigNumberish[]
+    ): Promise<BigNumber[]>;
+
+    getNonce(_signer: string): Promise<BigNumber>;
 
     isApprovedForAll(_owner: string, _operator: string): Promise<boolean>;
 
@@ -165,11 +167,40 @@ export class ERC1155Meta extends Contract {
       _sig: Arrayish
     ): Promise<boolean>;
 
+    metaSafeBatchTransferFrom(
+      _from: string,
+      _to: string,
+      _ids: BigNumberish[],
+      _amounts: BigNumberish[],
+      _isGasFee: boolean,
+      _data: Arrayish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    metaSafeTransferFrom(
+      _from: string,
+      _to: string,
+      _id: BigNumberish,
+      _amount: BigNumberish,
+      _isGasFee: boolean,
+      _data: Arrayish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    metaSetApprovalForAll(
+      _owner: string,
+      _operator: string,
+      _approved: boolean,
+      _isGasFee: boolean,
+      _data: Arrayish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
     safeBatchTransferFrom(
       _from: string,
       _to: string,
-      _ids: (BigNumberish)[],
-      _amounts: (BigNumberish)[],
+      _ids: BigNumberish[],
+      _amounts: BigNumberish[],
       _data: Arrayish,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
@@ -190,45 +221,13 @@ export class ERC1155Meta extends Contract {
     ): Promise<ContractTransaction>;
 
     supportsInterface(_interfaceID: Arrayish): Promise<boolean>;
-
-    metaSafeTransferFrom(
-      _from: string,
-      _to: string,
-      _id: BigNumberish,
-      _amount: BigNumberish,
-      _isGasFee: boolean,
-      _data: Arrayish,
-      overrides?: TransactionOverrides
-    ): Promise<ContractTransaction>;
-
-    metaSafeBatchTransferFrom(
-      _from: string,
-      _to: string,
-      _ids: (BigNumberish)[],
-      _amounts: (BigNumberish)[],
-      _isGasFee: boolean,
-      _data: Arrayish,
-      overrides?: TransactionOverrides
-    ): Promise<ContractTransaction>;
-
-    metaSetApprovalForAll(
-      _owner: string,
-      _operator: string,
-      _approved: boolean,
-      _isGasFee: boolean,
-      _data: Arrayish,
-      overrides?: TransactionOverrides
-    ): Promise<ContractTransaction>;
-
-    getNonce(_signer: string): Promise<BigNumber>;
   };
 
   balanceOf(_owner: string, _id: BigNumberish): Promise<BigNumber>;
 
-  balanceOfBatch(
-    _owners: (string)[],
-    _ids: (BigNumberish)[]
-  ): Promise<(BigNumber)[]>;
+  balanceOfBatch(_owners: string[], _ids: BigNumberish[]): Promise<BigNumber[]>;
+
+  getNonce(_signer: string): Promise<BigNumber>;
 
   isApprovedForAll(_owner: string, _operator: string): Promise<boolean>;
 
@@ -239,11 +238,40 @@ export class ERC1155Meta extends Contract {
     _sig: Arrayish
   ): Promise<boolean>;
 
+  metaSafeBatchTransferFrom(
+    _from: string,
+    _to: string,
+    _ids: BigNumberish[],
+    _amounts: BigNumberish[],
+    _isGasFee: boolean,
+    _data: Arrayish,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
+  metaSafeTransferFrom(
+    _from: string,
+    _to: string,
+    _id: BigNumberish,
+    _amount: BigNumberish,
+    _isGasFee: boolean,
+    _data: Arrayish,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
+  metaSetApprovalForAll(
+    _owner: string,
+    _operator: string,
+    _approved: boolean,
+    _isGasFee: boolean,
+    _data: Arrayish,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
   safeBatchTransferFrom(
     _from: string,
     _to: string,
-    _ids: (BigNumberish)[],
-    _amounts: (BigNumberish)[],
+    _ids: BigNumberish[],
+    _amounts: BigNumberish[],
     _data: Arrayish,
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
@@ -264,37 +292,6 @@ export class ERC1155Meta extends Contract {
   ): Promise<ContractTransaction>;
 
   supportsInterface(_interfaceID: Arrayish): Promise<boolean>;
-
-  metaSafeTransferFrom(
-    _from: string,
-    _to: string,
-    _id: BigNumberish,
-    _amount: BigNumberish,
-    _isGasFee: boolean,
-    _data: Arrayish,
-    overrides?: TransactionOverrides
-  ): Promise<ContractTransaction>;
-
-  metaSafeBatchTransferFrom(
-    _from: string,
-    _to: string,
-    _ids: (BigNumberish)[],
-    _amounts: (BigNumberish)[],
-    _isGasFee: boolean,
-    _data: Arrayish,
-    overrides?: TransactionOverrides
-  ): Promise<ContractTransaction>;
-
-  metaSetApprovalForAll(
-    _owner: string,
-    _operator: string,
-    _approved: boolean,
-    _isGasFee: boolean,
-    _data: Arrayish,
-    overrides?: TransactionOverrides
-  ): Promise<ContractTransaction>;
-
-  getNonce(_signer: string): Promise<BigNumber>;
 
   filters: {
     ApprovalForAll(
@@ -327,10 +324,9 @@ export class ERC1155Meta extends Contract {
   estimate: {
     balanceOf(_owner: string, _id: BigNumberish): Promise<BigNumber>;
 
-    balanceOfBatch(
-      _owners: (string)[],
-      _ids: (BigNumberish)[]
-    ): Promise<BigNumber>;
+    balanceOfBatch(_owners: string[], _ids: BigNumberish[]): Promise<BigNumber>;
+
+    getNonce(_signer: string): Promise<BigNumber>;
 
     isApprovedForAll(_owner: string, _operator: string): Promise<BigNumber>;
 
@@ -341,11 +337,37 @@ export class ERC1155Meta extends Contract {
       _sig: Arrayish
     ): Promise<BigNumber>;
 
+    metaSafeBatchTransferFrom(
+      _from: string,
+      _to: string,
+      _ids: BigNumberish[],
+      _amounts: BigNumberish[],
+      _isGasFee: boolean,
+      _data: Arrayish
+    ): Promise<BigNumber>;
+
+    metaSafeTransferFrom(
+      _from: string,
+      _to: string,
+      _id: BigNumberish,
+      _amount: BigNumberish,
+      _isGasFee: boolean,
+      _data: Arrayish
+    ): Promise<BigNumber>;
+
+    metaSetApprovalForAll(
+      _owner: string,
+      _operator: string,
+      _approved: boolean,
+      _isGasFee: boolean,
+      _data: Arrayish
+    ): Promise<BigNumber>;
+
     safeBatchTransferFrom(
       _from: string,
       _to: string,
-      _ids: (BigNumberish)[],
-      _amounts: (BigNumberish)[],
+      _ids: BigNumberish[],
+      _amounts: BigNumberish[],
       _data: Arrayish
     ): Promise<BigNumber>;
 
@@ -363,33 +385,5 @@ export class ERC1155Meta extends Contract {
     ): Promise<BigNumber>;
 
     supportsInterface(_interfaceID: Arrayish): Promise<BigNumber>;
-
-    metaSafeTransferFrom(
-      _from: string,
-      _to: string,
-      _id: BigNumberish,
-      _amount: BigNumberish,
-      _isGasFee: boolean,
-      _data: Arrayish
-    ): Promise<BigNumber>;
-
-    metaSafeBatchTransferFrom(
-      _from: string,
-      _to: string,
-      _ids: (BigNumberish)[],
-      _amounts: (BigNumberish)[],
-      _isGasFee: boolean,
-      _data: Arrayish
-    ): Promise<BigNumber>;
-
-    metaSetApprovalForAll(
-      _owner: string,
-      _operator: string,
-      _approved: boolean,
-      _isGasFee: boolean,
-      _data: Arrayish
-    ): Promise<BigNumber>;
-
-    getNonce(_signer: string): Promise<BigNumber>;
   };
 }

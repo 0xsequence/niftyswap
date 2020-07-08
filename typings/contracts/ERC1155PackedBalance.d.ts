@@ -12,6 +12,36 @@ import {
 
 interface ERC1155PackedBalanceInterface extends Interface {
   functions: {
+    balanceOf: TypedFunctionDescription<{
+      encode([_owner, _id]: [string, BigNumberish]): string;
+    }>;
+
+    balanceOfBatch: TypedFunctionDescription<{
+      encode([_owners, _ids]: [string[], BigNumberish[]]): string;
+    }>;
+
+    getIDBinIndex: TypedFunctionDescription<{
+      encode([_id]: [BigNumberish]): string;
+    }>;
+
+    getValueInBin: TypedFunctionDescription<{
+      encode([_binValues, _index]: [BigNumberish, BigNumberish]): string;
+    }>;
+
+    isApprovedForAll: TypedFunctionDescription<{
+      encode([_owner, _operator]: [string, string]): string;
+    }>;
+
+    safeBatchTransferFrom: TypedFunctionDescription<{
+      encode([_from, _to, _ids, _amounts, _data]: [
+        string,
+        string,
+        BigNumberish[],
+        BigNumberish[],
+        Arrayish
+      ]): string;
+    }>;
+
     safeTransferFrom: TypedFunctionDescription<{
       encode([_from, _to, _id, _amount, _data]: [
         string,
@@ -22,38 +52,8 @@ interface ERC1155PackedBalanceInterface extends Interface {
       ]): string;
     }>;
 
-    safeBatchTransferFrom: TypedFunctionDescription<{
-      encode([_from, _to, _ids, _amounts, _data]: [
-        string,
-        string,
-        (BigNumberish)[],
-        (BigNumberish)[],
-        Arrayish
-      ]): string;
-    }>;
-
     setApprovalForAll: TypedFunctionDescription<{
       encode([_operator, _approved]: [string, boolean]): string;
-    }>;
-
-    isApprovedForAll: TypedFunctionDescription<{
-      encode([_owner, _operator]: [string, string]): string;
-    }>;
-
-    balanceOf: TypedFunctionDescription<{
-      encode([_owner, _id]: [string, BigNumberish]): string;
-    }>;
-
-    balanceOfBatch: TypedFunctionDescription<{
-      encode([_owners, _ids]: [(string)[], (BigNumberish)[]]): string;
-    }>;
-
-    getIDBinIndex: TypedFunctionDescription<{
-      encode([_id]: [BigNumberish]): string;
-    }>;
-
-    getValueInBin: TypedFunctionDescription<{
-      encode([_binValues, _index]: [BigNumberish, BigNumberish]): string;
     }>;
 
     supportsInterface: TypedFunctionDescription<{
@@ -113,38 +113,12 @@ export class ERC1155PackedBalance extends Contract {
   interface: ERC1155PackedBalanceInterface;
 
   functions: {
-    safeTransferFrom(
-      _from: string,
-      _to: string,
-      _id: BigNumberish,
-      _amount: BigNumberish,
-      _data: Arrayish,
-      overrides?: TransactionOverrides
-    ): Promise<ContractTransaction>;
-
-    safeBatchTransferFrom(
-      _from: string,
-      _to: string,
-      _ids: (BigNumberish)[],
-      _amounts: (BigNumberish)[],
-      _data: Arrayish,
-      overrides?: TransactionOverrides
-    ): Promise<ContractTransaction>;
-
-    setApprovalForAll(
-      _operator: string,
-      _approved: boolean,
-      overrides?: TransactionOverrides
-    ): Promise<ContractTransaction>;
-
-    isApprovedForAll(_owner: string, _operator: string): Promise<boolean>;
-
     balanceOf(_owner: string, _id: BigNumberish): Promise<BigNumber>;
 
     balanceOfBatch(
-      _owners: (string)[],
-      _ids: (BigNumberish)[]
-    ): Promise<(BigNumber)[]>;
+      _owners: string[],
+      _ids: BigNumberish[]
+    ): Promise<BigNumber[]>;
 
     getIDBinIndex(
       _id: BigNumberish
@@ -160,41 +134,38 @@ export class ERC1155PackedBalance extends Contract {
       _index: BigNumberish
     ): Promise<BigNumber>;
 
+    isApprovedForAll(_owner: string, _operator: string): Promise<boolean>;
+
+    safeBatchTransferFrom(
+      _from: string,
+      _to: string,
+      _ids: BigNumberish[],
+      _amounts: BigNumberish[],
+      _data: Arrayish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    safeTransferFrom(
+      _from: string,
+      _to: string,
+      _id: BigNumberish,
+      _amount: BigNumberish,
+      _data: Arrayish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
+    setApprovalForAll(
+      _operator: string,
+      _approved: boolean,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
     supportsInterface(_interfaceID: Arrayish): Promise<boolean>;
   };
 
-  safeTransferFrom(
-    _from: string,
-    _to: string,
-    _id: BigNumberish,
-    _amount: BigNumberish,
-    _data: Arrayish,
-    overrides?: TransactionOverrides
-  ): Promise<ContractTransaction>;
-
-  safeBatchTransferFrom(
-    _from: string,
-    _to: string,
-    _ids: (BigNumberish)[],
-    _amounts: (BigNumberish)[],
-    _data: Arrayish,
-    overrides?: TransactionOverrides
-  ): Promise<ContractTransaction>;
-
-  setApprovalForAll(
-    _operator: string,
-    _approved: boolean,
-    overrides?: TransactionOverrides
-  ): Promise<ContractTransaction>;
-
-  isApprovedForAll(_owner: string, _operator: string): Promise<boolean>;
-
   balanceOf(_owner: string, _id: BigNumberish): Promise<BigNumber>;
 
-  balanceOfBatch(
-    _owners: (string)[],
-    _ids: (BigNumberish)[]
-  ): Promise<(BigNumber)[]>;
+  balanceOfBatch(_owners: string[], _ids: BigNumberish[]): Promise<BigNumber[]>;
 
   getIDBinIndex(
     _id: BigNumberish
@@ -209,6 +180,32 @@ export class ERC1155PackedBalance extends Contract {
     _binValues: BigNumberish,
     _index: BigNumberish
   ): Promise<BigNumber>;
+
+  isApprovedForAll(_owner: string, _operator: string): Promise<boolean>;
+
+  safeBatchTransferFrom(
+    _from: string,
+    _to: string,
+    _ids: BigNumberish[],
+    _amounts: BigNumberish[],
+    _data: Arrayish,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
+  safeTransferFrom(
+    _from: string,
+    _to: string,
+    _id: BigNumberish,
+    _amount: BigNumberish,
+    _data: Arrayish,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
+
+  setApprovalForAll(
+    _operator: string,
+    _approved: boolean,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
 
   supportsInterface(_interfaceID: Arrayish): Promise<boolean>;
 
@@ -239,6 +236,27 @@ export class ERC1155PackedBalance extends Contract {
   };
 
   estimate: {
+    balanceOf(_owner: string, _id: BigNumberish): Promise<BigNumber>;
+
+    balanceOfBatch(_owners: string[], _ids: BigNumberish[]): Promise<BigNumber>;
+
+    getIDBinIndex(_id: BigNumberish): Promise<BigNumber>;
+
+    getValueInBin(
+      _binValues: BigNumberish,
+      _index: BigNumberish
+    ): Promise<BigNumber>;
+
+    isApprovedForAll(_owner: string, _operator: string): Promise<BigNumber>;
+
+    safeBatchTransferFrom(
+      _from: string,
+      _to: string,
+      _ids: BigNumberish[],
+      _amounts: BigNumberish[],
+      _data: Arrayish
+    ): Promise<BigNumber>;
+
     safeTransferFrom(
       _from: string,
       _to: string,
@@ -247,33 +265,9 @@ export class ERC1155PackedBalance extends Contract {
       _data: Arrayish
     ): Promise<BigNumber>;
 
-    safeBatchTransferFrom(
-      _from: string,
-      _to: string,
-      _ids: (BigNumberish)[],
-      _amounts: (BigNumberish)[],
-      _data: Arrayish
-    ): Promise<BigNumber>;
-
     setApprovalForAll(
       _operator: string,
       _approved: boolean
-    ): Promise<BigNumber>;
-
-    isApprovedForAll(_owner: string, _operator: string): Promise<BigNumber>;
-
-    balanceOf(_owner: string, _id: BigNumberish): Promise<BigNumber>;
-
-    balanceOfBatch(
-      _owners: (string)[],
-      _ids: (BigNumberish)[]
-    ): Promise<BigNumber>;
-
-    getIDBinIndex(_id: BigNumberish): Promise<BigNumber>;
-
-    getValueInBin(
-      _binValues: BigNumberish,
-      _index: BigNumberish
     ): Promise<BigNumber>;
 
     supportsInterface(_interfaceID: Arrayish): Promise<BigNumber>;

@@ -12,22 +12,22 @@ import {
 
 interface IERC1155TokenReceiverInterface extends Interface {
   functions: {
+    onERC1155BatchReceived: TypedFunctionDescription<{
+      encode([_operator, _from, _ids, _amounts, _data]: [
+        string,
+        string,
+        BigNumberish[],
+        BigNumberish[],
+        Arrayish
+      ]): string;
+    }>;
+
     onERC1155Received: TypedFunctionDescription<{
       encode([_operator, _from, _id, _amount, _data]: [
         string,
         string,
         BigNumberish,
         BigNumberish,
-        Arrayish
-      ]): string;
-    }>;
-
-    onERC1155BatchReceived: TypedFunctionDescription<{
-      encode([_operator, _from, _ids, _amounts, _data]: [
-        string,
-        string,
-        (BigNumberish)[],
-        (BigNumberish)[],
         Arrayish
       ]): string;
     }>;
@@ -53,6 +53,15 @@ export class IERC1155TokenReceiver extends Contract {
   interface: IERC1155TokenReceiverInterface;
 
   functions: {
+    onERC1155BatchReceived(
+      _operator: string,
+      _from: string,
+      _ids: BigNumberish[],
+      _amounts: BigNumberish[],
+      _data: Arrayish,
+      overrides?: TransactionOverrides
+    ): Promise<ContractTransaction>;
+
     onERC1155Received(
       _operator: string,
       _from: string,
@@ -61,16 +70,16 @@ export class IERC1155TokenReceiver extends Contract {
       _data: Arrayish,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
-
-    onERC1155BatchReceived(
-      _operator: string,
-      _from: string,
-      _ids: (BigNumberish)[],
-      _amounts: (BigNumberish)[],
-      _data: Arrayish,
-      overrides?: TransactionOverrides
-    ): Promise<ContractTransaction>;
   };
+
+  onERC1155BatchReceived(
+    _operator: string,
+    _from: string,
+    _ids: BigNumberish[],
+    _amounts: BigNumberish[],
+    _data: Arrayish,
+    overrides?: TransactionOverrides
+  ): Promise<ContractTransaction>;
 
   onERC1155Received(
     _operator: string,
@@ -81,31 +90,22 @@ export class IERC1155TokenReceiver extends Contract {
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
 
-  onERC1155BatchReceived(
-    _operator: string,
-    _from: string,
-    _ids: (BigNumberish)[],
-    _amounts: (BigNumberish)[],
-    _data: Arrayish,
-    overrides?: TransactionOverrides
-  ): Promise<ContractTransaction>;
-
   filters: {};
 
   estimate: {
+    onERC1155BatchReceived(
+      _operator: string,
+      _from: string,
+      _ids: BigNumberish[],
+      _amounts: BigNumberish[],
+      _data: Arrayish
+    ): Promise<BigNumber>;
+
     onERC1155Received(
       _operator: string,
       _from: string,
       _id: BigNumberish,
       _amount: BigNumberish,
-      _data: Arrayish
-    ): Promise<BigNumber>;
-
-    onERC1155BatchReceived(
-      _operator: string,
-      _from: string,
-      _ids: (BigNumberish)[],
-      _amounts: (BigNumberish)[],
       _data: Arrayish
     ): Promise<BigNumber>;
   };

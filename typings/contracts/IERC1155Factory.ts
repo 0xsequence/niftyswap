@@ -138,72 +138,6 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "_from",
-        type: "address"
-      },
-      {
-        internalType: "address",
-        name: "_to",
-        type: "address"
-      },
-      {
-        internalType: "uint256",
-        name: "_id",
-        type: "uint256"
-      },
-      {
-        internalType: "uint256",
-        name: "_amount",
-        type: "uint256"
-      },
-      {
-        internalType: "bytes",
-        name: "_data",
-        type: "bytes"
-      }
-    ],
-    name: "safeTransferFrom",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function"
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "_from",
-        type: "address"
-      },
-      {
-        internalType: "address",
-        name: "_to",
-        type: "address"
-      },
-      {
-        internalType: "uint256[]",
-        name: "_ids",
-        type: "uint256[]"
-      },
-      {
-        internalType: "uint256[]",
-        name: "_amounts",
-        type: "uint256[]"
-      },
-      {
-        internalType: "bytes",
-        name: "_data",
-        type: "bytes"
-      }
-    ],
-    name: "safeBatchTransferFrom",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function"
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
         name: "_owner",
         type: "address"
       },
@@ -252,24 +186,6 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "_operator",
-        type: "address"
-      },
-      {
-        internalType: "bool",
-        name: "_approved",
-        type: "bool"
-      }
-    ],
-    name: "setApprovalForAll",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function"
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
         name: "_owner",
         type: "address"
       },
@@ -288,6 +204,90 @@ const _abi = [
       }
     ],
     stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_from",
+        type: "address"
+      },
+      {
+        internalType: "address",
+        name: "_to",
+        type: "address"
+      },
+      {
+        internalType: "uint256[]",
+        name: "_ids",
+        type: "uint256[]"
+      },
+      {
+        internalType: "uint256[]",
+        name: "_amounts",
+        type: "uint256[]"
+      },
+      {
+        internalType: "bytes",
+        name: "_data",
+        type: "bytes"
+      }
+    ],
+    name: "safeBatchTransferFrom",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_from",
+        type: "address"
+      },
+      {
+        internalType: "address",
+        name: "_to",
+        type: "address"
+      },
+      {
+        internalType: "uint256",
+        name: "_id",
+        type: "uint256"
+      },
+      {
+        internalType: "uint256",
+        name: "_amount",
+        type: "uint256"
+      },
+      {
+        internalType: "bytes",
+        name: "_data",
+        type: "bytes"
+      }
+    ],
+    name: "safeTransferFrom",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_operator",
+        type: "address"
+      },
+      {
+        internalType: "bool",
+        name: "_approved",
+        type: "bool"
+      }
+    ],
+    name: "setApprovalForAll",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function"
   }
 ];

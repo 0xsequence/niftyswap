@@ -12,16 +12,16 @@ import {
 
 interface NiftyswapFactoryInterface extends Interface {
   functions: {
-    tokensToExchange: TypedFunctionDescription<{
-      encode([, ,]: [string, string, BigNumberish]): string;
-    }>;
-
     createExchange: TypedFunctionDescription<{
       encode([_token, _currency, _currencyID]: [
         string,
         string,
         BigNumberish
       ]): string;
+    }>;
+
+    tokensToExchange: TypedFunctionDescription<{
+      encode([, ,]: [string, string, BigNumberish]): string;
     }>;
   };
 
@@ -54,25 +54,19 @@ export class NiftyswapFactory extends Contract {
   interface: NiftyswapFactoryInterface;
 
   functions: {
-    tokensToExchange(
-      arg0: string,
-      arg1: string,
-      arg2: BigNumberish
-    ): Promise<string>;
-
     createExchange(
       _token: string,
       _currency: string,
       _currencyID: BigNumberish,
       overrides?: TransactionOverrides
     ): Promise<ContractTransaction>;
-  };
 
-  tokensToExchange(
-    arg0: string,
-    arg1: string,
-    arg2: BigNumberish
-  ): Promise<string>;
+    tokensToExchange(
+      arg0: string,
+      arg1: string,
+      arg2: BigNumberish
+    ): Promise<string>;
+  };
 
   createExchange(
     _token: string,
@@ -80,6 +74,12 @@ export class NiftyswapFactory extends Contract {
     _currencyID: BigNumberish,
     overrides?: TransactionOverrides
   ): Promise<ContractTransaction>;
+
+  tokensToExchange(
+    arg0: string,
+    arg1: string,
+    arg2: BigNumberish
+  ): Promise<string>;
 
   filters: {
     NewExchange(
@@ -91,16 +91,16 @@ export class NiftyswapFactory extends Contract {
   };
 
   estimate: {
-    tokensToExchange(
-      arg0: string,
-      arg1: string,
-      arg2: BigNumberish
-    ): Promise<BigNumber>;
-
     createExchange(
       _token: string,
       _currency: string,
       _currencyID: BigNumberish
+    ): Promise<BigNumber>;
+
+    tokensToExchange(
+      arg0: string,
+      arg1: string,
+      arg2: BigNumberish
     ): Promise<BigNumber>;
   };
 }

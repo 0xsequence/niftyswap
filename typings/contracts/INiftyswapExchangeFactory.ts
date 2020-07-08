@@ -155,84 +155,6 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "_operator",
-        type: "address"
-      },
-      {
-        internalType: "address",
-        name: "_from",
-        type: "address"
-      },
-      {
-        internalType: "uint256",
-        name: "_id",
-        type: "uint256"
-      },
-      {
-        internalType: "uint256",
-        name: "_amount",
-        type: "uint256"
-      },
-      {
-        internalType: "bytes",
-        name: "_data",
-        type: "bytes"
-      }
-    ],
-    name: "onERC1155Received",
-    outputs: [
-      {
-        internalType: "bytes4",
-        name: "",
-        type: "bytes4"
-      }
-    ],
-    stateMutability: "nonpayable",
-    type: "function"
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address"
-      },
-      {
-        internalType: "address",
-        name: "_from",
-        type: "address"
-      },
-      {
-        internalType: "uint256[]",
-        name: "_ids",
-        type: "uint256[]"
-      },
-      {
-        internalType: "uint256[]",
-        name: "_amounts",
-        type: "uint256[]"
-      },
-      {
-        internalType: "bytes",
-        name: "_data",
-        type: "bytes"
-      }
-    ],
-    name: "onERC1155BatchReceived",
-    outputs: [
-      {
-        internalType: "bytes4",
-        name: "",
-        type: "bytes4"
-      }
-    ],
-    stateMutability: "nonpayable",
-    type: "function"
-  },
-  {
-    inputs: [
-      {
         internalType: "uint256",
         name: "_assetBoughtAmount",
         type: "uint256"
@@ -260,32 +182,21 @@ const _abi = [
     type: "function"
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "_assetSoldAmount",
-        type: "uint256"
-      },
-      {
-        internalType: "uint256",
-        name: "_assetSoldReserve",
-        type: "uint256"
-      },
-      {
-        internalType: "uint256",
-        name: "_assetBoughtReserve",
-        type: "uint256"
-      }
-    ],
-    name: "getSellPrice",
+    inputs: [],
+    name: "getCurrencyInfo",
     outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address"
+      },
       {
         internalType: "uint256",
         name: "",
         type: "uint256"
       }
     ],
-    stateMutability: "pure",
+    stateMutability: "view",
     type: "function"
   },
   {
@@ -302,6 +213,19 @@ const _abi = [
         internalType: "uint256[]",
         name: "",
         type: "uint256[]"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "getFactoryAddress",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address"
       }
     ],
     stateMutability: "view",
@@ -358,6 +282,48 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "uint256",
+        name: "_assetSoldAmount",
+        type: "uint256"
+      },
+      {
+        internalType: "uint256",
+        name: "_assetSoldReserve",
+        type: "uint256"
+      },
+      {
+        internalType: "uint256",
+        name: "_assetBoughtReserve",
+        type: "uint256"
+      }
+    ],
+    name: "getSellPrice",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256"
+      }
+    ],
+    stateMutability: "pure",
+    type: "function"
+  },
+  {
+    inputs: [],
+    name: "getTokenAddress",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
         internalType: "uint256[]",
         name: "_ids",
         type: "uint256[]"
@@ -375,47 +341,81 @@ const _abi = [
     type: "function"
   },
   {
-    inputs: [],
-    name: "getTokenAddress",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address"
-      }
-    ],
-    stateMutability: "view",
-    type: "function"
-  },
-  {
-    inputs: [],
-    name: "getCurrencyInfo",
-    outputs: [
+    inputs: [
       {
         internalType: "address",
         name: "",
         type: "address"
       },
       {
-        internalType: "uint256",
-        name: "",
-        type: "uint256"
+        internalType: "address",
+        name: "_from",
+        type: "address"
+      },
+      {
+        internalType: "uint256[]",
+        name: "_ids",
+        type: "uint256[]"
+      },
+      {
+        internalType: "uint256[]",
+        name: "_amounts",
+        type: "uint256[]"
+      },
+      {
+        internalType: "bytes",
+        name: "_data",
+        type: "bytes"
       }
     ],
-    stateMutability: "view",
+    name: "onERC1155BatchReceived",
+    outputs: [
+      {
+        internalType: "bytes4",
+        name: "",
+        type: "bytes4"
+      }
+    ],
+    stateMutability: "nonpayable",
     type: "function"
   },
   {
-    inputs: [],
-    name: "getFactoryAddress",
-    outputs: [
+    inputs: [
       {
         internalType: "address",
-        name: "",
+        name: "_operator",
         type: "address"
+      },
+      {
+        internalType: "address",
+        name: "_from",
+        type: "address"
+      },
+      {
+        internalType: "uint256",
+        name: "_id",
+        type: "uint256"
+      },
+      {
+        internalType: "uint256",
+        name: "_amount",
+        type: "uint256"
+      },
+      {
+        internalType: "bytes",
+        name: "_data",
+        type: "bytes"
       }
     ],
-    stateMutability: "view",
+    name: "onERC1155Received",
+    outputs: [
+      {
+        internalType: "bytes4",
+        name: "",
+        type: "bytes4"
+      }
+    ],
+    stateMutability: "nonpayable",
     type: "function"
   }
 ];
