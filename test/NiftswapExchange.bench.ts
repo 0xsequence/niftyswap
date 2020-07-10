@@ -73,13 +73,15 @@ describe('NiftyswapExchange', () => {
   let niftyswapExchangeContract: NiftyswapExchange
 
   // Token Param
-  let types: any[] = [], values: any[] = []
   const nTokenTypes    = 400 //560
   const nTokensPerType = 500000
 
   // Currency Param
   const currencyID = 2;
   const currencyAmount = new BigNumber(10000000).mul(new BigNumber(10).pow(18))
+
+  const types = new Array(nTokenTypes).fill('').map((a, i) => getBig(i))
+  const values = new Array(nTokenTypes).fill('').map((a, i) => nTokensPerType)
 
   // load contract abi and deploy to test server
   beforeEach(async () => {
@@ -90,12 +92,6 @@ describe('NiftyswapExchange', () => {
     erc1155PackedAbstract = await AbstractContract.fromArtifactName('ERC1155PackedBalanceMock')
     niftyswapFactoryAbstract = await AbstractContract.fromArtifactName('NiftyswapFactory')
     niftyswapExchangeAbstract = await AbstractContract.fromArtifactName('NiftyswapExchange')
-
-    // Minting enough values for transfer for each types
-    for (let i = 0; i < nTokenTypes; i++) {
-      types.push(i)
-      values.push(nTokensPerType)
-    }
   })
 
   // deploy before each test, to reset state of contract
@@ -153,15 +149,12 @@ describe('NiftyswapExchange', () => {
     let tokensAmountsToSell: ethers.utils.BigNumber[] = []
     let sellTokenData: string;
 
-    beforeEach(async () => {
-      for (let i = 0; i < nTokenTypes; i++) {
-        currencyAmountsToAdd.push(currencyAmountToAdd)
-        tokenAmountsToAdd.push(tokenAmountToAdd)
-        tokensAmountsToSell.push(tokenAmountToSell)
-      }
-
-      addLiquidityData = getAddLiquidityData(currencyAmountsToAdd, 10000000)    
-    })
+    for (let i = 0; i < nTokenTypes; i++) {
+      currencyAmountsToAdd.push(currencyAmountToAdd)
+      tokenAmountsToAdd.push(tokenAmountToAdd)
+      tokensAmountsToSell.push(tokenAmountToSell)
+    }
+    addLiquidityData = getAddLiquidityData(currencyAmountsToAdd, 10000000)    
 
     beforeEach(async () => {
       // Add liquidity
@@ -266,16 +259,12 @@ describe('NiftyswapExchange', () => {
     let buyTokenData: string;
     let cost: ethers.utils.BigNumber
 
-    beforeEach(async () => {
-      for (let i = 0; i < nTokenTypes; i++) {
-        currencyAmountsToAdd.push(currencyAmountToAdd)
-        tokenAmountsToAdd.push(tokenAmountToAdd)
-        tokensAmountsToBuy.push(tokenAmountToBuy)
-      }
-
-      // Liquidity
-      addLiquidityData = getAddLiquidityData(currencyAmountsToAdd, 10000000)
-    })
+    for (let i = 0; i < nTokenTypes; i++) {
+      currencyAmountsToAdd.push(currencyAmountToAdd)
+      tokenAmountsToAdd.push(tokenAmountToAdd)
+      tokensAmountsToBuy.push(tokenAmountToBuy)
+    }
+    addLiquidityData = getAddLiquidityData(currencyAmountsToAdd, 10000000)
 
     beforeEach(async () => {
       // Add liquidity
