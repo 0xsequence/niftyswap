@@ -1,6 +1,6 @@
 {
   "name": "niftyswap",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Non-custodial exchange for ERC-1155 tokens, based on Uniswap",
   "repository": "https://github.com/niftyswap/niftyswap",
   "license": "MIT",
@@ -21,7 +21,7 @@
     "typings"
   ],
   "scripts": {
-    "build": "rm -rf typings && buidler clean && yarn compile && yarn gen:typings",
+    "build": "rm -rf typings/contracts && buidler clean && yarn compile && yarn gen:typings",
     "compile": "buidler --max-memory 4096 compile",
     "gen:typings": "rm -f typings/contracts/* && typechain --target ethers --outDir typings/contracts './artifacts/*.json'",
     "test": "buidler --network ganache test ./test/*.spec.ts",
