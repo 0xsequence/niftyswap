@@ -114,7 +114,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
    * @param _tokenIds             Array of Tokens ID that are bought
    * @param _tokensBoughtAmounts  Amount of Tokens id bought for each corresponding Token id in _tokenIds
    * @param _maxCurrency          Total maximum amount of currency tokens to spend for all Token ids
-   * @param _deadline             Block number after which this transaction will be reverted
+   * @param _deadline             Timestamp after which this transaction will be reverted
    * @param _recipient            The address that receives output Tokens and refund
    * @return currencySold How much currency was actually sold.
    */
@@ -127,7 +127,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     internal nonReentrant() returns (uint256[] memory currencySold)
   {
     // Input validation
-    require(_deadline >= block.number, "NiftyswapExchange#_currencyToToken: DEADLINE_EXCEEDED");
+    require(_deadline >= block.timestamp, "NiftyswapExchange#_currencyToToken: DEADLINE_EXCEEDED");
 
     // Number of Token IDs to deposit
     uint256 nTokens = _tokenIds.length;
@@ -212,7 +212,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
    * @param _tokenIds          Array of Token IDs that are sold
    * @param _tokensSoldAmounts Array of Amount of Tokens sold for each id in _tokenIds.
    * @param _minCurrency       Minimum amount of currency tokens to receive
-   * @param _deadline          Block number after which this transaction will be reverted
+   * @param _deadline          Timestamp after which this transaction will be reverted
    * @param _recipient         The address that receives output currency tokens.
    * @return currencyBought How much currency was actually purchased.
    */
@@ -228,7 +228,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     uint256 nTokens = _tokenIds.length;
 
     // Input validation
-    require(_deadline >= block.number, "NiftyswapExchange#_tokenToCurrency: DEADLINE_EXCEEDED");
+    require(_deadline >= block.timestamp, "NiftyswapExchange#_tokenToCurrency: DEADLINE_EXCEEDED");
 
     // Initialize variables
     uint256 totalCurrency = 0; // Total amount of currency tokens to transfer
@@ -315,7 +315,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
    * @param _tokenAmounts  Array of amount of Tokens deposited corresponding to each ID provided in _tokenIds
    * @param _maxCurrency   Array of maximum number of tokens deposited for each ID provided in _tokenIds.
    *                       Deposits max amount if total liquidity pool token supply is 0.
-   * @param _deadline      Block number after which this transaction will be reverted
+   * @param _deadline      Timestamp after which this transaction will be reverted
    */
   function _addLiquidity(
     address _provider,
@@ -326,7 +326,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     internal nonReentrant()
   {
     // Requirements
-    require(_deadline >= block.number, "NiftyswapExchange#_addLiquidity: DEADLINE_EXCEEDED");
+    require(_deadline >= block.timestamp, "NiftyswapExchange#_addLiquidity: DEADLINE_EXCEEDED");
 
     // Initialize variables
     uint256 nTokens = _tokenIds.length; // Number of Token IDs to deposit
@@ -439,7 +439,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
    * @param _poolTokenAmounts Array of Amount of liquidity pool tokens burned for each Token id in _tokenIds.
    * @param _minCurrency      Minimum currency withdrawn for each Token id in _tokenIds.
    * @param _minTokens        Minimum Tokens id withdrawn for each Token id in _tokenIds.
-   * @param _deadline         Block number after which this transaction will be reverted
+   * @param _deadline         Timestamp after which this transaction will be reverted
    */
   function _removeLiquidity(
     address _provider,
@@ -451,10 +451,10 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     internal nonReentrant()
   {
     // Input validation
-    require(_deadline > block.number, "NiftyswapExchange#_removeLiquidity: DEADLINE_EXCEEDED");
+    require(_deadline > block.timestamp, "NiftyswapExchange#_removeLiquidity: DEADLINE_EXCEEDED");
 
     // Initialize variables
-    uint256 nTokens = _tokenIds.length;                       // Number of Token IDs to deposit
+    uint256 nTokens = _tokenIds.length;                        // Number of Token IDs to deposit
     uint256 totalCurrency = 0;                                 // Total amount of currency  to transfer
     uint256[] memory tokenAmounts = new uint256[](nTokens);    // Amount of Tokens to transfer for each id
     uint256[] memory currencyAmounts = new uint256[](nTokens); // Amount of currency to transfer for each id
@@ -520,24 +520,24 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     address recipient;             // Who receives the tokens
     uint256[] tokensBoughtIDs;     // Token IDs to buy
     uint256[] tokensBoughtAmounts; // Amount of token to buy for each ID
-    uint256 deadline;              // Block # after which the tx isn't valid anymore
+    uint256 deadline;              // Timestamp after which the tx isn't valid anymore
   }
 
   struct SellTokensObj {
     address recipient;   // Who receives the currency
     uint256 minCurrency; // Total minimum number of currency  expected for all tokens sold
-    uint256 deadline;    // Block # after which the tx isn't valid anymore
+    uint256 deadline;    // Timestamp after which the tx isn't valid anymore
   }
 
   struct AddLiquidityObj {
     uint256[] maxCurrency; // Maximum number of currency to deposit with tokens
-    uint256 deadline;        // Block # after which the tx isn't valid anymore
+    uint256 deadline;      // Timestamp after which the tx isn't valid anymore
   }
 
   struct RemoveLiquidityObj {
     uint256[] minCurrency; // Minimum number of currency to withdraw
     uint256[] minTokens;   // Minimum number of tokens to withdraw
-    uint256 deadline;      // Block # after which the tx isn't valid anymore
+    uint256 deadline;      // Timestamp after which the tx isn't valid anymore
   }
 
   // Method signatures for onReceive control logic
