@@ -867,7 +867,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
    *      This function MUST NOT consume more thsan 5,000 gas.
    * @return Whether a given interface is supported
    */
-  function supportsInterface(bytes4 interfaceID) external override pure returns (bool) {
+  function supportsInterface(bytes4 interfaceID) public override pure returns (bool) {
     return  interfaceID == type(IERC165).interfaceId ||
       interfaceID == type(IERC1155).interfaceId || 
       interfaceID == type(IERC1155TokenReceiver).interfaceId;        

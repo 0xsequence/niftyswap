@@ -12,6 +12,10 @@ import {
 
 interface ERC1155MetadataInterface extends Interface {
   functions: {
+    supportsInterface: TypedFunctionDescription<{
+      encode([_interfaceID]: [Arrayish]): string;
+    }>;
+
     uri: TypedFunctionDescription<{ encode([_id]: [BigNumberish]): string }>;
   };
 
@@ -39,8 +43,12 @@ export class ERC1155Metadata extends Contract {
   interface: ERC1155MetadataInterface;
 
   functions: {
+    supportsInterface(_interfaceID: Arrayish): Promise<boolean>;
+
     uri(_id: BigNumberish): Promise<string>;
   };
+
+  supportsInterface(_interfaceID: Arrayish): Promise<boolean>;
 
   uri(_id: BigNumberish): Promise<string>;
 
@@ -49,6 +57,8 @@ export class ERC1155Metadata extends Contract {
   };
 
   estimate: {
+    supportsInterface(_interfaceID: Arrayish): Promise<BigNumber>;
+
     uri(_id: BigNumberish): Promise<BigNumber>;
   };
 }

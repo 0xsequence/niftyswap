@@ -136,6 +136,8 @@ interface ERC1155MetaMintBurnPackedBalanceMockInterface extends Interface {
     supportsInterface: TypedFunctionDescription<{
       encode([_interfaceID]: [Arrayish]): string;
     }>;
+
+    uri: TypedFunctionDescription<{ encode([_id]: [BigNumberish]): string }>;
   };
 
   events: {
@@ -172,7 +174,7 @@ interface ERC1155MetaMintBurnPackedBalanceMockInterface extends Interface {
     }>;
 
     URI: TypedEventDescription<{
-      encodeTopics([_amount, _id]: [null, BigNumberish | null]): string[];
+      encodeTopics([_uri, _id]: [null, BigNumberish | null]): string[];
     }>;
   };
 }
@@ -323,6 +325,8 @@ export class ERC1155MetaMintBurnPackedBalanceMock extends Contract {
     ): Promise<ContractTransaction>;
 
     supportsInterface(_interfaceID: Arrayish): Promise<boolean>;
+
+    uri(_id: BigNumberish): Promise<string>;
   };
 
   balanceOf(_owner: string, _id: BigNumberish): Promise<BigNumber>;
@@ -439,6 +443,8 @@ export class ERC1155MetaMintBurnPackedBalanceMock extends Contract {
 
   supportsInterface(_interfaceID: Arrayish): Promise<boolean>;
 
+  uri(_id: BigNumberish): Promise<string>;
+
   filters: {
     ApprovalForAll(
       _owner: string | null,
@@ -464,7 +470,7 @@ export class ERC1155MetaMintBurnPackedBalanceMock extends Contract {
       _amount: null
     ): EventFilter;
 
-    URI(_amount: null, _id: BigNumberish | null): EventFilter;
+    URI(_uri: null, _id: BigNumberish | null): EventFilter;
   };
 
   estimate: {
@@ -564,5 +570,7 @@ export class ERC1155MetaMintBurnPackedBalanceMock extends Contract {
     ): Promise<BigNumber>;
 
     supportsInterface(_interfaceID: Arrayish): Promise<BigNumber>;
+
+    uri(_id: BigNumberish): Promise<BigNumber>;
   };
 }
