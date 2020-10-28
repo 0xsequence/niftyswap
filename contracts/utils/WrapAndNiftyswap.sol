@@ -102,17 +102,21 @@ contract WrapAndNiftyswap {
   }
 
   /**
-   * @notice Accepts all ERC-1155
+   * @notice Accepts only tokenWrapper tokens 
    * @return `bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"))`
    */
   function onERC1155Received(address, address, uint256, uint256, bytes calldata)
     external returns(bytes4)
   {
+    if (msg.sender != address(tokenWrapper)) {
+      revert("WrapAndNiftyswap#onERC1155Received: INVALID_ERC1155_RECEIVED");
+    }
     return IERC1155TokenReceiver.onERC1155Received.selector;
   }
 
   /**
-   * @notice Accepts all ERC-1155
+   * @notice If receives tracked ERC-1155, it will send a sell order to niftyswap and unwrap received
+   *         wrapped token. The unwrapped tokens will be sent to the sender.
    * @return `bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"))`
    */
   function onERC1155BatchReceived(
