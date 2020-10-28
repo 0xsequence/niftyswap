@@ -90,8 +90,7 @@ describe('NiftyswapExchange', () => {
   const TX_PARAM = {gasLimit: 5000000}
 
   const deadline = Math.floor(Date.now() / 1000) + 100000
-  console.log(deadline)
-  
+    
   // Arrays
   const types = new Array(nTokenTypes).fill('').map((a, i) => getBig(i))
   const values = new Array(nTokenTypes).fill('').map((a, i) => nTokensPerType)

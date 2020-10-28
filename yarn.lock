@@ -1860,6 +1860,13 @@ eol@^0.9.1:
   resolved "https://registry.yarnpkg.com/eol/-/eol-0.9.1.tgz#f701912f504074be35c6117a5c4ade49cd547acd"
   integrity sha512-Ds/TEoZjwggRoz/Q2O7SE3i4Jm66mqTDfmdHdq/7DKVk3bro9Q8h6WdXKdPqFLMoqxrDK5SVRzHVPOS6uuGtrg==
 
+erc20-meta-token@^0.3.4:
+  version "0.3.4"
+  resolved "https://registry.yarnpkg.com/erc20-meta-token/-/erc20-meta-token-0.3.4.tgz#aeddf8f088277a350e3a21212246610988ac93c8"
+  integrity sha512-eFcwVrpkoXUkJx4IiwrJuUmSSNtrA1d4TUbGc0bgw7FYm+ZqBQPiMjkfqjys07zquulleMraYHEv8RoadjY5Kg==
+  dependencies:
+    multi-token-standard "^0.9.6"
+
 errno@~0.1.1:
   version "0.1.7"
   resolved "https://registry.yarnpkg.com/errno/-/errno-0.1.7.tgz#4684d71779ad39af177e3f007996f7c67c852618"

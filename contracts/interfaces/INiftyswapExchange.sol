@@ -36,6 +36,31 @@ interface INiftyswapExchange {
     uint256[] currencyAmounts
   );
 
+    // OnReceive Objects
+  struct BuyTokensObj {
+    address recipient;             // Who receives the tokens
+    uint256[] tokensBoughtIDs;     // Token IDs to buy
+    uint256[] tokensBoughtAmounts; // Amount of token to buy for each ID
+    uint256 deadline;              // Timestamp after which the tx isn't valid anymore
+  }
+
+  struct SellTokensObj {
+    address recipient;   // Who receives the currency
+    uint256 minCurrency; // Total minimum number of currency  expected for all tokens sold
+    uint256 deadline;    // Timestamp after which the tx isn't valid anymore
+  }
+
+  struct AddLiquidityObj {
+    uint256[] maxCurrency; // Maximum number of currency to deposit with tokens
+    uint256 deadline;      // Timestamp after which the tx isn't valid anymore
+  }
+
+  struct RemoveLiquidityObj {
+    uint256[] minCurrency; // Minimum number of currency to withdraw
+    uint256[] minTokens;   // Minimum number of tokens to withdraw
+    uint256 deadline;      // Timestamp after which the tx isn't valid anymore
+  }
+
   /***********************************|
   |        OnReceive Functions        |
   |__________________________________*/
