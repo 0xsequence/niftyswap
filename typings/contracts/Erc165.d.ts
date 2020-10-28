@@ -18,25 +18,25 @@ import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 
-interface SignatureValidatorInterface extends ethers.utils.Interface {
+interface Erc165Interface extends ethers.utils.Interface {
   functions: {
-    "isValidSignature(address,bytes32,bytes,bytes)": FunctionFragment;
+    "supportsInterface(bytes4)": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "isValidSignature",
-    values: [string, BytesLike, BytesLike, BytesLike]
+    functionFragment: "supportsInterface",
+    values: [BytesLike]
   ): string;
 
   decodeFunctionResult(
-    functionFragment: "isValidSignature",
+    functionFragment: "supportsInterface",
     data: BytesLike
   ): Result;
 
   events: {};
 }
 
-export class SignatureValidator extends Contract {
+export class Erc165 extends Contract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -47,35 +47,25 @@ export class SignatureValidator extends Contract {
   removeAllListeners(eventName: EventFilter | string): this;
   removeListener(eventName: any, listener: Listener): this;
 
-  interface: SignatureValidatorInterface;
+  interface: Erc165Interface;
 
   functions: {
-    isValidSignature(
-      _signerAddress: string,
-      _hash: BytesLike,
-      _data: BytesLike,
-      _sig: BytesLike,
+    supportsInterface(
+      _interfaceID: BytesLike,
       overrides?: CallOverrides
     ): Promise<{
-      isValid: boolean;
       0: boolean;
     }>;
   };
 
-  isValidSignature(
-    _signerAddress: string,
-    _hash: BytesLike,
-    _data: BytesLike,
-    _sig: BytesLike,
+  supportsInterface(
+    _interfaceID: BytesLike,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
   staticCall: {
-    isValidSignature(
-      _signerAddress: string,
-      _hash: BytesLike,
-      _data: BytesLike,
-      _sig: BytesLike,
+    supportsInterface(
+      _interfaceID: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
   };
@@ -83,20 +73,10 @@ export class SignatureValidator extends Contract {
   filters: {};
 
   estimateGas: {
-    isValidSignature(
-      _signerAddress: string,
-      _hash: BytesLike,
-      _data: BytesLike,
-      _sig: BytesLike
-    ): Promise<BigNumber>;
+    supportsInterface(_interfaceID: BytesLike): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    isValidSignature(
-      _signerAddress: string,
-      _hash: BytesLike,
-      _data: BytesLike,
-      _sig: BytesLike
-    ): Promise<PopulatedTransaction>;
+    supportsInterface(_interfaceID: BytesLike): Promise<PopulatedTransaction>;
   };
 }

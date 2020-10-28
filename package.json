@@ -23,11 +23,10 @@
   "scripts": {
     "build": "rm -rf typings/contracts && buidler clean && yarn compile && yarn gen:typings",
     "compile": "buidler --max-memory 4096 compile",
-    "gen:typings": "rm -f typings/contracts/* && typechain --target ethers --outDir typings/contracts './artifacts/*.json'",
+    "gen:typings": "rm -f typings/contracts/* && typechain --target ethers-v5 --outDir typings/contracts './artifacts/*.json'",
     "test": "buidler --network ganache test ./test/*.spec.ts",
     "test:gas-report": "REPORT_GAS=true yarn test ./test/*.spec.ts",
     "test:benchmark": "buidler --network ganache test ./test/*.bench.ts",
-    "gen:contract-typings": "typechain --target ethers --outDir typings/contracts './build/contracts/*.json'",
     "lint": "yarn lint:ts && yarn lint:sol",
     "lint:fix": "yarn lint:ts:fix && yarn lint:sol:fix",
     "lint:sol": "solium -d .",
@@ -49,30 +48,32 @@
   },
   "devDependencies": {
     "@nomiclabs/buidler": "^1.3.0",
-    "@nomiclabs/buidler-ethers": "^1.3.0",
+    "@nomiclabs/buidler-ethers": "^2.0.2",
     "@nomiclabs/buidler-truffle5": "^1.3.4",
     "@nomiclabs/buidler-web3": "^1.3.4",
+    "@typechain/ethers-v5": "^1.0.0",
     "@types/chai-as-promised": "^7.1.0",
     "@types/chai-string": "^1.4.1",
     "@types/mocha": "^7.0.2",
     "@types/node": "^14.0.4",
+    "buidler-ethers-v5": "^0.2.2",
     "buidler-gas-reporter": "^0.1.3",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "chai-bignumber": "^3.0.0",
     "chai-string": "^1.5.0",
     "dotenv": "^8.2.0",
-    "ethers": "^4.0.47",
+    "ethers": "^5.0.17",
     "ganache-cli": "6.4.4",
     "solium": "^1.2.5",
     "ts-node": "^8.9.0",
     "tslint": "^6.1.2",
-    "typechain": "^1.0.3",
-    "typechain-target-ethers": "^1.0.3",
-    "typescript": "3.9.2"
+    "typechain": "^2.0.1",
+    "typechain-target-ethers-v5": "^1.2.2",
+    "typescript": "4.0.2"
   },
   "dependencies": {
     "multi-token-standard": "^0.9.6",
-    "erc20-meta-token": "^0.3.4"
+    "erc20-meta-token": "^0.3.5"
   }
 }

@@ -10,7 +10,7 @@ import {
   AddLiquidityObj, 
   RemoveLiquidityObj 
 } from '../../typings/txTypes'
-import { BigNumber } from 'ethers/utils';
+import { BigNumber } from 'ethers';
 
 // createTestWallet creates a new wallet
 export const createTestWallet = (web3: any, addressIndex: number = 0) => {
@@ -71,8 +71,8 @@ export interface JSONRPCRequest {
 
 export const getBuyTokenData = (
   recipient: string,
-  types: number[] | ethers.utils.BigNumber[], 
-  tokensAmountsToBuy: ethers.utils.BigNumber[],
+  types: number[] | BigNumber[], 
+  tokensAmountsToBuy: BigNumber[],
   deadline: number) => {
   const buyTokenObj = {
     recipient: recipient,
@@ -101,7 +101,7 @@ export const getSellTokenData = (
     ['bytes4', SellTokensType], [methodsSignature.SELLTOKENS, sellTokenObj])
 }
 
-export const getAddLiquidityData = (baseAmountsToAdd: ethers.utils.BigNumber[], deadline: number) => {
+export const getAddLiquidityData = (baseAmountsToAdd: BigNumber[], deadline: number) => {
   const addLiquidityObj = {
     maxBaseTokens: baseAmountsToAdd,
     deadline: deadline
@@ -111,7 +111,7 @@ export const getAddLiquidityData = (baseAmountsToAdd: ethers.utils.BigNumber[], 
     ['bytes4', AddLiquidityType], [methodsSignature.ADDLIQUIDITY, addLiquidityObj])
 }
 
-export const getRemoveLiquidityData = (minBaseTokens: ethers.utils.BigNumber[], minTokens: ethers.utils.BigNumber[], deadline: number) => {
+export const getRemoveLiquidityData = (minBaseTokens: BigNumber[], minTokens: BigNumber[], deadline: number) => {
   const removeLiquidityObj = {
     minBaseTokens: minBaseTokens,
     minTokens: minTokens,
@@ -122,17 +122,15 @@ export const getRemoveLiquidityData = (minBaseTokens: ethers.utils.BigNumber[], 
     ['bytes4', RemoveLiquidityType], [methodsSignature.REMOVELIQUIDITY, removeLiquidityObj])
 }
 
-
-
 export class Web3DebugProvider extends ethers.providers.JsonRpcProvider {
 
   public reqCounter = 0
   public reqLog: JSONRPCRequest[] = []
 
-  readonly _web3Provider: ethers.providers.AsyncSendable
+  readonly _web3Provider: ethers.providers.ExternalProvider
   private _sendAsync: (request: any, callback: (error: any, response: any) => void) => void
 
-  constructor(web3Provider: ethers.providers.AsyncSendable, network?: ethers.utils.Networkish) {
+  constructor(web3Provider: ethers.providers.ExternalProvider, network?: ethers.providers.Networkish) {
       // HTTP has a host; IPC has a path.
       super(web3Provider.host || web3Provider.path || '', network)
 
@@ -145,11 +143,7 @@ export class Web3DebugProvider extends ethers.providers.JsonRpcProvider {
       }
 
       if (!web3Provider || !this._sendAsync) {
-        ethers.errors.throwError(
-          'invalid web3Provider',
-          ethers.errors.INVALID_ARGUMENT,
-          { arg: 'web3Provider', value: web3Provider }
-        )
+          console.error(ethers.errors.INVALID_ARGUMENT)
       }
 
       ethers.utils.defineReadOnly(this, '_web3Provider', web3Provider)

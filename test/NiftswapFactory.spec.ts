@@ -9,8 +9,8 @@ import {
 
 import * as utils from './utils'
 
-import { ERC1155Mock } from '../typings/contracts/ERC1155Mock'
-import { ERC1155PackedBalanceMock } from '../typings/contracts/ERC1155PackedBalanceMock'
+import { Erc1155Mock } from '../typings/contracts/Erc1155Mock'
+import { Erc1155PackedBalanceMock } from '../typings/contracts/Erc1155PackedBalanceMock'
 import { NiftyswapExchange } from '../typings/contracts/NiftyswapExchange'
 import { NiftyswapFactory } from '../typings/contracts/NiftyswapFactory'
 //@ts-ignore
@@ -20,32 +20,20 @@ import { web3 } from '@nomiclabs/buidler'
 
 const {
   wallet: ownerWallet,
-  provider: ownerProvider,
-  signer: ownerSigner
 } = utils.createTestWallet(web3, 0)
 
 const {
   wallet: userWallet,
-  provider: userProvider,
   signer: userSigner
 } = utils.createTestWallet(web3, 2)
 
 const {
   wallet: operatorWallet,
-  provider: operatorProvider,
   signer: operatorSigner
 } = utils.createTestWallet(web3, 4)
 
-const {
-  wallet: randomWallet,
-  provider: randomProvider,
-  signer: randomSigner
-} = utils.createTestWallet(web3, 5)
 
-const getBig = (id: number) => new BigNumber(id);
-
-describe('NiftyswapExchange', () => {
-  const MAXVAL = new BigNumber(2).pow(256).sub(1) // 2**256 - 1
+describe('NiftyswapFactory', () => {
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
   let ownerAddress: string
@@ -55,22 +43,18 @@ describe('NiftyswapExchange', () => {
   let erc1155PackedAbstract: AbstractContract
   let niftyswapFactoryAbstract: AbstractContract
   let niftyswapExchangeAbstract: AbstractContract
-  let operatorAbstract: AbstractContract
 
   // ERC-1155 token
-  let ownerERC1155Contract: ERC1155PackedBalanceMock
-  let userERC1155Contract: ERC1155PackedBalanceMock
-  let operatorERC1155Contract: ERC1155PackedBalanceMock
+  let ownerERC1155Contract: Erc1155PackedBalanceMock
+  let userERC1155Contract: Erc1155PackedBalanceMock
+  let operatorERC1155Contract: Erc1155PackedBalanceMock
 
   // Base Tokens
-  let ownerBaseTokenContract: ERC1155Mock
-  let userBaseTokenContract: ERC1155Mock
-  let operatorBaseTokenContract: ERC1155Mock
-
+  let ownerBaseTokenContract: Erc1155Mock
+  let userBaseTokenContract: Erc1155Mock
+  let operatorBaseTokenContract: Erc1155Mock
 
   let niftyswapFactoryContract: NiftyswapFactory
-  let niftyswapExchangeContract: NiftyswapExchange
-  let operatorExchangeContract: NiftyswapExchange
 
   // Token Param
   let types: number[] = []
@@ -80,7 +64,6 @@ describe('NiftyswapExchange', () => {
 
   // Base Token Param
   const baseTokenID = 666;
-  const baseTokenAmount = new BigNumber(10000000).mul(new BigNumber(10).pow(18))
 
   // load contract abi and deploy to test server
   beforeEach(async () => {
@@ -102,15 +85,14 @@ describe('NiftyswapExchange', () => {
   // deploy before each test, to reset state of contract
   beforeEach(async () => {
     // Deploy Base Token contract
-    ownerBaseTokenContract = await erc1155Abstract.deploy(ownerWallet) as ERC1155Mock
-    userBaseTokenContract = await ownerBaseTokenContract.connect(userSigner) as ERC1155Mock
-    operatorBaseTokenContract = await ownerBaseTokenContract.connect(operatorSigner) as ERC1155Mock
-
+    ownerBaseTokenContract = await erc1155Abstract.deploy(ownerWallet) as Erc1155Mock
+    userBaseTokenContract = await ownerBaseTokenContract.connect(userSigner) as Erc1155Mock
+    operatorBaseTokenContract = await ownerBaseTokenContract.connect(operatorSigner) as Erc1155Mock
 
     // Deploy ERC-1155
-    ownerERC1155Contract = await erc1155PackedAbstract.deploy(ownerWallet) as ERC1155PackedBalanceMock
-    operatorERC1155Contract = await ownerERC1155Contract.connect(operatorSigner) as ERC1155PackedBalanceMock
-    userERC1155Contract = await ownerERC1155Contract.connect(userSigner) as ERC1155PackedBalanceMock
+    ownerERC1155Contract = await erc1155PackedAbstract.deploy(ownerWallet) as Erc1155PackedBalanceMock
+    operatorERC1155Contract = await ownerERC1155Contract.connect(operatorSigner) as Erc1155PackedBalanceMock
+    userERC1155Contract = await ownerERC1155Contract.connect(userSigner) as Erc1155PackedBalanceMock
 
     // Deploy Niftyswap factory
     niftyswapFactoryContract = await niftyswapFactoryAbstract.deploy(ownerWallet) as NiftyswapFactory
@@ -129,12 +111,12 @@ describe('NiftyswapExchange', () => {
         )
         
         // Retrieve exchange address
-        exchangeAddress = await niftyswapFactoryContract.functions.tokensToExchange(ownerERC1155Contract.address, ownerBaseTokenContract.address, baseTokenID)
+        exchangeAddress = (await niftyswapFactoryContract.functions.tokensToExchange(ownerERC1155Contract.address, ownerBaseTokenContract.address, baseTokenID))[0]
       })
 
       it('should return exchange address', async () => {
         const exchange_address = await niftyswapFactoryContract.functions.tokensToExchange(ownerERC1155Contract.address, ownerBaseTokenContract.address, baseTokenID)
-        await expect(exchange_address).to.be.eql(exchangeAddress)
+        await expect(exchange_address[0]).to.be.eql(exchangeAddress)
       })
     })
   })
@@ -210,7 +192,7 @@ describe('NiftyswapExchange', () => {
         )
 
         // Retrieve exchange address
-        exchangeAddress = await niftyswapFactoryContract.functions.tokensToExchange(ownerERC1155Contract.address, ownerBaseTokenContract.address, baseTokenID)
+        exchangeAddress = (await niftyswapFactoryContract.functions.tokensToExchange(ownerERC1155Contract.address, ownerBaseTokenContract.address, baseTokenID))[0]
       })
 
       it("should REVERT if creating an existing exchange", async () => {
@@ -248,7 +230,7 @@ describe('NiftyswapExchange', () => {
 
 
         it('should have base token ID as `currencyID` field', async () => {
-          expect(args.currencyID).to.be.eql(new BigNumber(baseTokenID))
+          expect(args.currencyID).to.be.eql(BigNumber.from(baseTokenID))
         })
 
 

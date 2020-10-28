@@ -12,16 +12,15 @@ import {
 
 import * as utils from './utils'
 
-import { ERC1155Mock } from '../typings/contracts/ERC1155Mock'
-import { ERC20Mock } from 'erc20-meta-token/typings/contracts/ERC20Mock'
+import { Erc1155Mock } from '../typings/contracts/Erc1155Mock'
+import { Erc20Mock } from 'erc20-meta-token/typings/contracts/Erc20Mock'
 import { NiftyswapExchange } from '../typings/contracts/NiftyswapExchange'
 import { NiftyswapFactory } from '../typings/contracts/NiftyswapFactory'
-import { MetaERC20Wrapper } from 'erc20-meta-token/typings/contracts/MetaERC20Wrapper'
+import { MetaErc20Wrapper } from 'erc20-meta-token/typings/contracts/MetaErc20Wrapper'
 import { WrapAndNiftyswap } from '../typings/contracts/WrapAndNiftyswap'
 
 import { abi as exchangeABI } from '../artifacts/NiftyswapExchange.json'
-import { Zero } from 'ethers/constants'
-import { BigNumber } from 'ethers/utils'
+import { BigNumber } from 'ethers'
 import { web3 } from '@nomiclabs/buidler'
 
 // init test wallets from package.json mnemonic
@@ -50,7 +49,7 @@ const {
   signer: randomSigner
 } = utils.createTestWallet(web3, 5)
 
-const getBig = (id: number) => new BigNumber(id);
+const getBig = (id: number) => BigNumber.from(id);
 
 describe('WrapAndSwap', () => {
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
@@ -65,19 +64,19 @@ describe('WrapAndSwap', () => {
   let wrapAndNiftyswapAbstract: AbstractContract
 
   // ERC-1155 token
-  let ownerERC1155Contract: ERC1155Mock
-  let userERC1155Contract: ERC1155Mock
-  let operatorERC1155Contract: ERC1155Mock
+  let ownerERC1155Contract: Erc1155Mock
+  let userERC1155Contract: Erc1155Mock
+  let operatorERC1155Contract: Erc1155Mock
 
   // ERC-1155 token
-  let ownerERC20Contract: ERC20Mock
-  let userERC20Contract: ERC20Mock
-  let operatorERC20Contract: ERC20Mock
+  let ownerERC20Contract: Erc20Mock
+  let userERC20Contract: Erc20Mock
+  let operatorERC20Contract: Erc20Mock
 
   // Wrapper contract
-  let ownerTokenWrapper: MetaERC20Wrapper 
-  let userTokenWrapper: MetaERC20Wrapper 
-  let operatorTokenWrapper: MetaERC20Wrapper 
+  let ownerTokenWrapper: MetaErc20Wrapper 
+  let userTokenWrapper: MetaErc20Wrapper 
+  let operatorTokenWrapper: MetaErc20Wrapper 
   
   // Wrap and Swap contract
   let ownerWrapAndNiftyswap: WrapAndNiftyswap
@@ -98,12 +97,12 @@ describe('WrapAndSwap', () => {
   const nTokensPerType = 500000
 
   // Currency Param
-  const currencyAmount = new BigNumber(10000000).mul(new BigNumber(10).pow(18))
+  const currencyAmount = BigNumber.from(10000000).mul(BigNumber.from(10).pow(18))
   const currencyID = 2
 
   // Add liquidity data
-  const tokenAmountToAdd = new BigNumber(300);
-  const currencyAmountToAdd = (new BigNumber(10).pow(18)).mul(299)
+  const tokenAmountToAdd = BigNumber.from(300);
+  const currencyAmountToAdd = (BigNumber.from(10).pow(18)).mul(299)
 
   // Transactions parameters
   const TX_PARAM = {gasLimit: 5000000}
@@ -113,8 +112,8 @@ describe('WrapAndSwap', () => {
   // Arrays
   const types = new Array(nTokenTypes).fill('').map((a, i) => getBig(i))
   const values = new Array(nTokenTypes).fill('').map((a, i) => nTokensPerType)
-  const currencyAmountsToAdd: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => currencyAmountToAdd)
-  const tokenAmountsToAdd: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => tokenAmountToAdd)
+  const currencyAmountsToAdd: BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => currencyAmountToAdd)
+  const tokenAmountsToAdd: BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => tokenAmountToAdd)
   const addLiquidityData: string = getAddLiquidityData(currencyAmountsToAdd, deadline)
 
   // load contract abi and deploy to test server
@@ -132,19 +131,19 @@ describe('WrapAndSwap', () => {
   // deploy before each test, to reset state of contract
   beforeEach(async () => {
   // Deploy ERC-1155
-    ownerERC1155Contract = await erc1155Abstract.deploy(ownerWallet) as ERC1155Mock
-    operatorERC1155Contract = await ownerERC1155Contract.connect(operatorSigner) as ERC1155Mock
-    userERC1155Contract = await ownerERC1155Contract.connect(userSigner) as ERC1155Mock
+    ownerERC1155Contract = await erc1155Abstract.deploy(ownerWallet) as Erc1155Mock
+    operatorERC1155Contract = await ownerERC1155Contract.connect(operatorSigner) as Erc1155Mock
+    userERC1155Contract = await ownerERC1155Contract.connect(userSigner) as Erc1155Mock
 
     // Deploy Currency Token contract
-    ownerERC20Contract = await erc20Abstract.deploy(ownerWallet) as ERC20Mock
-    userERC20Contract = await ownerERC20Contract.connect(userSigner) as ERC20Mock
-    operatorERC20Contract = await ownerERC20Contract.connect(operatorSigner) as ERC20Mock
+    ownerERC20Contract = await erc20Abstract.deploy(ownerWallet) as Erc20Mock
+    userERC20Contract = await ownerERC20Contract.connect(userSigner) as Erc20Mock
+    operatorERC20Contract = await ownerERC20Contract.connect(operatorSigner) as Erc20Mock
 
     // Deploy token wrapper contract
-    ownerTokenWrapper = await tokenWrapperAbstract.deploy(ownerWallet) as MetaERC20Wrapper
-    userTokenWrapper = await ownerTokenWrapper.connect(userSigner) as MetaERC20Wrapper
-    operatorTokenWrapper = await ownerTokenWrapper.connect(operatorSigner) as MetaERC20Wrapper
+    ownerTokenWrapper = await tokenWrapperAbstract.deploy(ownerWallet) as MetaErc20Wrapper
+    userTokenWrapper = await ownerTokenWrapper.connect(userSigner) as MetaErc20Wrapper
+    operatorTokenWrapper = await ownerTokenWrapper.connect(operatorSigner) as MetaErc20Wrapper
 
     // Deploy Niftyswap factory
     niftyswapFactoryContract = await niftyswapFactoryAbstract.deploy(ownerWallet) as NiftyswapFactory
@@ -157,7 +156,7 @@ describe('WrapAndSwap', () => {
     )
     
     // Retrieve exchange address
-    const exchangeAddress = await niftyswapFactoryContract.functions.tokensToExchange(ownerERC1155Contract.address, ownerTokenWrapper.address, currencyID)
+    const exchangeAddress = (await niftyswapFactoryContract.functions.tokensToExchange(ownerERC1155Contract.address, ownerTokenWrapper.address, currencyID))[0]
     
     // Type exchange contract
     niftyswapExchangeContract = await new ethers.Contract(exchangeAddress, exchangeABI, ownerProvider) as NiftyswapExchange
@@ -191,7 +190,7 @@ describe('WrapAndSwap', () => {
     await ownerERC20Contract.functions.mockMint(userAddress, currencyAmount)
 
     // Wrap some tokens for niftyswap liquidity
-    await operatorERC20Contract.functions.approve(ownerTokenWrapper.address, new BigNumber(2).pow(256).sub(1))
+    await operatorERC20Contract.functions.approve(ownerTokenWrapper.address, BigNumber.from(2).pow(256).sub(1))
     await operatorTokenWrapper.functions.deposit(operatorERC20Contract.address, operatorAddress, currencyAmountToAdd.mul(nTokenTypes))
 
     // Authorize Niftyswap to transfer funds on your behalf for addLiquidity & transfers
@@ -204,17 +203,17 @@ describe('WrapAndSwap', () => {
     )
   
     // User approves wrapAndSwap
-    await userERC20Contract.functions.approve(userWrapAndNiftyswap.address, new BigNumber(2).pow(256).sub(1), TX_PARAM)
+    await userERC20Contract.functions.approve(userWrapAndNiftyswap.address, BigNumber.from(2).pow(256).sub(1), TX_PARAM)
   })
 
   describe('wrapAndSwap() function', () => {
-    const tokenAmountToBuy = new BigNumber(50)
-    const tokensAmountsToBuy: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => tokenAmountToBuy)
+    const tokenAmountToBuy = BigNumber.from(50)
+    const tokensAmountsToBuy: BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => tokenAmountToBuy)
     let buyTokenData: string;
-    let cost: ethers.utils.BigNumber
+    let cost: BigNumber
 
     beforeEach( async () => {
-      cost = (await niftyswapExchangeContract.functions.getPrice_currencyToToken([0], [tokenAmountToBuy]))[0];
+      cost = (await niftyswapExchangeContract.functions.getPrice_currencyToToken([0], [tokenAmountToBuy]))[0][0]
       cost = cost.mul(nTokenTypes)
       buyTokenData = getBuyTokenData(ZERO_ADDRESS, types, tokensAmountsToBuy, deadline)
     })
@@ -232,7 +231,7 @@ describe('WrapAndSwap', () => {
 
     it('should buy the 2nd time as well', async () => {
       await userWrapAndNiftyswap.functions.wrapAndSwap(cost, userAddress, buyTokenData, {gasLimit: 10000000})
-      let cost2 = (await niftyswapExchangeContract.functions.getPrice_currencyToToken([0], [tokenAmountToBuy]))[0];
+      let cost2 = (await niftyswapExchangeContract.functions.getPrice_currencyToToken([0], [tokenAmountToBuy]))[0][0]
       cost2 = cost.mul(nTokenTypes)
       let buyTokenData2 = getBuyTokenData(ZERO_ADDRESS, types, tokensAmountsToBuy, deadline)
       let tx = userWrapAndNiftyswap.functions.wrapAndSwap(cost2, userAddress, buyTokenData2, {gasLimit: 10000000})
@@ -249,8 +248,8 @@ describe('WrapAndSwap', () => {
           const exchangeBalance = await userERC1155Contract.functions.balanceOf(niftyswapExchangeContract.address, types[i])
           const userBalance = await userERC1155Contract.functions.balanceOf(userAddress, types[i])
 
-          expect(exchangeBalance).to.be.eql(tokenAmountToAdd.sub(tokenAmountToBuy))
-          expect(userBalance).to.be.eql(new BigNumber(nTokensPerType).add(tokenAmountToBuy))
+          expect(exchangeBalance[0]).to.be.eql(tokenAmountToAdd.sub(tokenAmountToBuy))
+          expect(userBalance[0]).to.be.eql(BigNumber.from(nTokensPerType).add(tokenAmountToBuy))
         }
       })
   
@@ -258,8 +257,8 @@ describe('WrapAndSwap', () => {
           const exchangeBalance = await userTokenWrapper.functions.balanceOf(niftyswapExchangeContract.address, currencyID)
           const userBalance = await userERC20Contract.functions.balanceOf(userAddress)
 
-          expect(exchangeBalance).to.be.eql(currencyAmountToAdd.mul(nTokenTypes).add(cost))
-          expect(userBalance).to.be.eql(currencyAmount.sub(cost))
+          expect(exchangeBalance[0]).to.be.eql(currencyAmountToAdd.mul(nTokenTypes).add(cost))
+          expect(userBalance[0]).to.be.eql(currencyAmount.sub(cost))
       })
 
       it('should leave swapAndWrap contract with 0 funds', async () => {
@@ -269,10 +268,10 @@ describe('WrapAndSwap', () => {
         let addresses = new Array(nTokenTypes).fill('').map((a, i) => userWrapAndNiftyswap.address)
         const erc1155Balances = await userERC1155Contract.functions.balanceOfBatch(addresses, types)
 
-        expect(erc20Balance).to.be.eql(Zero)
-        expect(wrappedTokenBalance).to.be.eql(Zero)
+        expect(erc20Balance[0]).to.be.eql(ethers.constants.Zero)
+        expect(wrappedTokenBalance[0]).to.be.eql(ethers.constants.Zero)
         for (let i = 0; i < types.length; i++) {
-          expect(erc1155Balances[i]).to.be.eql(Zero)
+          expect(erc1155Balances[0][i]).to.be.eql(ethers.constants.Zero)
         }
       })
 
@@ -280,14 +279,14 @@ describe('WrapAndSwap', () => {
   })
 
   describe('swapAndUnwrap() function', () => {
-    const tokenAmountToSell = new BigNumber(50)
-    const tokensAmountsToSell: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => tokenAmountToSell)
+    const tokenAmountToSell = BigNumber.from(50)
+    const tokensAmountsToSell: BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => tokenAmountToSell)
     let sellTokenData: string;
     let expectedAmount;
 
     beforeEach( async () => {
         // Sell
-        const price = await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]);
+        const price = (await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]))[0]
         expectedAmount = price[0].mul(nTokenTypes)
         sellTokenData = getSellTokenData(ZERO_ADDRESS, expectedAmount, deadline)
     })
@@ -305,7 +304,7 @@ describe('WrapAndSwap', () => {
 
     it('should sell the 2nd time as well', async () => {
       await userERC1155Contract.functions.safeBatchTransferFrom(userAddress, wrapAndSwap, types, tokensAmountsToSell, sellTokenData, TX_PARAM)
-      let price2 = await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]);
+      let price2 = (await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]))[0];
       let expectedAmount2 = price2[0].mul(nTokenTypes)
       let sellTokenData2 = getSellTokenData(ZERO_ADDRESS, expectedAmount2, deadline)
       let tx = userERC1155Contract.functions.safeBatchTransferFrom(userAddress, wrapAndSwap, types, tokensAmountsToSell, sellTokenData2, TX_PARAM)
@@ -322,8 +321,8 @@ describe('WrapAndSwap', () => {
           const exchangeBalance = await userERC1155Contract.functions.balanceOf(niftyswapExchangeContract.address, types[i])
           const userBalance = await userERC1155Contract.functions.balanceOf(userAddress, types[i])
 
-          expect(exchangeBalance).to.be.eql(tokenAmountToAdd.add(tokenAmountToSell))
-          expect(userBalance).to.be.eql(new BigNumber(nTokensPerType).sub(tokenAmountToSell))
+          expect(exchangeBalance[0]).to.be.eql(tokenAmountToAdd.add(tokenAmountToSell))
+          expect(userBalance[0]).to.be.eql(BigNumber.from(nTokensPerType).sub(tokenAmountToSell))
         }
       })
   
@@ -331,8 +330,8 @@ describe('WrapAndSwap', () => {
           const exchangeBalance = await userTokenWrapper.functions.balanceOf(niftyswapExchangeContract.address, currencyID)
           const userBalance = await userERC20Contract.functions.balanceOf(userAddress)
 
-          expect(exchangeBalance).to.be.eql(currencyAmountToAdd.mul(nTokenTypes).sub(expectedAmount))
-          expect(userBalance).to.be.eql(currencyAmount.add(expectedAmount))
+          expect(exchangeBalance[0]).to.be.eql(currencyAmountToAdd.mul(nTokenTypes).sub(expectedAmount))
+          expect(userBalance[0]).to.be.eql(currencyAmount.add(expectedAmount))
       })
 
       it('should leave swapAndWrap contract with 0 funds', async () => {
@@ -342,10 +341,10 @@ describe('WrapAndSwap', () => {
         let addresses = new Array(nTokenTypes).fill('').map((a, i) => userWrapAndNiftyswap.address)
         const erc1155Balances = await userERC1155Contract.functions.balanceOfBatch(addresses, types)
 
-        expect(erc20Balance).to.be.eql(Zero)
-        expect(wrappedTokenBalance).to.be.eql(Zero)
+        expect(erc20Balance[0]).to.be.eql(ethers.constants.Zero)
+        expect(wrappedTokenBalance[0]).to.be.eql(ethers.constants.Zero)
         for (let i = 0; i < types.length; i++) {
-          expect(erc1155Balances[i]).to.be.eql(Zero)
+          expect(erc1155Balances[0][i]).to.be.eql(ethers.constants.Zero)
         }
       })
 

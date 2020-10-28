@@ -15,8 +15,8 @@ import {
 
 import * as utils from './utils'
 
-import { ERC1155Mock } from '../typings/contracts/ERC1155Mock'
-import { ERC1155PackedBalanceMock } from '../typings/contracts/ERC1155PackedBalanceMock'
+import { Erc1155Mock } from '../typings/contracts/Erc1155Mock'
+import { Erc1155PackedBalanceMock } from '../typings/contracts/Erc1155PackedBalanceMock'
 import { NiftyswapExchange } from '../typings/contracts/NiftyswapExchange'
 import { NiftyswapFactory } from '../typings/contracts/NiftyswapFactory'
 //@ts-ignore
@@ -43,10 +43,10 @@ const {
   signer: operatorSigner
 } = utils.createTestWallet(web3, 4)
 
-const getBig = (id: number) => new BigNumber(id);
+const getBig = (id: number) => BigNumber.from(id);
 
 describe('NiftyswapExchange', () => {
-  const MAXVAL = new BigNumber(2).pow(256).sub(1) // 2**256 - 1
+  const MAXVAL = BigNumber.from(2).pow(256).sub(1) // 2**256 - 1
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
   let ownerAddress: string
@@ -59,14 +59,14 @@ describe('NiftyswapExchange', () => {
   let operatorAbstract: AbstractContract
 
   // ERC-1155 token
-  let ownerERC1155Contract: ERC1155PackedBalanceMock
-  let userERC1155Contract: ERC1155PackedBalanceMock
-  let operatorERC1155Contract: ERC1155PackedBalanceMock
+  let ownerERC1155Contract: Erc1155PackedBalanceMock
+  let userERC1155Contract: Erc1155PackedBalanceMock
+  let operatorERC1155Contract: Erc1155PackedBalanceMock
 
   // Currency
-  let ownerCurrencyContract: ERC1155Mock
-  let userCurrencyContract: ERC1155Mock
-  let operatorCurrencyContract: ERC1155Mock
+  let ownerCurrencyContract: Erc1155Mock
+  let userCurrencyContract: Erc1155Mock
+  let operatorCurrencyContract: Erc1155Mock
 
 
   let niftyswapFactoryContract: NiftyswapFactory
@@ -78,7 +78,7 @@ describe('NiftyswapExchange', () => {
 
   // Currency Param
   const currencyID = 2;
-  const currencyAmount = new BigNumber(10000000).mul(new BigNumber(10).pow(18))
+  const currencyAmount = BigNumber.from(10000000).mul(BigNumber.from(10).pow(18))
 
   const types = new Array(nTokenTypes).fill('').map((a, i) => getBig(i))
   const values = new Array(nTokenTypes).fill('').map((a, i) => nTokensPerType)
@@ -97,14 +97,14 @@ describe('NiftyswapExchange', () => {
   // deploy before each test, to reset state of contract
   beforeEach(async () => {
     // Deploy currency contract
-    ownerCurrencyContract = await erc1155Abstract.deploy(ownerWallet) as ERC1155Mock
-    userCurrencyContract = await ownerCurrencyContract.connect(userSigner) as ERC1155Mock
-    operatorCurrencyContract = await ownerCurrencyContract.connect(operatorSigner) as ERC1155Mock
+    ownerCurrencyContract = await erc1155Abstract.deploy(ownerWallet) as Erc1155Mock
+    userCurrencyContract = await ownerCurrencyContract.connect(userSigner) as Erc1155Mock
+    operatorCurrencyContract = await ownerCurrencyContract.connect(operatorSigner) as Erc1155Mock
 
     // Deploy ERC-1155
-    ownerERC1155Contract = await erc1155PackedAbstract.deploy(ownerWallet) as ERC1155PackedBalanceMock
-    operatorERC1155Contract = await ownerERC1155Contract.connect(operatorSigner) as ERC1155PackedBalanceMock
-    userERC1155Contract = await ownerERC1155Contract.connect(userSigner) as ERC1155PackedBalanceMock
+    ownerERC1155Contract = await erc1155PackedAbstract.deploy(ownerWallet) as Erc1155PackedBalanceMock
+    operatorERC1155Contract = await ownerERC1155Contract.connect(operatorSigner) as Erc1155PackedBalanceMock
+    userERC1155Contract = await ownerERC1155Contract.connect(userSigner) as Erc1155PackedBalanceMock
     
     // Deploy Niftyswap factory
     niftyswapFactoryContract = await niftyswapFactoryAbstract.deploy(ownerWallet) as NiftyswapFactory
@@ -115,7 +115,7 @@ describe('NiftyswapExchange', () => {
       ownerCurrencyContract.address, 
       currencyID
     )
-    const exchangeAddress = await niftyswapFactoryContract.functions.tokensToExchange(ownerERC1155Contract.address, ownerCurrencyContract.address, currencyID)
+    const exchangeAddress = (await niftyswapFactoryContract.functions.tokensToExchange(ownerERC1155Contract.address, ownerCurrencyContract.address, currencyID))[0]
     
     // Type exchange contract
     niftyswapExchangeContract = new ethers.Contract(exchangeAddress, exchangeABI, ownerProvider) as NiftyswapExchange
@@ -138,15 +138,15 @@ describe('NiftyswapExchange', () => {
   describe('_tokenToCurrency() function', () => {
 
     //Liquidity
-    let tokenAmountToAdd = new BigNumber(10);
-    let currencyAmountToAdd = new BigNumber(10).pow(18)
-    let currencyAmountsToAdd: ethers.utils.BigNumber[] = []
-    let tokenAmountsToAdd: ethers.utils.BigNumber[] = []
+    let tokenAmountToAdd = BigNumber.from(10);
+    let currencyAmountToAdd = BigNumber.from(10).pow(18)
+    let currencyAmountsToAdd: ethers.BigNumber[] = []
+    let tokenAmountsToAdd: ethers.BigNumber[] = []
     let addLiquidityData: string;
 
     //Sell
-    let tokenAmountToSell = new BigNumber(50)
-    let tokensAmountsToSell: ethers.utils.BigNumber[] = []
+    let tokenAmountToSell = BigNumber.from(50)
+    let tokensAmountsToSell: ethers.BigNumber[] = []
     let sellTokenData: string;
 
     for (let i = 0; i < nTokenTypes; i++) {
@@ -163,13 +163,13 @@ describe('NiftyswapExchange', () => {
       )
       
       // Sell
-      const price = await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]);
+      const price = (await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]))[0];
       sellTokenData = getSellTokenData(userAddress, price[0].mul(nTokenTypes), 10000000)
     })
 
     it('sell 1 tokens should pass', async () => {
       const nTokens = 1      
-      const price = await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]);
+      const price = (await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]))[0];
 
       sellTokenData = getSellTokenData(userAddress, price[0].mul(nTokens), 10000000)
 
@@ -184,7 +184,7 @@ describe('NiftyswapExchange', () => {
 
     it('sell 5 tokens should pass', async () => {
       const nTokens = 5      
-      const price = await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]);
+      const price = (await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]))[0];
       sellTokenData = getSellTokenData(userAddress, price[0].mul(nTokens), 10000000)
 
       let tokensSoldIDs = new Array(nTokens).fill('').map((a, i) => getBig(i))
@@ -199,7 +199,7 @@ describe('NiftyswapExchange', () => {
     it('sell 30 tokens should pass', async () => {
       const nTokens = 30
       
-      const price = await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]);
+      const price = (await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]))[0]
       sellTokenData = getSellTokenData(userAddress, price[0].mul(nTokens), 10000000)
 
       let tokensSoldIDs = new Array(nTokens).fill('').map((a, i) => getBig(i))
@@ -215,7 +215,7 @@ describe('NiftyswapExchange', () => {
     it('sell 80 tokens should pass', async () => {
       const nTokens = 80
       
-      const price = await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]);
+      const price = (await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]))[0];
       sellTokenData = getSellTokenData(userAddress, price[0].mul(nTokens), 10000000)
 
       let tokensSoldIDs = new Array(nTokens).fill('').map((a, i) => getBig(i))
@@ -230,7 +230,7 @@ describe('NiftyswapExchange', () => {
     it('sell 400 tokens should pass', async () => {
       const nTokens = 400
       
-      const price = await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]);
+      const price = (await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]))[0];
       sellTokenData = getSellTokenData(userAddress, price[0].mul(nTokens), 10000000)
 
       let tokensSoldIDs = new Array(nTokens).fill('').map((a, i) => getBig(i))
@@ -247,17 +247,17 @@ describe('NiftyswapExchange', () => {
   describe('_currencyToToken() function', () => {
 
     //Liquidity
-    let tokenAmountToAdd = new BigNumber(500);
-    let currencyAmountToAdd = new BigNumber(10).pow(18).mul(500)
-    let currencyAmountsToAdd: ethers.utils.BigNumber[] = []
-    let tokenAmountsToAdd: ethers.utils.BigNumber[] = []
+    let tokenAmountToAdd = BigNumber.from(500);
+    let currencyAmountToAdd = BigNumber.from(10).pow(18).mul(500)
+    let currencyAmountsToAdd: ethers.BigNumber[] = []
+    let tokenAmountsToAdd: ethers.BigNumber[] = []
     let addLiquidityData: string;
 
     //Buy
-    let tokenAmountToBuy = new BigNumber(50)
-    let tokensAmountsToBuy: ethers.utils.BigNumber[] = []
+    let tokenAmountToBuy = BigNumber.from(50)
+    let tokensAmountsToBuy: ethers.BigNumber[] = []
     let buyTokenData: string;
-    let cost: ethers.utils.BigNumber
+    let cost: ethers.BigNumber
 
     for (let i = 0; i < nTokenTypes; i++) {
       currencyAmountsToAdd.push(currencyAmountToAdd)
@@ -273,14 +273,14 @@ describe('NiftyswapExchange', () => {
       )
 
       // Sell
-      cost = (await niftyswapExchangeContract.functions.getPrice_currencyToToken([0], [tokenAmountToBuy]))[0];
+      cost = (await niftyswapExchangeContract.functions.getPrice_currencyToToken([0], [tokenAmountToBuy]))[0][0];
       cost = cost.mul(nTokenTypes)
       buyTokenData = getBuyTokenData(userAddress, types, tokensAmountsToBuy, 10000000)
     })
 
     it('buy 1 tokens should pass', async () => {
       cost = cost.div(nTokenTypes).mul(1)
-      buyTokenData = getBuyTokenData(userAddress, [1], [new BigNumber(1)], 10000000)
+      buyTokenData = getBuyTokenData(userAddress, [1], [BigNumber.from(1)], 10000000)
       
       const tx = userCurrencyContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, currencyID, cost, buyTokenData,
         {gasLimit: 8000000}

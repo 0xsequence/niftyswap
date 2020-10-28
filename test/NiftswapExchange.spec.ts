@@ -12,14 +12,13 @@ import {
 
 import * as utils from './utils'
 
-import { ERC1155Mock } from '../typings/contracts/ERC1155Mock'
-import { ERC1155PackedBalanceMock } from '../typings/contracts/ERC1155PackedBalanceMock'
+import { Erc1155Mock } from '../typings/contracts/Erc1155Mock'
+import { Erc1155PackedBalanceMock } from '../typings/contracts/Erc1155PackedBalanceMock'
 import { NiftyswapExchange } from '../typings/contracts/NiftyswapExchange'
 import { NiftyswapFactory } from '../typings/contracts/NiftyswapFactory'
 //@ts-ignore
 import { abi as exchangeABI } from '../artifacts/NiftyswapExchange.json'
-import { Zero } from 'ethers/constants'
-import { BigNumber } from 'ethers/utils'
+import { BigNumber } from 'ethers'
 import { web3 } from '@nomiclabs/buidler'
 
 // init test wallets from package.json mnemonic
@@ -48,7 +47,7 @@ const {
   signer: randomSigner
 } = utils.createTestWallet(web3, 5)
 
-const getBig = (id: number) => new BigNumber(id);
+const getBig = (id: number) => BigNumber.from(id);
 
 describe('NiftyswapExchange', () => {
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
@@ -61,14 +60,14 @@ describe('NiftyswapExchange', () => {
   let niftyswapFactoryAbstract: AbstractContract
 
   // ERC-1155 token
-  let ownerERC1155Contract
-  let userERC1155Contract
-  let operatorERC1155Contract
+  let ownerERC1155Contract: Erc1155Mock
+  let userERC1155Contract: Erc1155Mock
+  let operatorERC1155Contract: Erc1155Mock
 
   // Currency
-  let ownerCurrencyContract: ERC1155Mock
-  let userCurrencyContract: ERC1155Mock
-  let operatorCurrencyContract: ERC1155Mock
+  let ownerCurrencyContract: Erc1155Mock
+  let userCurrencyContract: Erc1155Mock
+  let operatorCurrencyContract: Erc1155Mock
 
   let niftyswapFactoryContract: NiftyswapFactory
   let niftyswapExchangeContract: NiftyswapExchange
@@ -80,22 +79,22 @@ describe('NiftyswapExchange', () => {
 
   // Currency Param
   const currencyID = 666;
-  const currencyAmount = new BigNumber(10000000).mul(new BigNumber(10).pow(18))
+  const currencyAmount = BigNumber.from(10000000).mul(BigNumber.from(10).pow(18))
 
   // Add liquidity data
-  const tokenAmountToAdd = new BigNumber(300);
-  const currencyAmountToAdd = (new BigNumber(10).pow(18)).mul(299)
+  const tokenAmountToAdd = BigNumber.from(300);
+  const currencyAmountToAdd = (BigNumber.from(10).pow(18)).mul(299)
 
   // Transactions parameters
   const TX_PARAM = {gasLimit: 5000000}
 
   const deadline = Math.floor(Date.now() / 1000) + 100000
-    
+
   // Arrays
   const types = new Array(nTokenTypes).fill('').map((a, i) => getBig(i))
   const values = new Array(nTokenTypes).fill('').map((a, i) => nTokensPerType)
-  const currencyAmountsToAdd: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => currencyAmountToAdd)
-  const tokenAmountsToAdd: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => tokenAmountToAdd)
+  const currencyAmountsToAdd: BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => currencyAmountToAdd)
+  const tokenAmountsToAdd: BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => tokenAmountToAdd)
   const addLiquidityData: string = getAddLiquidityData(currencyAmountsToAdd, deadline)
 
   // load contract abi and deploy to test server
@@ -123,26 +122,26 @@ describe('NiftyswapExchange', () => {
       beforeEach(async () => {
         // Deploy ERC-1155
         if (condition[1] == 1 || condition[1] == 3) {
-          ownerERC1155Contract = await erc1155Abstract.deploy(ownerWallet) as ERC1155Mock
-          operatorERC1155Contract = await ownerERC1155Contract.connect(operatorSigner) as ERC1155Mock
-          userERC1155Contract = await ownerERC1155Contract.connect(userSigner) as ERC1155Mock
+          ownerERC1155Contract = await erc1155Abstract.deploy(ownerWallet) as Erc1155Mock
+          operatorERC1155Contract = await ownerERC1155Contract.connect(operatorSigner) as Erc1155Mock
+          userERC1155Contract = await ownerERC1155Contract.connect(userSigner) as Erc1155Mock
           erc1155_error_prefix = "ERC1155#"
 
         } else if (condition[1] == 2) {
-          ownerERC1155Contract = await erc1155PackedAbstract.deploy(ownerWallet) as ERC1155PackedBalanceMock
-          operatorERC1155Contract = await ownerERC1155Contract.connect(operatorSigner) as ERC1155PackedBalanceMock
-          userERC1155Contract = await ownerERC1155Contract.connect(userSigner) as ERC1155PackedBalanceMock
+          ownerERC1155Contract = await erc1155PackedAbstract.deploy(ownerWallet) as Erc1155PackedBalanceMock
+          operatorERC1155Contract = await ownerERC1155Contract.connect(operatorSigner) as Erc1155PackedBalanceMock
+          userERC1155Contract = await ownerERC1155Contract.connect(userSigner) as Erc1155PackedBalanceMock
           erc1155_error_prefix = "ERC1155PackedBalance#"
         }
 
         // Deploy Currency Token contract
         if (condition[1] == 1 || condition[1] == 2) {
-          ownerCurrencyContract = await erc1155Abstract.deploy(ownerWallet) as ERC1155Mock
+          ownerCurrencyContract = await erc1155Abstract.deploy(ownerWallet) as Erc1155Mock
         } else if (condition[1] == 3) {
-          ownerCurrencyContract = await ownerERC1155Contract.connect(ownerSigner) as ERC1155Mock
+          ownerCurrencyContract = await ownerERC1155Contract.connect(ownerSigner) as Erc1155Mock
         }
-        userCurrencyContract = await ownerCurrencyContract.connect(userSigner) as ERC1155Mock
-        operatorCurrencyContract = await ownerCurrencyContract.connect(operatorSigner) as ERC1155Mock
+        userCurrencyContract = await ownerCurrencyContract.connect(userSigner) as Erc1155Mock
+        operatorCurrencyContract = await ownerCurrencyContract.connect(operatorSigner) as Erc1155Mock
 
         // Deploy Niftyswap factory
         niftyswapFactoryContract = await niftyswapFactoryAbstract.deploy(ownerWallet) as NiftyswapFactory
@@ -155,10 +154,10 @@ describe('NiftyswapExchange', () => {
         )
         
         // Retrieve exchange address
-        const exchangeAddress = await niftyswapFactoryContract.functions.tokensToExchange(ownerERC1155Contract.address, ownerCurrencyContract.address, currencyID)
+        const exchangeAddress = (await niftyswapFactoryContract.functions.tokensToExchange(ownerERC1155Contract.address, ownerCurrencyContract.address, currencyID))[0]
         
         // Type exchange contract
-        niftyswapExchangeContract = new ethers.Contract(exchangeAddress, exchangeABI, ownerProvider) as NiftyswapExchange
+        niftyswapExchangeContract = new ethers.Contract(exchangeAddress, exchangeABI, ownerWallet) as NiftyswapExchange
         operatorExchangeContract = niftyswapExchangeContract.connect(operatorSigner) as NiftyswapExchange
 
         // Mint Token to owner and user
@@ -180,7 +179,7 @@ describe('NiftyswapExchange', () => {
         describe('getTokenAddress() function', () => {
           it('should return token address', async () => {
             const token_address = await niftyswapExchangeContract.functions.getTokenAddress()
-            await expect(token_address).to.be.eql(ownerERC1155Contract.address)
+            await expect(token_address[0]).to.be.eql(ownerERC1155Contract.address)
           })
         })
 
@@ -188,7 +187,7 @@ describe('NiftyswapExchange', () => {
           it('should return currency token address and ID', async () => {
             const token_info = await niftyswapExchangeContract.functions.getCurrencyInfo()
             await expect(token_info[0]).to.be.eql(ownerCurrencyContract.address)
-            await expect(token_info[1]).to.be.eql(new BigNumber(currencyID))
+            await expect(token_info[1]).to.be.eql(BigNumber.from(currencyID))
           })
         })
 
@@ -198,7 +197,7 @@ describe('NiftyswapExchange', () => {
             let numerator = 1500
             let denominator = 751
             const price = await niftyswapExchangeContract.functions.getBuyPrice(bought_amount, numerator, denominator)
-            expect(price).to.be.eql(new BigNumber(232)) // instead of 231.5726095917375
+            expect(price[0]).to.be.eql(BigNumber.from(232)) // instead of 231.5726095917375
           })
         })
 
@@ -208,31 +207,31 @@ describe('NiftyswapExchange', () => {
             let denominator = 751
             let bought_amount = 100
             const price = await niftyswapExchangeContract.functions.getSellPrice(bought_amount, denominator, numerator)
-            expect(price).to.be.eql(new BigNumber(175)) // instead of 175.48500881834215
+            expect(price.price).to.be.eql(BigNumber.from(175)) // instead of 175.48500881834215
           })
         })
 
         describe('getFactoryAddress() function', () => {
           it('should return factory address', async () => {
             const factory_address = await niftyswapExchangeContract.functions.getFactoryAddress()
-            await expect(factory_address).to.be.eql(niftyswapFactoryContract.address)
+            await expect(factory_address[0]).to.be.eql(niftyswapFactoryContract.address)
           })
         })
 
         describe('supportsInterface()', () => {
           it('should return true for 0x01ffc9a7 (IERC165)', async () => {
             const support = await niftyswapExchangeContract.functions.supportsInterface('0x01ffc9a7')
-            expect(support).to.be.eql(true)
+            expect(support[0]).to.be.eql(true)
           })
     
           it('should return true for 0x4e2312e0 (IERC1155Receiver)', async () => {
             const support = await niftyswapExchangeContract.functions.supportsInterface('0x4e2312e0')
-            expect(support).to.be.eql(true)
+            expect(support[0]).to.be.eql(true)
           })
   
           it('should return true for 0xd9b67a26 (IERC1155)', async () => {
             const support = await niftyswapExchangeContract.functions.supportsInterface('0xd9b67a26')
-            expect(support).to.be.eql(true)
+            expect(support[0]).to.be.eql(true)
           })
         })
       })
@@ -247,8 +246,8 @@ describe('NiftyswapExchange', () => {
         })
 
         it('should ROUND UP the currency amount to be deposited on second deposit', async () => {
-          let addLiquidityData1 = getAddLiquidityData([new BigNumber(1000000001)], deadline)
-          let tokenAmountsToAdd1 = [new BigNumber(2)]
+          let addLiquidityData1 = getAddLiquidityData([BigNumber.from(1000000001)], deadline)
+          let tokenAmountsToAdd1 = [BigNumber.from(2)]
 
           // After 2nd deposit
           await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [0], tokenAmountsToAdd1, addLiquidityData1,
@@ -256,10 +255,10 @@ describe('NiftyswapExchange', () => {
           )
 
           let reserve1 = (await niftyswapExchangeContract.functions.getCurrencyReserves([0]))[0]
-          expect(reserve1).to.be.eql(new BigNumber(1000000001)) 
+          expect(reserve1[0]).to.be.eql(BigNumber.from(1000000001)) 
 
-          let addLiquidityData2 = getAddLiquidityData([new BigNumber(1000000001)], deadline)
-          let tokenAmountsToAdd2 = [new BigNumber(1)] // 1 less
+          let addLiquidityData2 = getAddLiquidityData([BigNumber.from(1000000001)], deadline)
+          let tokenAmountsToAdd2 = [BigNumber.from(1)] // 1 less
 
           // After 2nd deposit
           await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [0], tokenAmountsToAdd2, addLiquidityData2,
@@ -267,12 +266,12 @@ describe('NiftyswapExchange', () => {
           )
 
           let reserve2 = (await niftyswapExchangeContract.functions.getCurrencyReserves([0]))[0]
-          expect(reserve2).to.be.eql(new BigNumber(1500000002)) // Should be 1500000001.5
+          expect(reserve2[0]).to.be.eql(BigNumber.from(1500000002)) // Should be 1500000001.5
         })
 
         it('should ROUND DOWN the amount of liquidity to mint on second deposit', async () => {
-          let addLiquidityData1 = getAddLiquidityData([new BigNumber(1000000001)], deadline)
-          let tokenAmountsToAdd1 = [new BigNumber(2)]
+          let addLiquidityData1 = getAddLiquidityData([BigNumber.from(1000000001)], deadline)
+          let tokenAmountsToAdd1 = [BigNumber.from(2)]
 
           // first deposit
           await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [0], tokenAmountsToAdd1, addLiquidityData1,
@@ -280,10 +279,10 @@ describe('NiftyswapExchange', () => {
           )
 
           let liquidity_supply1 = (await niftyswapExchangeContract.functions.getTotalSupply([0]))[0]
-          expect(liquidity_supply1).to.be.eql(new BigNumber(1000000001))
+          expect(liquidity_supply1[0]).to.be.eql(BigNumber.from(1000000001))
 
-          let addLiquidityData2 = getAddLiquidityData([new BigNumber(1000000001)], deadline)
-          let tokenAmountsToAdd2 = [new BigNumber(1)] // 1 less
+          let addLiquidityData2 = getAddLiquidityData([BigNumber.from(1000000001)], deadline)
+          let tokenAmountsToAdd2 = [BigNumber.from(1)] // 1 less
 
           // After 2nd deposit
           await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, [0], tokenAmountsToAdd2, addLiquidityData2,
@@ -291,7 +290,7 @@ describe('NiftyswapExchange', () => {
           )
 
           let liquidity_supply2 = (await niftyswapExchangeContract.functions.getTotalSupply([0]))[0]
-          expect(liquidity_supply2).to.be.eql(new BigNumber(1500000001)) // Should be 1500000001.5
+          expect(liquidity_supply2[0]).to.be.eql(BigNumber.from(1500000001)) // Should be 1500000001.5
         })
 
         it('should REVERT if trying to crease currency/currency pool', async () => {
@@ -304,7 +303,7 @@ describe('NiftyswapExchange', () => {
           // Retrieve exchange address
           let exchangeAddress2 = await niftyswapFactoryContract.functions.tokensToExchange(ownerERC1155Contract.address, ownerERC1155Contract.address, types[0])
       
-          const tx = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, exchangeAddress2, types, tokenAmountsToAdd, addLiquidityData,
+          const tx = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, exchangeAddress2[0], types, tokenAmountsToAdd, addLiquidityData,
             {gasLimit: 50000000}
           )
 
@@ -323,7 +322,7 @@ describe('NiftyswapExchange', () => {
 
         it('should REVERT if a maxCurrency is null', async () => {
           let currencyAmountsToAdd = new Array(nTokenTypes).fill('').map((a, i) => currencyAmountToAdd)
-          currencyAmountsToAdd[5] = new BigNumber(0)
+          currencyAmountsToAdd[5] = BigNumber.from(0)
           let addLiquidityData = getAddLiquidityData(currencyAmountsToAdd, deadline)
 
           const tx = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, types, tokenAmountsToAdd, addLiquidityData,
@@ -334,7 +333,7 @@ describe('NiftyswapExchange', () => {
 
         it('should REVERT if a token amount is null', async () => {
           let tokenAmountsToAddCopy = [...tokenAmountsToAdd]
-          tokenAmountsToAddCopy[5] = new BigNumber(0)
+          tokenAmountsToAddCopy[5] = BigNumber.from(0)
 
           const tx = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, types, tokenAmountsToAddCopy, addLiquidityData,
             {gasLimit: 8000000}
@@ -405,8 +404,8 @@ describe('NiftyswapExchange', () => {
               const exchangeBalance = await userERC1155Contract.functions.balanceOf(niftyswapExchangeContract.address, types[i])
               const operatorBalance = await userERC1155Contract.functions.balanceOf(operatorAddress, types[i])
 
-              expect(exchangeBalance).to.be.eql(tokenAmountToAdd)
-              expect(operatorBalance).to.be.eql(new BigNumber(nTokensPerType).sub(tokenAmountToAdd))
+              expect(exchangeBalance[0]).to.be.eql(tokenAmountToAdd)
+              expect(operatorBalance[0]).to.be.eql(BigNumber.from(nTokensPerType).sub(tokenAmountToAdd))
             }
           })
       
@@ -414,14 +413,14 @@ describe('NiftyswapExchange', () => {
               const exchangeBalance = await userCurrencyContract.functions.balanceOf(niftyswapExchangeContract.address, currencyID)
               const operatorBalance = await userCurrencyContract.functions.balanceOf(operatorAddress, currencyID)
 
-              expect(exchangeBalance).to.be.eql(currencyAmountToAdd.mul(nTokenTypes))
-              expect(operatorBalance).to.be.eql(new BigNumber(currencyAmount).sub(currencyAmountToAdd.mul(nTokenTypes)))
+              expect(exchangeBalance[0]).to.be.eql(currencyAmountToAdd.mul(nTokenTypes))
+              expect(operatorBalance[0]).to.be.eql(BigNumber.from(currencyAmount).sub(currencyAmountToAdd.mul(nTokenTypes)))
           })
 
           it('should update the currency per token reserve', async () => {
             for (let i = 0; i < types.length; i++) {
               const reserve = await niftyswapExchangeContract.functions.getCurrencyReserves([types[i]])
-              expect(reserve[0]).to.be.eql(currencyAmountToAdd)
+              expect(reserve[0][0]).to.be.eql(currencyAmountToAdd)
             }
           })
       
@@ -430,15 +429,15 @@ describe('NiftyswapExchange', () => {
               const exchangeBalance = await niftyswapExchangeContract.functions.balanceOf(niftyswapExchangeContract.address, types[i])
               const operatorBalance = await niftyswapExchangeContract.functions.balanceOf(operatorAddress, types[i])
 
-              expect(exchangeBalance).to.be.eql(Zero)
-              expect(operatorBalance).to.be.eql(new BigNumber(currencyAmountToAdd))
+              expect(exchangeBalance[0]).to.be.eql(ethers.constants.Zero)
+              expect(operatorBalance[0]).to.be.eql(BigNumber.from(currencyAmountToAdd))
             }
           })
 
           it('should update total supplies for Niftyswap Token ids balances', async () => {
             const exchangeTotalSupplies = await niftyswapExchangeContract.functions.getTotalSupply(types)
             for (let i = 0; i < types.length; i++) {
-              expect(exchangeTotalSupplies[i]).to.be.eql(new BigNumber(currencyAmountToAdd))
+              expect(exchangeTotalSupplies[0][i]).to.be.eql(BigNumber.from(currencyAmountToAdd))
             }
           })
 
@@ -455,7 +454,7 @@ describe('NiftyswapExchange', () => {
             const postPrices = await niftyswapExchangeContract.functions.getPrice_currencyToToken(types, ones)
 
             for (let i = 0; i < types.length; i++) {
-              expect(prePrices[i].gte(postPrices[i])).to.be.equal(true)
+              expect(prePrices[0][i].gte(postPrices[0][i])).to.be.equal(true)
             }
           })
 
@@ -475,7 +474,7 @@ describe('NiftyswapExchange', () => {
             const postPrices = await niftyswapExchangeContract.functions.getPrice_currencyToToken(types, ones)
 
             for (let i = 0; i < types.length; i++) {
-              expect(prePrices[i].gte(postPrices[i])).to.be.equal(true)
+              expect(prePrices[0][i].gte(postPrices[0][i])).to.be.equal(true)
             }
           })
 
@@ -492,7 +491,7 @@ describe('NiftyswapExchange', () => {
             const postPrices = await niftyswapExchangeContract.functions.getPrice_tokenToCurrency(types, ones)
 
             for (let i = 0; i < types.length; i++) {
-              expect(prePrices[i].lte(postPrices[i])).to.be.equal(true)
+              expect(prePrices[0][i].lte(postPrices[0][i])).to.be.equal(true)
             }
           })
 
@@ -512,7 +511,7 @@ describe('NiftyswapExchange', () => {
             const postPrices = await niftyswapExchangeContract.functions.getPrice_tokenToCurrency(types, ones)
 
             for (let i = 0; i < types.length; i++) {
-              expect(prePrices[i].lte(postPrices[i])).to.be.equal(true)
+              expect(prePrices[0][i].lte(postPrices[0][i])).to.be.equal(true)
             }
           })
 
@@ -526,7 +525,7 @@ describe('NiftyswapExchange', () => {
             // @ts-ignore (https://github.com/ethers-io/ethers.js/issues/204#issuecomment-427059031)
             filterFromOperatorContract.fromBlock = 0;
             let logs = await operatorProvider.getLogs(filterFromOperatorContract);
-            expect(logs[0].topics[0]).to.be.eql(niftyswapExchangeContract.interface.events.LiquidityAdded.topic)
+            expect(logs[0].topics[0]).to.be.eql(niftyswapExchangeContract.interface.getEventTopic(niftyswapExchangeContract.interface.events["LiquidityAdded(address,uint256[],uint256[],uint256[])"]))
           })
 
         })
@@ -546,7 +545,7 @@ describe('NiftyswapExchange', () => {
 
           it('should REVERT if a maxCurrency is exceeded', async () => {
             let currencyAmountsToAdd = new Array(nTokenTypes).fill('').map((a, i) => currencyAmountToAdd)
-            currencyAmountsToAdd[5] = new BigNumber(1000)
+            currencyAmountsToAdd[5] = BigNumber.from(1000)
             let addLiquidityData = getAddLiquidityData(currencyAmountsToAdd, deadline)
       
             const tx = operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, types, tokenAmountsToAdd, addLiquidityData,
@@ -560,13 +559,13 @@ describe('NiftyswapExchange', () => {
               const exchangeBalance = await userERC1155Contract.functions.balanceOf(niftyswapExchangeContract.address, types[i])
               const operatorBalance = await userERC1155Contract.functions.balanceOf(operatorAddress, types[i])
 
-              expect(exchangeBalance).to.be.eql(tokenAmountToAdd.mul(2))
-              expect(operatorBalance).to.be.eql((new BigNumber(nTokensPerType).sub(tokenAmountToAdd.mul(2))))
+              expect(exchangeBalance[0]).to.be.eql(tokenAmountToAdd.mul(2))
+              expect(operatorBalance[0]).to.be.eql((BigNumber.from(nTokensPerType).sub(tokenAmountToAdd.mul(2))))
             }
           })
       
           it('should update currency balances', async () => {
-              const operatorBalance1 = new BigNumber(currencyAmount).sub(currencyAmountToAdd.mul(nTokenTypes))
+              const operatorBalance1 = BigNumber.from(currencyAmount).sub(currencyAmountToAdd.mul(nTokenTypes))
 
               const exchangeBalance = await userCurrencyContract.functions.balanceOf(niftyswapExchangeContract.address, currencyID)
               const operatorBalance = await userCurrencyContract.functions.balanceOf(operatorAddress, currencyID)
@@ -576,8 +575,8 @@ describe('NiftyswapExchange', () => {
               const currencyAmountCalc = (tokenAmountToAdd.mul(currencyReserve)).div(tokenReserve)
 
               // .add(nTokenTypes) is to account for rounding error compensation
-              expect(exchangeBalance).to.be.eql(currencyAmountToAdd.mul(nTokenTypes).add(currencyAmountCalc.mul(nTokenTypes)))
-              expect(operatorBalance).to.be.eql(operatorBalance1.sub(currencyAmountCalc.mul(nTokenTypes)))
+              expect(exchangeBalance[0]).to.be.eql(currencyAmountToAdd.mul(nTokenTypes).add(currencyAmountCalc.mul(nTokenTypes)))
+              expect(operatorBalance[0]).to.be.eql(operatorBalance1.sub(currencyAmountCalc.mul(nTokenTypes)))
           })
 
           it('should update the currency amount per token reserve', async () => {
@@ -586,7 +585,7 @@ describe('NiftyswapExchange', () => {
               const newCurrencyAmount = (tokenAmountToAdd.mul(currencyAmountToAdd)).div(tokenAmountToAdd)
 
               // .add(1) is to account for rounding error protection
-              expect(reserve[0]).to.be.eql(currencyAmountToAdd.add(newCurrencyAmount))
+              expect(reserve[0][0]).to.be.eql(currencyAmountToAdd.add(newCurrencyAmount))
             }
           })
       
@@ -598,8 +597,8 @@ describe('NiftyswapExchange', () => {
               const newCurrencyAmount = (tokenAmountToAdd.mul(currencyAmountToAdd)).div(tokenAmountToAdd)
 
               // .add(1) is to account for rounding error protection
-              expect(operatorBalance).to.be.eql(new BigNumber(currencyAmountToAdd).add(newCurrencyAmount))
-              expect(exchangeBalance).to.be.eql(Zero)
+              expect(operatorBalance[0]).to.be.eql(BigNumber.from(currencyAmountToAdd).add(newCurrencyAmount))
+              expect(exchangeBalance[0]).to.be.eql(ethers.constants.Zero)
             }
           })
 
@@ -609,7 +608,7 @@ describe('NiftyswapExchange', () => {
               const newCurrencyAmount = (tokenAmountToAdd.mul(currencyAmountToAdd)).div(tokenAmountToAdd)
 
               // .add(1) is to account for rounding error protection
-              expect(exchangeTotalSupply[0]).to.be.eql(new BigNumber(currencyAmountToAdd).add(newCurrencyAmount))
+              expect(exchangeTotalSupply[0][0]).to.be.eql(BigNumber.from(currencyAmountToAdd).add(newCurrencyAmount))
             }
           })
 
@@ -623,7 +622,7 @@ describe('NiftyswapExchange', () => {
           })
 
           it('should pass when balances are sufficient', async () => {
-            let maxCurrency: ethers.utils.BigNumber[] = []
+            let maxCurrency: BigNumber[] = []
 
             for (let i = 0; i < nTokenTypes; i++) {
               maxCurrency.push(currencyAmountToAdd.mul(2))
@@ -642,8 +641,8 @@ describe('NiftyswapExchange', () => {
       describe('_removeLiquidity() function', () => {
         const nTokenTypesToRemove = 30;
 
-        const tokenAmountToRemove = new BigNumber(75);
-        const currencyAmountToRemove = ((new BigNumber(10).pow(18)).mul(299)).div(4)
+        const tokenAmountToRemove = BigNumber.from(75);
+        const currencyAmountToRemove = ((BigNumber.from(10).pow(18)).mul(299)).div(4)
         
         const typesToRemove = new Array(nTokenTypesToRemove).fill('').map((a, i) => getBig(i))
 
@@ -662,7 +661,7 @@ describe('NiftyswapExchange', () => {
         })
 
         it('should revert if empty reserve', async () => {
-          const zeroArray = new Array(nTokenTypesToRemove).fill('').map((a, i) => new BigNumber(0))
+          const zeroArray = new Array(nTokenTypesToRemove).fill('').map((a, i) => BigNumber.from(0))
           const tx = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToRemove, zeroArray, removeLiquidityData,
             {gasLimit: 8000000}
           )
@@ -680,7 +679,7 @@ describe('NiftyswapExchange', () => {
 
           it('should revert if insufficient currency', async () => {
             let currencyAmountsToRemoveCopy = [...currencyAmountsToRemove]
-            currencyAmountsToRemoveCopy[5] = new BigNumber(currencyAmountsToRemoveCopy[5].mul(10000))
+            currencyAmountsToRemoveCopy[5] = BigNumber.from(currencyAmountsToRemoveCopy[5].mul(10000))
             let removeLiquidityData = getRemoveLiquidityData(currencyAmountsToRemoveCopy, tokenAmountsToRemove, deadline)
 
             const tx = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToRemove, niftyTokenToSend, removeLiquidityData,
@@ -691,7 +690,7 @@ describe('NiftyswapExchange', () => {
 
           it('should revert if insufficient tokens', async () => {
             let tokenAmountsToRemoveCopy = [...tokenAmountsToRemove]
-            tokenAmountsToRemoveCopy[5] = new BigNumber(tokenAmountsToRemoveCopy[5].mul(10000))
+            tokenAmountsToRemoveCopy[5] = BigNumber.from(tokenAmountsToRemoveCopy[5].mul(10000))
             let removeLiquidityData = getRemoveLiquidityData(currencyAmountsToRemove, tokenAmountsToRemoveCopy, deadline)
 
             const tx = operatorExchangeContract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, typesToRemove, niftyTokenToSend, removeLiquidityData,
@@ -797,7 +796,7 @@ describe('NiftyswapExchange', () => {
             const postPrices = await niftyswapExchangeContract.functions.getPrice_currencyToToken(types, ones)
 
             for (let i = 0; i < types.length; i++) {
-              expect(prePrices[i].lte(postPrices[i])).to.be.equal(true)
+              expect(prePrices[0][i].lte(postPrices[0][i])).to.be.equal(true)
             }
           })
 
@@ -817,7 +816,7 @@ describe('NiftyswapExchange', () => {
             const postPrices = await niftyswapExchangeContract.functions.getPrice_currencyToToken(types, ones)
 
             for (let i = 0; i < types.length; i++) {
-              expect(prePrices[i].lte(postPrices[i])).to.be.equal(true)
+              expect(prePrices[0][i].lte(postPrices[0][i])).to.be.equal(true)
             }
           })
 
@@ -834,7 +833,7 @@ describe('NiftyswapExchange', () => {
             const postPrices = await niftyswapExchangeContract.functions.getPrice_tokenToCurrency(types, ones)
 
             for (let i = 0; i < types.length; i++) {
-              expect(prePrices[i].gte(postPrices[i])).to.be.equal(true)
+              expect(prePrices[0][i].gte(postPrices[0][i])).to.be.equal(true)
             }
           })
 
@@ -854,7 +853,7 @@ describe('NiftyswapExchange', () => {
             const postPrices = await niftyswapExchangeContract.functions.getPrice_tokenToCurrency(types, ones)
 
             for (let i = 0; i < types.length; i++) {
-              expect(prePrices[i].gte(postPrices[i])).to.be.equal(true)
+              expect(prePrices[0][i].gte(postPrices[0][i])).to.be.equal(true)
             }
           })
 
@@ -872,8 +871,8 @@ describe('NiftyswapExchange', () => {
                 const exchangeBalance = await userERC1155Contract.functions.balanceOf(niftyswapExchangeContract.address, types[i])
                 const operatorBalance = await userERC1155Contract.functions.balanceOf(operatorAddress, types[i])
 
-                expect(exchangeBalance).to.be.eql(new BigNumber(expectedVal))
-                expect(operatorBalance).to.be.eql(new BigNumber(nTokensPerType).sub(expectedVal))
+                expect(exchangeBalance[0]).to.be.eql(BigNumber.from(expectedVal))
+                expect(operatorBalance[0]).to.be.eql(BigNumber.from(nTokensPerType).sub(expectedVal))
               }
             })
         
@@ -882,15 +881,15 @@ describe('NiftyswapExchange', () => {
               const exchangeBalance = await userCurrencyContract.functions.balanceOf(niftyswapExchangeContract.address, currencyID)
               const operatorBalance = await userCurrencyContract.functions.balanceOf(operatorAddress, currencyID)
 
-              expect(exchangeBalance).to.be.eql(expectedVal)
-              expect(operatorBalance).to.be.eql(currencyAmount.sub(expectedVal))
+              expect(exchangeBalance[0]).to.be.eql(expectedVal)
+              expect(operatorBalance[0]).to.be.eql(currencyAmount.sub(expectedVal))
             })  
 
             it('should update the currency amount per token reserve', async () => {
               const expectedVal = currencyAmountToAdd.sub(currencyAmountToRemove)
               const reserves = await niftyswapExchangeContract.functions.getCurrencyReserves(types)
               for (let i = 0; i < types.length; i++) {
-                expect(reserves[i]).to.be.eql(expectedVal)
+                expect(reserves[0][i]).to.be.eql(expectedVal)
               }
             })
         
@@ -900,8 +899,8 @@ describe('NiftyswapExchange', () => {
                 const exchangeBalance = await niftyswapExchangeContract.functions.balanceOf(niftyswapExchangeContract.address, types[i])
                 const operatorBalance = await niftyswapExchangeContract.functions.balanceOf(operatorAddress, types[i])
 
-                expect(exchangeBalance).to.be.eql(Zero)
-                expect(operatorBalance).to.be.eql(expectedVal)
+                expect(exchangeBalance[0]).to.be.eql(ethers.constants.Zero)
+                expect(operatorBalance[0]).to.be.eql(expectedVal)
               }
             })
 
@@ -909,7 +908,7 @@ describe('NiftyswapExchange', () => {
               const expectedVal = currencyAmountToAdd.sub(currencyAmountToRemove)
               const exchangeTotalSupplies = await niftyswapExchangeContract.functions.getTotalSupply(types)
               for (let i = 0; i < types.length; i++) {
-                expect(exchangeTotalSupplies[i]).to.be.eql(expectedVal)
+                expect(exchangeTotalSupplies[0][i]).to.be.eql(expectedVal)
               }
             })
 
@@ -926,8 +925,8 @@ describe('NiftyswapExchange', () => {
       describe('_tokenToCurrency() function', () => {
 
         //Sell
-        const tokenAmountToSell = new BigNumber(50)
-        const tokensAmountsToSell: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => tokenAmountToSell)
+        const tokenAmountToSell = BigNumber.from(50)
+        const tokensAmountsToSell: BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => tokenAmountToSell)
         let sellTokenData: string;
 
         beforeEach(async () => {
@@ -937,7 +936,7 @@ describe('NiftyswapExchange', () => {
           )
           
           // Sell
-          const price = await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]);
+          const price = (await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]))[0];
           sellTokenData = getSellTokenData(userAddress, price[0].mul(nTokenTypes), deadline)
         })
 
@@ -955,7 +954,7 @@ describe('NiftyswapExchange', () => {
 
         it('should fail if token sent is 0', async () => {
           let tokensAmountsToSellCopy = [...tokensAmountsToSell]
-          tokensAmountsToSellCopy[0] = new BigNumber(0)
+          tokensAmountsToSellCopy[0] = BigNumber.from(0)
           
           const tx = userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, types, tokensAmountsToSellCopy, sellTokenData,
             {gasLimit: 8000000}
@@ -965,7 +964,7 @@ describe('NiftyswapExchange', () => {
 
         it('should fail if deadline is passed', async () => {
           let timestamp = Math.floor(Date.now() / 1000) - 1
-          const price = await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]);
+          const price = (await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]))[0];
           let sellTokenData = getSellTokenData(userAddress, price[0].mul(nTokenTypes), timestamp)
 
           const tx = userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, types, tokensAmountsToSell, sellTokenData,
@@ -976,7 +975,7 @@ describe('NiftyswapExchange', () => {
         })
 
         it('should pass if currency balance is equal to cost', async () => {
-          const price = await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]);
+          const price = (await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]))[0];
           let cost = price[0].mul(nTokenTypes)
 
           let sellTokenData = getSellTokenData(userAddress, cost, deadline)
@@ -988,7 +987,7 @@ describe('NiftyswapExchange', () => {
         })
 
         it('should fail if currency balance is lower than cost', async () => {
-          const price = await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]);
+          const price = (await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]))[0];
           let cost = price[0].mul(nTokenTypes)
 
           let sellTokenData = getSellTokenData(userAddress, cost.add(1), deadline)
@@ -1036,7 +1035,7 @@ describe('NiftyswapExchange', () => {
           let tx;
 
           beforeEach(async () => {
-            const price = await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]);
+            const price = (await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]))[0];
             cost = price[0].mul(nTokenTypes)
 
             tx = await userERC1155Contract.functions.safeBatchTransferFrom(userAddress, niftyswapExchangeContract.address, types, tokensAmountsToSell, sellTokenData,
@@ -1049,8 +1048,8 @@ describe('NiftyswapExchange', () => {
               const exchangeBalance = await userERC1155Contract.functions.balanceOf(niftyswapExchangeContract.address, types[i])
               const userBalance = await userERC1155Contract.functions.balanceOf(userAddress, types[i])
 
-              expect(exchangeBalance).to.be.eql(tokenAmountToAdd.add(tokenAmountToSell))
-              expect(userBalance).to.be.eql(new BigNumber(nTokensPerType).sub(tokenAmountToSell))
+              expect(exchangeBalance[0]).to.be.eql(tokenAmountToAdd.add(tokenAmountToSell))
+              expect(userBalance[0]).to.be.eql(BigNumber.from(nTokensPerType).sub(tokenAmountToSell))
             }
           })
       
@@ -1058,19 +1057,19 @@ describe('NiftyswapExchange', () => {
             const exchangeBalance = await userCurrencyContract.functions.balanceOf(niftyswapExchangeContract.address, currencyID)
             const userBalance = await userCurrencyContract.functions.balanceOf(userAddress, currencyID)
 
-            expect(exchangeBalance).to.be.eql(currencyAmountToAdd.mul(nTokenTypes).sub(cost))
-            expect(userBalance).to.be.eql(currencyAmount.add(cost))
+            expect(exchangeBalance[0]).to.be.eql(currencyAmountToAdd.mul(nTokenTypes).sub(cost))
+            expect(userBalance[0]).to.be.eql(currencyAmount.add(cost))
           })
 
           it('should update the currency amounts per token reserve', async () => {
             const reserves = await niftyswapExchangeContract.functions.getCurrencyReserves(types)
             for (let i = 0; i < types.length; i++) {
-              expect(reserves[i]).to.be.eql(currencyAmountToAdd.sub(cost.div(nTokenTypes)))
+              expect(reserves[0][i]).to.be.eql(currencyAmountToAdd.sub(cost.div(nTokenTypes)))
             }
           })
 
           it('should have token sell price adjusted', async () => {
-            const price = await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]);
+            const price = (await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]))[0];
 
             let soldAmountWithFee = tokenAmountToSell.mul(995)
             let currencyReserve = currencyAmountToAdd.sub(cost.div(nTokenTypes))
@@ -1091,7 +1090,13 @@ describe('NiftyswapExchange', () => {
             // @ts-ignore (https://github.com/ethers-io/ethers.js/issues/204#issuecomment-427059031)
             filterFromOperatorContract.fromBlock = 0;
             let logs = await operatorProvider.getLogs(filterFromOperatorContract);
-            expect(logs[0].topics[0]).to.be.eql(niftyswapExchangeContract.interface.events.CurrencyPurchase.topic)
+            expect(logs[0].topics[0]).to.be.eql(
+              niftyswapExchangeContract.interface.getEventTopic(
+                niftyswapExchangeContract.interface.events[
+                  "CurrencyPurchase(address,address,uint256[],uint256[],uint256[])"
+                ]
+              )
+            )
           })
 
         })
@@ -1100,10 +1105,10 @@ describe('NiftyswapExchange', () => {
       describe('_currencyToToken() function', () => {
 
         //Buy
-        const tokenAmountToBuy = new BigNumber(50)
-        const tokensAmountsToBuy: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => tokenAmountToBuy)
+        const tokenAmountToBuy = BigNumber.from(50)
+        const tokensAmountsToBuy: BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => tokenAmountToBuy)
         let buyTokenData: string;
-        let cost: ethers.utils.BigNumber
+        let cost: BigNumber
 
         beforeEach(async () => {
           // Add liquidity
@@ -1112,7 +1117,7 @@ describe('NiftyswapExchange', () => {
           )
 
           // Sell
-          cost = (await niftyswapExchangeContract.functions.getPrice_currencyToToken([0], [tokenAmountToBuy]))[0];
+          cost = (await niftyswapExchangeContract.functions.getPrice_currencyToToken([0], [tokenAmountToBuy]))[0][0];
           cost = cost.mul(nTokenTypes)
           buyTokenData = getBuyTokenData(userAddress, types, tokensAmountsToBuy, deadline)
         })
@@ -1134,7 +1139,7 @@ describe('NiftyswapExchange', () => {
 
         it('should fail if a bought amount is 0', async () => {
           let tokensAmountsToBuyCopy = [...tokensAmountsToBuy]
-          tokensAmountsToBuyCopy[0] = new BigNumber(0);
+          tokensAmountsToBuyCopy[0] = BigNumber.from(0);
           let buyTokenData = getBuyTokenData(userAddress, types, tokensAmountsToBuyCopy, deadline)
 
           const tx = userCurrencyContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, currencyID, cost, buyTokenData,
@@ -1163,7 +1168,7 @@ describe('NiftyswapExchange', () => {
 
         it('should fail if any duplicate', async () => {
 
-          let One = new BigNumber(1)
+          let One = BigNumber.from(1)
 
           // Tokens to buy
           let invalid_buyTokenData1 = getBuyTokenData(randomWallet.address, [1, 1], [One, One], deadline)
@@ -1219,8 +1224,8 @@ describe('NiftyswapExchange', () => {
               const exchangeBalance = await userERC1155Contract.functions.balanceOf(niftyswapExchangeContract.address, types[i])
               const userBalance = await userERC1155Contract.functions.balanceOf(userAddress, types[i])
 
-              expect(exchangeBalance).to.be.eql(tokenAmountToAdd.sub(tokenAmountToBuy))
-              expect(userBalance).to.be.eql(new BigNumber(nTokensPerType).add(tokenAmountToBuy))
+              expect(exchangeBalance[0]).to.be.eql(tokenAmountToAdd.sub(tokenAmountToBuy))
+              expect(userBalance[0]).to.be.eql(BigNumber.from(nTokensPerType).add(tokenAmountToBuy))
             }
           })
       
@@ -1228,19 +1233,19 @@ describe('NiftyswapExchange', () => {
               const exchangeBalance = await userCurrencyContract.functions.balanceOf(niftyswapExchangeContract.address, currencyID)
               const userBalance = await userCurrencyContract.functions.balanceOf(userAddress, currencyID)
 
-              expect(exchangeBalance).to.be.eql(currencyAmountToAdd.mul(nTokenTypes).add(cost))
-              expect(userBalance).to.be.eql(currencyAmount.sub(cost))
+              expect(exchangeBalance[0]).to.be.eql(currencyAmountToAdd.mul(nTokenTypes).add(cost))
+              expect(userBalance[0]).to.be.eql(currencyAmount.sub(cost))
           })
 
           it('should update the currency per token reserve', async () => {
             const reserves = await niftyswapExchangeContract.functions.getCurrencyReserves(types)
             for (let i = 0; i < types.length; i++) {
-              expect(reserves[i]).to.be.eql( currencyAmountToAdd.add(cost.div(nTokenTypes)))
+              expect(reserves[0][i]).to.be.eql( currencyAmountToAdd.add(cost.div(nTokenTypes)))
             }
           })
 
           it('should have token sell price adjusted', async () => {
-            const price = await niftyswapExchangeContract.functions.getPrice_currencyToToken([0], [tokenAmountToBuy]);
+            const price = (await niftyswapExchangeContract.functions.getPrice_currencyToToken([0], [tokenAmountToBuy]))[0];
 
             let currencyReserve = currencyAmountToAdd.add(cost.div(nTokenTypes))
             let tokenReserve = tokenAmountToAdd.sub(tokenAmountToBuy)
@@ -1261,12 +1266,18 @@ describe('NiftyswapExchange', () => {
             // @ts-ignore (https://github.com/ethers-io/ethers.js/issues/204#issuecomment-427059031)
             filterFromOperatorContract.fromBlock = 0;
             let logs = await operatorProvider.getLogs(filterFromOperatorContract);
-            expect(logs[0].topics[0]).to.be.eql(niftyswapExchangeContract.interface.events.TokensPurchase.topic)
+            expect(logs[0].topics[0]).to.be.eql(
+              niftyswapExchangeContract.interface.getEventTopic(
+                niftyswapExchangeContract.interface.events[
+                  "TokensPurchase(address,address,uint256[],uint256[],uint256[])"
+                ]
+              )
+            )
           })
         })
 
         it('should send to non msg.sender if specified', async () => {
-          cost = (await niftyswapExchangeContract.functions.getPrice_currencyToToken([0], [tokenAmountToBuy]))[0];
+          cost = (await niftyswapExchangeContract.functions.getPrice_currencyToToken([0], [tokenAmountToBuy]))[0][0];
           cost = cost.mul(nTokenTypes)
           buyTokenData = getBuyTokenData(randomWallet.address, types, tokensAmountsToBuy, deadline)
 
@@ -1281,22 +1292,22 @@ describe('NiftyswapExchange', () => {
             const randomBalance = await userERC1155Contract.functions.balanceOf(randomWallet.address, types[i])
             const userBalance = await userERC1155Contract.functions.balanceOf(userAddress, types[i])
 
-            expect(exchangeBalance).to.be.eql(tokenAmountToAdd.sub(tokenAmountToBuy))
-            expect(randomBalance).to.be.eql(tokenAmountToBuy)
-            expect(userBalance).to.be.eql(new BigNumber(nTokensPerType))
+            expect(exchangeBalance[0]).to.be.eql(tokenAmountToAdd.sub(tokenAmountToBuy))
+            expect(randomBalance[0]).to.be.eql(tokenAmountToBuy)
+            expect(userBalance[0]).to.be.eql(BigNumber.from(nTokensPerType))
           }
 
           const exchangeCurrencyBalance = await userCurrencyContract.functions.balanceOf(niftyswapExchangeContract.address, currencyID)
           const randomCurrencyBalance = await userCurrencyContract.functions.balanceOf(randomWallet.address, currencyID)
           const userCurrencyBalance = await userCurrencyContract.functions.balanceOf(userAddress, currencyID)
 
-          expect(exchangeCurrencyBalance).to.be.eql(currencyAmountToAdd.mul(nTokenTypes).add(cost))
-          expect(randomCurrencyBalance).to.be.eql(Zero)
-          expect(userCurrencyBalance).to.be.eql(currencyAmount.sub(cost))
+          expect(exchangeCurrencyBalance[0]).to.be.eql(currencyAmountToAdd.mul(nTokenTypes).add(cost))
+          expect(randomCurrencyBalance[0]).to.be.eql(ethers.constants.Zero)
+          expect(userCurrencyBalance[0]).to.be.eql(currencyAmount.sub(cost))
         })
 
         it('should send to msg.sender if 0x0 is specified as recipient', async () => {
-          cost = (await niftyswapExchangeContract.functions.getPrice_currencyToToken([0], [tokenAmountToBuy]))[0];
+          cost = (await niftyswapExchangeContract.functions.getPrice_currencyToToken([0], [tokenAmountToBuy]))[0][0];
           cost = cost.mul(nTokenTypes)
           buyTokenData = getBuyTokenData(ZERO_ADDRESS, types, tokensAmountsToBuy, deadline)
 
@@ -1310,24 +1321,24 @@ describe('NiftyswapExchange', () => {
             const exchangeBalance = await userERC1155Contract.functions.balanceOf(niftyswapExchangeContract.address, types[i])
             const userBalance = await userERC1155Contract.functions.balanceOf(userAddress, types[i])
 
-            expect(exchangeBalance).to.be.eql(tokenAmountToAdd.sub(tokenAmountToBuy))
-            expect(userBalance).to.be.eql(new BigNumber(nTokensPerType).add(tokenAmountToBuy))
+            expect(exchangeBalance[0]).to.be.eql(tokenAmountToAdd.sub(tokenAmountToBuy))
+            expect(userBalance[0]).to.be.eql(BigNumber.from(nTokensPerType).add(tokenAmountToBuy))
           }
 
           const exchangeCurrencyBalance = await userCurrencyContract.functions.balanceOf(niftyswapExchangeContract.address, currencyID)
           const userCurrencyBalance = await userCurrencyContract.functions.balanceOf(userAddress, currencyID)
 
-          expect(exchangeCurrencyBalance).to.be.eql(currencyAmountToAdd.mul(nTokenTypes).add(cost))
-          expect(userCurrencyBalance).to.be.eql(currencyAmount.sub(cost))
+          expect(exchangeCurrencyBalance[0]).to.be.eql(currencyAmountToAdd.mul(nTokenTypes).add(cost))
+          expect(userCurrencyBalance[0]).to.be.eql(currencyAmount.sub(cost))
         })
       })
 
       describe('Edge cases', () => {
   
         it('Pool can not go to zero token in reserve', async () => {
-          const minBaseCurrency = new BigNumber(1000000000)
-          const currencyAmountsToAdd: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => minBaseCurrency)
-          const tokenAmountsToAdd: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => new BigNumber(1))
+          const minBaseCurrency = BigNumber.from(1000000000)
+          const currencyAmountsToAdd: BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => minBaseCurrency)
+          const tokenAmountsToAdd: BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => BigNumber.from(1))
           const addLiquidityData: string = getAddLiquidityData(currencyAmountsToAdd, deadline)
           
           // Add 1000000000:1 for all pools
@@ -1341,9 +1352,9 @@ describe('NiftyswapExchange', () => {
         })
 
         it('Pool stuck at 1 token can go back up to normal with loss', async () => {
-          const initialBaseCurrency = new BigNumber(10**9)
-          const currencyAmountsToAdd: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => initialBaseCurrency)
-          const tokenAmountsToAdd: ethers.utils.BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => new BigNumber(1))
+          const initialBaseCurrency = BigNumber.from(10**9)
+          const currencyAmountsToAdd: BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => initialBaseCurrency)
+          const tokenAmountsToAdd: BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => BigNumber.from(1))
           const addLiquidityData: string = getAddLiquidityData(currencyAmountsToAdd, deadline)
           
           // Add 1000000000:1 for all pools
@@ -1360,28 +1371,28 @@ describe('NiftyswapExchange', () => {
           // which is the desired price for users to start selling the assets or add liquidity.
 
           // Add 31622 tokens to pool
-          let maxBaseCurrency_1 = (new BigNumber(10)).pow(18)
+          let maxBaseCurrency_1 = (BigNumber.from(10)).pow(18)
           let currencyAmountsToAdd_1 = new Array(nTokenTypes).fill('').map((a, i) => maxBaseCurrency_1)
-          const tokenAmountsToAdd_1 = new Array(nTokenTypes).fill('').map((a, i) => new BigNumber(31622))
+          const tokenAmountsToAdd_1 = new Array(nTokenTypes).fill('').map((a, i) => BigNumber.from(31622))
           const addLiquidityData_1 = getAddLiquidityData(currencyAmountsToAdd_1, deadline)          
           await operatorERC1155Contract.functions.safeBatchTransferFrom(operatorAddress, niftyswapExchangeContract.address, types, tokenAmountsToAdd_1, addLiquidityData_1,
             {gasLimit: 50000000}
           )
 
           // Buy 31622 tokens, to leave a ratio of 10**18 : 1, testing with 1 pool
-          let amount_to_buy = new BigNumber(31622)
-          let cost = (await niftyswapExchangeContract.functions.getPrice_currencyToToken([types[0]], [amount_to_buy]))[0]
+          let amount_to_buy = BigNumber.from(31622)
+          let cost = (await niftyswapExchangeContract.functions.getPrice_currencyToToken([types[0]], [amount_to_buy]))[0][0]
           let buyTokenData = getBuyTokenData(userAddress, [types[0]], [amount_to_buy], deadline)
           await userCurrencyContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, currencyID, cost, buyTokenData,
             {gasLimit: 8000000}
           )
 
           // Pool should have more than 10**18 currency and 1 token
-          let expected_price = cost.add(amount_to_buy.add(1).mul((new BigNumber(10)).pow(9)))
+          let expected_price = cost.add(amount_to_buy.add(1).mul((BigNumber.from(10)).pow(9)))
           let currency_reserve = (await niftyswapExchangeContract.functions.getCurrencyReserves([types[0]]))[0]
           let token_reserve = await userERC1155Contract.functions.balanceOf(niftyswapExchangeContract.address, types[0])
-          expect(token_reserve).to.be.eql(new BigNumber(1))
-          expect(currency_reserve).to.be.eql(expected_price)
+          expect(token_reserve[0]).to.be.eql(BigNumber.from(1))
+          expect(currency_reserve[0]).to.be.eql(expected_price)
         })
         
       })

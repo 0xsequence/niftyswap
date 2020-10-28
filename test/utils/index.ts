@@ -7,7 +7,7 @@ import * as ethers from 'ethers'
 export * from './contract'
 export * from './helpers'
 
-const BigNumber = ethers.utils.BigNumber
+const BigNumber = ethers.BigNumber
 export { BigNumber }
 
 export const { assert, expect } = chai

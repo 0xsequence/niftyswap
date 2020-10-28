@@ -1,6 +1,7 @@
 import { usePlugin, BuidlerConfig } from '@nomiclabs/buidler/config'
 
 usePlugin('@nomiclabs/buidler-truffle5')
+usePlugin("buidler-ethers-v5");
 usePlugin('buidler-gas-reporter')
 
 const config: BuidlerConfig = {

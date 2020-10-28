@@ -13,26 +13,22 @@ import {
   Contract,
   ContractTransaction,
   Overrides,
+  PayableOverrides,
   CallOverrides
 } from "@ethersproject/contracts";
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 
-interface NiftyswapExchangeInterface extends ethers.utils.Interface {
+interface MetaErc20WrapperInterface extends ethers.utils.Interface {
   functions: {
     "balanceOf(address,uint256)": FunctionFragment;
     "balanceOfBatch(address[],uint256[])": FunctionFragment;
-    "getBuyPrice(uint256,uint256,uint256)": FunctionFragment;
-    "getCurrencyInfo()": FunctionFragment;
-    "getCurrencyReserves(uint256[])": FunctionFragment;
-    "getFactoryAddress()": FunctionFragment;
+    "deposit(address,address,uint256)": FunctionFragment;
+    "getIdAddress(uint256)": FunctionFragment;
+    "getNTokens()": FunctionFragment;
     "getNonce(address)": FunctionFragment;
-    "getPrice_currencyToToken(uint256[],uint256[])": FunctionFragment;
-    "getPrice_tokenToCurrency(uint256[],uint256[])": FunctionFragment;
-    "getSellPrice(uint256,uint256,uint256)": FunctionFragment;
-    "getTokenAddress()": FunctionFragment;
-    "getTotalSupply(uint256[])": FunctionFragment;
+    "getTokenID(address)": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
     "isValidSignature(address,bytes32,bytes,bytes)": FunctionFragment;
     "metaSafeBatchTransferFrom(address,address,uint256[],uint256[],bool,bytes)": FunctionFragment;
@@ -44,6 +40,7 @@ interface NiftyswapExchangeInterface extends ethers.utils.Interface {
     "safeTransferFrom(address,address,uint256,uint256,bytes)": FunctionFragment;
     "setApprovalForAll(address,bool)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
+    "withdraw(address,address,uint256)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -55,42 +52,16 @@ interface NiftyswapExchangeInterface extends ethers.utils.Interface {
     values: [string[], BigNumberish[]]
   ): string;
   encodeFunctionData(
-    functionFragment: "getBuyPrice",
-    values: [BigNumberish, BigNumberish, BigNumberish]
+    functionFragment: "deposit",
+    values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "getCurrencyInfo",
-    values?: void
+    functionFragment: "getIdAddress",
+    values: [BigNumberish]
   ): string;
-  encodeFunctionData(
-    functionFragment: "getCurrencyReserves",
-    values: [BigNumberish[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getFactoryAddress",
-    values?: void
-  ): string;
+  encodeFunctionData(functionFragment: "getNTokens", values?: void): string;
   encodeFunctionData(functionFragment: "getNonce", values: [string]): string;
-  encodeFunctionData(
-    functionFragment: "getPrice_currencyToToken",
-    values: [BigNumberish[], BigNumberish[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getPrice_tokenToCurrency",
-    values: [BigNumberish[], BigNumberish[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getSellPrice",
-    values: [BigNumberish, BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getTokenAddress",
-    values?: void
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getTotalSupply",
-    values: [BigNumberish[]]
-  ): string;
+  encodeFunctionData(functionFragment: "getTokenID", values: [string]): string;
   encodeFunctionData(
     functionFragment: "isApprovedForAll",
     values: [string, string]
@@ -135,49 +106,24 @@ interface NiftyswapExchangeInterface extends ethers.utils.Interface {
     functionFragment: "supportsInterface",
     values: [BytesLike]
   ): string;
+  encodeFunctionData(
+    functionFragment: "withdraw",
+    values: [string, string, BigNumberish]
+  ): string;
 
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "balanceOfBatch",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "getBuyPrice",
+    functionFragment: "getIdAddress",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "getCurrencyInfo",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getCurrencyReserves",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getFactoryAddress",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "getNTokens", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getNonce", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getPrice_currencyToToken",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getPrice_tokenToCurrency",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getSellPrice",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getTokenAddress",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getTotalSupply",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "getTokenID", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "isApprovedForAll",
     data: BytesLike
@@ -222,31 +168,26 @@ interface NiftyswapExchangeInterface extends ethers.utils.Interface {
     functionFragment: "supportsInterface",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
 
   events: {
     "ApprovalForAll(address,address,bool)": EventFragment;
-    "CurrencyPurchase(address,address,uint256[],uint256[],uint256[])": EventFragment;
-    "LiquidityAdded(address,uint256[],uint256[],uint256[])": EventFragment;
-    "LiquidityRemoved(address,uint256[],uint256[],uint256[])": EventFragment;
     "NonceChange(address,uint256)": EventFragment;
-    "TokensPurchase(address,address,uint256[],uint256[],uint256[])": EventFragment;
+    "TokenRegistration(address,uint256)": EventFragment;
     "TransferBatch(address,address,address,uint256[],uint256[])": EventFragment;
     "TransferSingle(address,address,address,uint256,uint256)": EventFragment;
     "URI(string,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "ApprovalForAll"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "CurrencyPurchase"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "LiquidityAdded"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "LiquidityRemoved"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NonceChange"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "TokensPurchase"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TokenRegistration"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferBatch"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferSingle"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "URI"): EventFragment;
 }
 
-export class NiftyswapExchange extends Contract {
+export class MetaErc20Wrapper extends Contract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -257,7 +198,7 @@ export class NiftyswapExchange extends Contract {
   removeAllListeners(eventName: EventFilter | string): this;
   removeListener(eventName: any, listener: Listener): this;
 
-  interface: NiftyswapExchangeInterface;
+  interface: MetaErc20WrapperInterface;
 
   functions: {
     balanceOf(
@@ -276,34 +217,25 @@ export class NiftyswapExchange extends Contract {
       0: BigNumber[];
     }>;
 
-    getBuyPrice(
-      _assetBoughtAmount: BigNumberish,
-      _assetSoldReserve: BigNumberish,
-      _assetBoughtReserve: BigNumberish,
+    deposit(
+      _token: string,
+      _recipient: string,
+      _value: BigNumberish,
+      overrides?: PayableOverrides
+    ): Promise<ContractTransaction>;
+
+    getIdAddress(
+      _id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<{
-      price: BigNumber;
+      token: string;
+      0: string;
+    }>;
+
+    getNTokens(
+      overrides?: CallOverrides
+    ): Promise<{
       0: BigNumber;
-    }>;
-
-    getCurrencyInfo(
-      overrides?: CallOverrides
-    ): Promise<{
-      0: string;
-      1: BigNumber;
-    }>;
-
-    getCurrencyReserves(
-      _ids: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<{
-      0: BigNumber[];
-    }>;
-
-    getFactoryAddress(
-      overrides?: CallOverrides
-    ): Promise<{
-      0: string;
     }>;
 
     getNonce(
@@ -314,43 +246,12 @@ export class NiftyswapExchange extends Contract {
       0: BigNumber;
     }>;
 
-    getPrice_currencyToToken(
-      _ids: BigNumberish[],
-      _tokensBought: BigNumberish[],
+    getTokenID(
+      _token: string,
       overrides?: CallOverrides
     ): Promise<{
-      0: BigNumber[];
-    }>;
-
-    getPrice_tokenToCurrency(
-      _ids: BigNumberish[],
-      _tokensSold: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<{
-      0: BigNumber[];
-    }>;
-
-    getSellPrice(
-      _assetSoldAmount: BigNumberish,
-      _assetSoldReserve: BigNumberish,
-      _assetBoughtReserve: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<{
-      price: BigNumber;
+      tokenID: BigNumber;
       0: BigNumber;
-    }>;
-
-    getTokenAddress(
-      overrides?: CallOverrides
-    ): Promise<{
-      0: string;
-    }>;
-
-    getTotalSupply(
-      _ids: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<{
-      0: BigNumber[];
     }>;
 
     isApprovedForAll(
@@ -406,17 +307,17 @@ export class NiftyswapExchange extends Contract {
       arg0: string,
       _from: string,
       _ids: BigNumberish[],
-      _amounts: BigNumberish[],
-      _data: BytesLike,
+      _values: BigNumberish[],
+      arg4: BytesLike,
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
     onERC1155Received(
-      _operator: string,
+      arg0: string,
       _from: string,
       _id: BigNumberish,
-      _amount: BigNumberish,
-      _data: BytesLike,
+      _value: BigNumberish,
+      arg4: BytesLike,
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
@@ -450,6 +351,13 @@ export class NiftyswapExchange extends Contract {
     ): Promise<{
       0: boolean;
     }>;
+
+    withdraw(
+      _token: string,
+      _to: string,
+      _value: BigNumberish,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
   };
 
   balanceOf(
@@ -464,54 +372,20 @@ export class NiftyswapExchange extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber[]>;
 
-  getBuyPrice(
-    _assetBoughtAmount: BigNumberish,
-    _assetSoldReserve: BigNumberish,
-    _assetBoughtReserve: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  deposit(
+    _token: string,
+    _recipient: string,
+    _value: BigNumberish,
+    overrides?: PayableOverrides
+  ): Promise<ContractTransaction>;
 
-  getCurrencyInfo(
-    overrides?: CallOverrides
-  ): Promise<{
-    0: string;
-    1: BigNumber;
-  }>;
+  getIdAddress(_id: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
-  getCurrencyReserves(
-    _ids: BigNumberish[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
-
-  getFactoryAddress(overrides?: CallOverrides): Promise<string>;
+  getNTokens(overrides?: CallOverrides): Promise<BigNumber>;
 
   getNonce(_signer: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-  getPrice_currencyToToken(
-    _ids: BigNumberish[],
-    _tokensBought: BigNumberish[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
-
-  getPrice_tokenToCurrency(
-    _ids: BigNumberish[],
-    _tokensSold: BigNumberish[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
-
-  getSellPrice(
-    _assetSoldAmount: BigNumberish,
-    _assetSoldReserve: BigNumberish,
-    _assetBoughtReserve: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  getTokenAddress(overrides?: CallOverrides): Promise<string>;
-
-  getTotalSupply(
-    _ids: BigNumberish[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
+  getTokenID(_token: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   isApprovedForAll(
     _owner: string,
@@ -560,17 +434,17 @@ export class NiftyswapExchange extends Contract {
     arg0: string,
     _from: string,
     _ids: BigNumberish[],
-    _amounts: BigNumberish[],
-    _data: BytesLike,
+    _values: BigNumberish[],
+    arg4: BytesLike,
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
   onERC1155Received(
-    _operator: string,
+    arg0: string,
     _from: string,
     _id: BigNumberish,
-    _amount: BigNumberish,
-    _data: BytesLike,
+    _value: BigNumberish,
+    arg4: BytesLike,
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
@@ -603,6 +477,13 @@ export class NiftyswapExchange extends Contract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
+  withdraw(
+    _token: string,
+    _to: string,
+    _value: BigNumberish,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
   staticCall: {
     balanceOf(
       _owner: string,
@@ -616,54 +497,20 @@ export class NiftyswapExchange extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber[]>;
 
-    getBuyPrice(
-      _assetBoughtAmount: BigNumberish,
-      _assetSoldReserve: BigNumberish,
-      _assetBoughtReserve: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    deposit(
+      _token: string,
+      _recipient: string,
+      _value: BigNumberish,
+      overrides?: PayableOverrides
+    ): Promise<void>;
 
-    getCurrencyInfo(
-      overrides?: CallOverrides
-    ): Promise<{
-      0: string;
-      1: BigNumber;
-    }>;
+    getIdAddress(_id: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
-    getCurrencyReserves(
-      _ids: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    getFactoryAddress(overrides?: CallOverrides): Promise<string>;
+    getNTokens(overrides?: CallOverrides): Promise<BigNumber>;
 
     getNonce(_signer: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    getPrice_currencyToToken(
-      _ids: BigNumberish[],
-      _tokensBought: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    getPrice_tokenToCurrency(
-      _ids: BigNumberish[],
-      _tokensSold: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    getSellPrice(
-      _assetSoldAmount: BigNumberish,
-      _assetSoldReserve: BigNumberish,
-      _assetBoughtReserve: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getTokenAddress(overrides?: CallOverrides): Promise<string>;
-
-    getTotalSupply(
-      _ids: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
+    getTokenID(_token: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     isApprovedForAll(
       _owner: string,
@@ -712,17 +559,17 @@ export class NiftyswapExchange extends Contract {
       arg0: string,
       _from: string,
       _ids: BigNumberish[],
-      _amounts: BigNumberish[],
-      _data: BytesLike,
+      _values: BigNumberish[],
+      arg4: BytesLike,
       overrides?: Overrides
     ): Promise<string>;
 
     onERC1155Received(
-      _operator: string,
+      arg0: string,
       _from: string,
       _id: BigNumberish,
-      _amount: BigNumberish,
-      _data: BytesLike,
+      _value: BigNumberish,
+      arg4: BytesLike,
       overrides?: Overrides
     ): Promise<string>;
 
@@ -754,6 +601,13 @@ export class NiftyswapExchange extends Contract {
       interfaceID: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    withdraw(
+      _token: string,
+      _to: string,
+      _value: BigNumberish,
+      overrides?: Overrides
+    ): Promise<void>;
   };
 
   filters: {
@@ -763,37 +617,9 @@ export class NiftyswapExchange extends Contract {
       _approved: null
     ): EventFilter;
 
-    CurrencyPurchase(
-      buyer: string | null,
-      recipient: string | null,
-      tokensSoldIds: null,
-      tokensSoldAmounts: null,
-      currencyBoughtAmounts: null
-    ): EventFilter;
-
-    LiquidityAdded(
-      provider: string | null,
-      tokenIds: null,
-      tokenAmounts: null,
-      currencyAmounts: null
-    ): EventFilter;
-
-    LiquidityRemoved(
-      provider: string | null,
-      tokenIds: null,
-      tokenAmounts: null,
-      currencyAmounts: null
-    ): EventFilter;
-
     NonceChange(signer: string | null, newNonce: null): EventFilter;
 
-    TokensPurchase(
-      buyer: string | null,
-      recipient: string | null,
-      tokensBoughtIds: null,
-      tokensBoughtAmounts: null,
-      currencySoldAmounts: null
-    ): EventFilter;
+    TokenRegistration(token_address: null, token_id: null): EventFilter;
 
     TransferBatch(
       _operator: string | null,
@@ -817,30 +643,15 @@ export class NiftyswapExchange extends Contract {
   estimateGas: {
     balanceOf(_owner: string, _id: BigNumberish): Promise<BigNumber>;
     balanceOfBatch(_owners: string[], _ids: BigNumberish[]): Promise<BigNumber>;
-    getBuyPrice(
-      _assetBoughtAmount: BigNumberish,
-      _assetSoldReserve: BigNumberish,
-      _assetBoughtReserve: BigNumberish
+    deposit(
+      _token: string,
+      _recipient: string,
+      _value: BigNumberish
     ): Promise<BigNumber>;
-    getCurrencyInfo(): Promise<BigNumber>;
-    getCurrencyReserves(_ids: BigNumberish[]): Promise<BigNumber>;
-    getFactoryAddress(): Promise<BigNumber>;
+    getIdAddress(_id: BigNumberish): Promise<BigNumber>;
+    getNTokens(): Promise<BigNumber>;
     getNonce(_signer: string): Promise<BigNumber>;
-    getPrice_currencyToToken(
-      _ids: BigNumberish[],
-      _tokensBought: BigNumberish[]
-    ): Promise<BigNumber>;
-    getPrice_tokenToCurrency(
-      _ids: BigNumberish[],
-      _tokensSold: BigNumberish[]
-    ): Promise<BigNumber>;
-    getSellPrice(
-      _assetSoldAmount: BigNumberish,
-      _assetSoldReserve: BigNumberish,
-      _assetBoughtReserve: BigNumberish
-    ): Promise<BigNumber>;
-    getTokenAddress(): Promise<BigNumber>;
-    getTotalSupply(_ids: BigNumberish[]): Promise<BigNumber>;
+    getTokenID(_token: string): Promise<BigNumber>;
     isApprovedForAll(_owner: string, _operator: string): Promise<BigNumber>;
     isValidSignature(
       _signerAddress: string,
@@ -875,15 +686,15 @@ export class NiftyswapExchange extends Contract {
       arg0: string,
       _from: string,
       _ids: BigNumberish[],
-      _amounts: BigNumberish[],
-      _data: BytesLike
+      _values: BigNumberish[],
+      arg4: BytesLike
     ): Promise<BigNumber>;
     onERC1155Received(
-      _operator: string,
+      arg0: string,
       _from: string,
       _id: BigNumberish,
-      _amount: BigNumberish,
-      _data: BytesLike
+      _value: BigNumberish,
+      arg4: BytesLike
     ): Promise<BigNumber>;
     safeBatchTransferFrom(
       _from: string,
@@ -904,6 +715,11 @@ export class NiftyswapExchange extends Contract {
       _approved: boolean
     ): Promise<BigNumber>;
     supportsInterface(interfaceID: BytesLike): Promise<BigNumber>;
+    withdraw(
+      _token: string,
+      _to: string,
+      _value: BigNumberish
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -912,30 +728,15 @@ export class NiftyswapExchange extends Contract {
       _owners: string[],
       _ids: BigNumberish[]
     ): Promise<PopulatedTransaction>;
-    getBuyPrice(
-      _assetBoughtAmount: BigNumberish,
-      _assetSoldReserve: BigNumberish,
-      _assetBoughtReserve: BigNumberish
+    deposit(
+      _token: string,
+      _recipient: string,
+      _value: BigNumberish
     ): Promise<PopulatedTransaction>;
-    getCurrencyInfo(): Promise<PopulatedTransaction>;
-    getCurrencyReserves(_ids: BigNumberish[]): Promise<PopulatedTransaction>;
-    getFactoryAddress(): Promise<PopulatedTransaction>;
+    getIdAddress(_id: BigNumberish): Promise<PopulatedTransaction>;
+    getNTokens(): Promise<PopulatedTransaction>;
     getNonce(_signer: string): Promise<PopulatedTransaction>;
-    getPrice_currencyToToken(
-      _ids: BigNumberish[],
-      _tokensBought: BigNumberish[]
-    ): Promise<PopulatedTransaction>;
-    getPrice_tokenToCurrency(
-      _ids: BigNumberish[],
-      _tokensSold: BigNumberish[]
-    ): Promise<PopulatedTransaction>;
-    getSellPrice(
-      _assetSoldAmount: BigNumberish,
-      _assetSoldReserve: BigNumberish,
-      _assetBoughtReserve: BigNumberish
-    ): Promise<PopulatedTransaction>;
-    getTokenAddress(): Promise<PopulatedTransaction>;
-    getTotalSupply(_ids: BigNumberish[]): Promise<PopulatedTransaction>;
+    getTokenID(_token: string): Promise<PopulatedTransaction>;
     isApprovedForAll(
       _owner: string,
       _operator: string
@@ -973,15 +774,15 @@ export class NiftyswapExchange extends Contract {
       arg0: string,
       _from: string,
       _ids: BigNumberish[],
-      _amounts: BigNumberish[],
-      _data: BytesLike
+      _values: BigNumberish[],
+      arg4: BytesLike
     ): Promise<PopulatedTransaction>;
     onERC1155Received(
-      _operator: string,
+      arg0: string,
       _from: string,
       _id: BigNumberish,
-      _amount: BigNumberish,
-      _data: BytesLike
+      _value: BigNumberish,
+      arg4: BytesLike
     ): Promise<PopulatedTransaction>;
     safeBatchTransferFrom(
       _from: string,
@@ -1002,5 +803,10 @@ export class NiftyswapExchange extends Contract {
       _approved: boolean
     ): Promise<PopulatedTransaction>;
     supportsInterface(interfaceID: BytesLike): Promise<PopulatedTransaction>;
+    withdraw(
+      _token: string,
+      _to: string,
+      _value: BigNumberish
+    ): Promise<PopulatedTransaction>;
   };
 }
