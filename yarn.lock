@@ -2214,10 +2214,10 @@ eol@^0.9.1:
   resolved "https://registry.yarnpkg.com/eol/-/eol-0.9.1.tgz#f701912f504074be35c6117a5c4ade49cd547acd"
   integrity sha512-Ds/TEoZjwggRoz/Q2O7SE3i4Jm66mqTDfmdHdq/7DKVk3bro9Q8h6WdXKdPqFLMoqxrDK5SVRzHVPOS6uuGtrg==
 
-erc20-meta-token@^0.3.5:
-  version "0.3.5"
-  resolved "https://registry.yarnpkg.com/erc20-meta-token/-/erc20-meta-token-0.3.5.tgz#8d87bb8561727b0684261aa3497f2bd842167ab0"
-  integrity sha512-q0o1r8nMksSKEd96R4IFC1KwxWArUsu2Mll2GVCwZ1e0rtMXLto7wEUiKldFFniUjgVPZ4mF1WI0S5KTKQUl/g==
+erc20-meta-token@^0.3.8:
+  version "0.3.8"
+  resolved "https://registry.yarnpkg.com/erc20-meta-token/-/erc20-meta-token-0.3.8.tgz#dcab5a6e2d125d3b197c7b812fd022775f0a5561"
+  integrity sha512-dVl4d4sPX4/JTzHpQ2T809icc4WjUw0aXLflBmwTGcsdgNaMzQ1d6w4X7XC1UlOVRk97LcmUpyw2yxlx9QSeTw==
   dependencies:
     multi-token-standard "^0.9.6"
 

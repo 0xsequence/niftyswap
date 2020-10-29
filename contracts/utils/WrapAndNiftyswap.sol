@@ -5,7 +5,7 @@ import "../interfaces/INiftyswapExchange.sol";
 import "multi-token-standard/contracts/interfaces/IERC20.sol";
 import "multi-token-standard/contracts/interfaces/IERC1155.sol";
 import "multi-token-standard/contracts/interfaces/IERC1155TokenReceiver.sol";
-import "erc20-meta-token/contracts/interfaces/IMetaERC20Wrapper.sol";
+import "erc20-meta-token/contracts/interfaces/IERC20Wrapper.sol";
 
 /**
  * @notice Will allow users to wrap their  ERC-20 into ERC-1155 tokens
@@ -17,10 +17,10 @@ import "erc20-meta-token/contracts/interfaces/IMetaERC20Wrapper.sol";
  */
 contract WrapAndNiftyswap {
 
-  IMetaERC20Wrapper immutable public tokenWrapper; // ERC-20 to ERC-1155 token wrapper contract
-  address immutable public exchange;    // Niftyswap exchange to use
-  address immutable public erc20;                   // ERC-20 used in niftyswap exchange
-  address immutable public erc1155;               // ERC-1155 used in niftyswap exchange
+  IERC20Wrapper immutable public tokenWrapper; // ERC-20 to ERC-1155 token wrapper contract
+  address immutable public exchange;           // Niftyswap exchange to use
+  address immutable public erc20;              // ERC-20 used in niftyswap exchange
+  address immutable public erc1155;            // ERC-1155 used in niftyswap exchange
 
   uint256 immutable internal wrappedTokenID; // ID of the wrapped token
   bool internal isInNiftyswap;               // Whether niftyswap is being called
@@ -42,7 +42,7 @@ contract WrapAndNiftyswap {
       "INVALID CONSTRUCTOR ARGUMENT"
     );
 
-    tokenWrapper = IMetaERC20Wrapper(_tokenWrapper);
+    tokenWrapper = IERC20Wrapper(_tokenWrapper);
     exchange = _exchange;
     erc20 = _erc20;
     erc1155 = _erc1155;
@@ -53,7 +53,7 @@ contract WrapAndNiftyswap {
     IERC20(_erc20).approve(_tokenWrapper, 2**256-1);
 
     // Store wrapped token ID
-    wrappedTokenID = IMetaERC20Wrapper(_tokenWrapper).getTokenID(_erc20);
+    wrappedTokenID = IERC20Wrapper(_tokenWrapper).getTokenID(_erc20);
   }
 
   /**

@@ -20,7 +20,7 @@ import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 
-interface IMetaErc20WrapperInterface extends ethers.utils.Interface {
+interface Ierc20WrapperInterface extends ethers.utils.Interface {
   functions: {
     "balanceOf(address,uint256)": FunctionFragment;
     "balanceOfBatch(address[],uint256[])": FunctionFragment;
@@ -135,7 +135,7 @@ interface IMetaErc20WrapperInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "URI"): EventFragment;
 }
 
-export class IMetaErc20Wrapper extends Contract {
+export class Ierc20Wrapper extends Contract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -146,7 +146,7 @@ export class IMetaErc20Wrapper extends Contract {
   removeAllListeners(eventName: EventFilter | string): this;
   removeListener(eventName: any, listener: Listener): this;
 
-  interface: IMetaErc20WrapperInterface;
+  interface: Ierc20WrapperInterface;
 
   functions: {
     balanceOf(

@@ -4,14 +4,14 @@
 import { Contract, Signer } from "ethers";
 import { Provider } from "@ethersproject/providers";
 
-import { IMetaErc20Wrapper } from "./IMetaErc20Wrapper";
+import { Ierc20Wrapper } from "./Ierc20Wrapper";
 
-export class IMetaErc20WrapperFactory {
+export class Ierc20WrapperFactory {
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): IMetaErc20Wrapper {
-    return new Contract(address, _abi, signerOrProvider) as IMetaErc20Wrapper;
+  ): Ierc20Wrapper {
+    return new Contract(address, _abi, signerOrProvider) as Ierc20Wrapper;
   }
 }
 

@@ -16,7 +16,7 @@ import { Erc1155Mock } from '../typings/contracts/Erc1155Mock'
 import { Erc20Mock } from 'erc20-meta-token/typings/contracts/Erc20Mock'
 import { NiftyswapExchange } from '../typings/contracts/NiftyswapExchange'
 import { NiftyswapFactory } from '../typings/contracts/NiftyswapFactory'
-import { MetaErc20Wrapper } from 'erc20-meta-token/typings/contracts/MetaErc20Wrapper'
+import { Erc20Wrapper } from 'erc20-meta-token/typings/contracts/Erc20Wrapper'
 import { WrapAndNiftyswap } from '../typings/contracts/WrapAndNiftyswap'
 
 import { abi as exchangeABI } from '../artifacts/NiftyswapExchange.json'
@@ -74,9 +74,9 @@ describe('WrapAndSwap', () => {
   let operatorERC20Contract: Erc20Mock
 
   // Wrapper contract
-  let ownerTokenWrapper: MetaErc20Wrapper 
-  let userTokenWrapper: MetaErc20Wrapper 
-  let operatorTokenWrapper: MetaErc20Wrapper 
+  let ownerTokenWrapper: Erc20Wrapper 
+  let userTokenWrapper: Erc20Wrapper 
+  let operatorTokenWrapper: Erc20Wrapper 
   
   // Wrap and Swap contract
   let ownerWrapAndNiftyswap: WrapAndNiftyswap
@@ -124,7 +124,7 @@ describe('WrapAndSwap', () => {
     erc1155Abstract = await AbstractContract.fromArtifactName('ERC1155Mock')
     niftyswapFactoryAbstract = await AbstractContract.fromArtifactName('NiftyswapFactory')
     erc20Abstract = await AbstractContract.fromArtifactName('ERC20TokenMock')
-    tokenWrapperAbstract = await AbstractContract.fromArtifactName('MetaERC20WrapperMock')
+    tokenWrapperAbstract = await AbstractContract.fromArtifactName('ERC20WrapperMock')
     wrapAndNiftyswapAbstract = await AbstractContract.fromArtifactName('WrapAndNiftyswap')
   })
 
@@ -141,9 +141,9 @@ describe('WrapAndSwap', () => {
     operatorERC20Contract = await ownerERC20Contract.connect(operatorSigner) as Erc20Mock
 
     // Deploy token wrapper contract
-    ownerTokenWrapper = await tokenWrapperAbstract.deploy(ownerWallet) as MetaErc20Wrapper
-    userTokenWrapper = await ownerTokenWrapper.connect(userSigner) as MetaErc20Wrapper
-    operatorTokenWrapper = await ownerTokenWrapper.connect(operatorSigner) as MetaErc20Wrapper
+    ownerTokenWrapper = await tokenWrapperAbstract.deploy(ownerWallet) as Erc20Wrapper
+    userTokenWrapper = await ownerTokenWrapper.connect(userSigner) as Erc20Wrapper
+    operatorTokenWrapper = await ownerTokenWrapper.connect(operatorSigner) as Erc20Wrapper
 
     // Deploy Niftyswap factory
     niftyswapFactoryContract = await niftyswapFactoryAbstract.deploy(ownerWallet) as NiftyswapFactory
@@ -240,7 +240,7 @@ describe('WrapAndSwap', () => {
 
     context('When wrapAndSwap is completed', () => {
       beforeEach( async () => {
-        await userWrapAndNiftyswap.functions.wrapAndSwap(cost, userAddress, buyTokenData, {gasLimit: 10000000})
+        await userWrapAndNiftyswap.functions.wrapAndSwap(cost.add(100), userAddress, buyTokenData, {gasLimit: 10000000})
       })
 
       it('should update Tokens balances if it passes', async () => {

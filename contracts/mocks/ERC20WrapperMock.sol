@@ -3,6 +3,6 @@ pragma experimental ABIEncoderV2;
 import "erc20-meta-token/contracts/wrapper/MetaERC20Wrapper.sol";
 
 
-contract MetaERC20WrapperMock is MetaERC20Wrapper {
+contract ERC20WrapperMock is MetaERC20Wrapper {
 
 }

@@ -20,7 +20,7 @@ import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 
-interface MetaErc20WrapperMockInterface extends ethers.utils.Interface {
+interface Erc20WrapperMockInterface extends ethers.utils.Interface {
   functions: {
     "balanceOf(address,uint256)": FunctionFragment;
     "balanceOfBatch(address[],uint256[])": FunctionFragment;
@@ -187,7 +187,7 @@ interface MetaErc20WrapperMockInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "URI"): EventFragment;
 }
 
-export class MetaErc20WrapperMock extends Contract {
+export class Erc20WrapperMock extends Contract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -198,7 +198,7 @@ export class MetaErc20WrapperMock extends Contract {
   removeAllListeners(eventName: EventFilter | string): this;
   removeListener(eventName: any, listener: Listener): this;
 
-  interface: MetaErc20WrapperMockInterface;
+  interface: Erc20WrapperMockInterface;
 
   functions: {
     balanceOf(
