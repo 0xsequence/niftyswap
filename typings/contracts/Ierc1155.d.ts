@@ -80,13 +80,11 @@ interface Ierc1155Interface extends ethers.utils.Interface {
     "ApprovalForAll(address,address,bool)": EventFragment;
     "TransferBatch(address,address,address,uint256[],uint256[])": EventFragment;
     "TransferSingle(address,address,address,uint256,uint256)": EventFragment;
-    "URI(string,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "ApprovalForAll"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferBatch"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferSingle"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "URI"): EventFragment;
 }
 
 export class Ierc1155 extends Contract {
@@ -261,8 +259,6 @@ export class Ierc1155 extends Contract {
       _id: null,
       _amount: null
     ): EventFilter;
-
-    URI(_amount: null, _id: BigNumberish | null): EventFilter;
   };
 
   estimateGas: {

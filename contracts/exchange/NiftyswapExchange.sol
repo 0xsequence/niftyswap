@@ -1,11 +1,10 @@
-pragma solidity ^0.6.8;
+pragma solidity 0.7.4;
 pragma experimental ABIEncoderV2;
 import "../interfaces/INiftyswapExchange.sol";
 import "../utils/ReentrancyGuard.sol";
 import "multi-token-standard/contracts/interfaces/IERC165.sol";
 import "multi-token-standard/contracts/interfaces/IERC1155.sol";
 import "multi-token-standard/contracts/interfaces/IERC1155TokenReceiver.sol";
-import "multi-token-standard/contracts/tokens/ERC1155/ERC1155Meta.sol";
 import "multi-token-standard/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
 
 
@@ -14,7 +13,7 @@ import "multi-token-standard/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
  * with an ERC-1155 based token used as a currency instead of Ether.
  *
  * See https://github.com/arcadeum/erc20-meta-token for a generalized
- * ERC-20 => ERC-1155 token wrapper, with native-meta-transactions functionalities.
+ * ERC-20 => ERC-1155 token wrapper
  *
  * Liquidity tokens are also ERC-1155 tokens you can find the ERC-1155
  * implementation used here:
@@ -24,7 +23,8 @@ import "multi-token-standard/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
  *      errors when it comes to removing liquidity, possibly preventing them to be withdrawn without
  *      some collaboration between liquidity providers.
  */
-contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
+contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchange {
+  using SafeMath for uint256;
 
   /***********************************|
   |       Variables & Constants       |
@@ -42,39 +42,6 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
   mapping(uint256 => uint256) internal totalSupplies;    // Liquidity pool token supply per Token id
   mapping(uint256 => uint256) internal currencyReserves; // currency Token reserve per Token id
 
-  /***********************************|
-  |               Events              |
-  |__________________________________*/
-
-  event TokensPurchase(
-    address indexed buyer,
-    address indexed recipient,
-    uint256[] tokensBoughtIds,
-    uint256[] tokensBoughtAmounts,
-    uint256[] currencySoldAmounts
-  );
-
-  event CurrencyPurchase(
-    address indexed buyer,
-    address indexed recipient,
-    uint256[] tokensSoldIds,
-    uint256[] tokensSoldAmounts,
-    uint256[] currencyBoughtAmounts
-  );
-
-  event LiquidityAdded(
-    address indexed provider,
-    uint256[] tokenIds,
-    uint256[] tokenAmounts,
-    uint256[] currencyAmounts
-  );
-
-  event LiquidityRemoved(
-    address indexed provider,
-    uint256[] tokenIds,
-    uint256[] tokenAmounts,
-    uint256[] currencyAmounts
-  );
 
   /***********************************|
   |            Constructor           |
@@ -192,7 +159,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     uint256 _assetBoughtAmount,
     uint256 _assetSoldReserve,
     uint256 _assetBoughtReserve)
-    public pure returns (uint256 price)
+    override public pure returns (uint256 price)
   {
     // Reserves must not be empty
     require(_assetSoldReserve > 0 && _assetBoughtReserve > 0, "NiftyswapExchange#getBuyPrice: EMPTY_RESERVE");
@@ -289,7 +256,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     uint256 _assetSoldAmount,
     uint256 _assetSoldReserve,
     uint256 _assetBoughtReserve)
-    public pure returns (uint256 price)
+    override public pure returns (uint256 price)
   {
     //Reserves must not be empty
     require(_assetSoldReserve > 0 && _assetBoughtReserve > 0, "NiftyswapExchange#getSellPrice: EMPTY_RESERVE");
@@ -515,31 +482,6 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
   |     Receiver Methods Handler      |
   |__________________________________*/
 
-  // OnReceive Objects
-  struct BuyTokensObj {
-    address recipient;             // Who receives the tokens
-    uint256[] tokensBoughtIDs;     // Token IDs to buy
-    uint256[] tokensBoughtAmounts; // Amount of token to buy for each ID
-    uint256 deadline;              // Timestamp after which the tx isn't valid anymore
-  }
-
-  struct SellTokensObj {
-    address recipient;   // Who receives the currency
-    uint256 minCurrency; // Total minimum number of currency  expected for all tokens sold
-    uint256 deadline;    // Timestamp after which the tx isn't valid anymore
-  }
-
-  struct AddLiquidityObj {
-    uint256[] maxCurrency; // Maximum number of currency to deposit with tokens
-    uint256 deadline;      // Timestamp after which the tx isn't valid anymore
-  }
-
-  struct RemoveLiquidityObj {
-    uint256[] minCurrency; // Minimum number of currency to withdraw
-    uint256[] minTokens;   // Minimum number of tokens to withdraw
-    uint256 deadline;      // Timestamp after which the tx isn't valid anymore
-  }
-
   // Method signatures for onReceive control logic
 
   // bytes4(keccak256(
@@ -584,7 +526,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
     uint256[] memory _ids,
     uint256[] memory _amounts,
     bytes memory _data)
-    public returns(bytes4)
+    override public returns(bytes4)
   {
     // This function assumes that the ERC-1155 token contract can
     // only call `onERC1155BatchReceived()` via a valid token transfer.
@@ -678,7 +620,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
    * @dev Will pass to onERC115Batch5Received
    */
   function onERC1155Received(address _operator, address _from, uint256 _id, uint256 _amount, bytes memory _data)
-    public returns(bytes4)
+    override public returns(bytes4)
   {
     uint256[] memory ids = new uint256[](1);
     uint256[] memory amounts = new uint256[](1);
@@ -712,7 +654,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
    */
   function getCurrencyReserves(
     uint256[] calldata _ids)
-    external view returns (uint256[] memory)
+    override external view returns (uint256[] memory)
   {
     uint256 nIds = _ids.length;
     uint256[] memory currencyReservesReturn = new uint256[](nIds);
@@ -731,7 +673,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
   function getPrice_currencyToToken(
     uint256[] calldata _ids,
     uint256[] calldata _tokensBought)
-    external view returns (uint256[] memory)
+    override external view returns (uint256[] memory)
   {
     uint256 nIds = _ids.length;
     uint256[] memory prices = new uint256[](nIds);
@@ -755,7 +697,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
   function getPrice_tokenToCurrency(
     uint256[] calldata _ids,
     uint256[] calldata _tokensSold)
-    external view returns (uint256[] memory)
+    override external view returns (uint256[] memory)
   {
     uint256 nIds = _ids.length;
     uint256[] memory prices = new uint256[](nIds);
@@ -773,14 +715,14 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
   /**
    * @return Address of Token that is sold on this exchange.
    */
-  function getTokenAddress() external view returns (address) {
+  function getTokenAddress() override external view returns (address) {
     return address(token);
   }
 
   /**
    * @return Address of the currency contract that is used as currency and its corresponding id
    */
-  function getCurrencyInfo() external view returns (address, uint256) {
+  function getCurrencyInfo() override external view returns (address, uint256) {
     return (address(currency), currencyID);
   }
 
@@ -790,7 +732,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
    * @return The total supply of each liquidity token id provided in _ids
    */
   function getTotalSupply(uint256[] calldata _ids)
-    external view returns (uint256[] memory)
+    override external view returns (uint256[] memory)
   {
     // Number of ids
     uint256 nIds = _ids.length;
@@ -809,7 +751,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, ERC1155Meta {
   /**
    * @return Address of factory that created this exchange.
    */
-  function getFactoryAddress() external view returns (address) {
+  function getFactoryAddress() override external view returns (address) {
     return factory;
   }
 

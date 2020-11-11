@@ -27,17 +27,12 @@ interface NiftyswapExchangeInterface extends ethers.utils.Interface {
     "getCurrencyInfo()": FunctionFragment;
     "getCurrencyReserves(uint256[])": FunctionFragment;
     "getFactoryAddress()": FunctionFragment;
-    "getNonce(address)": FunctionFragment;
     "getPrice_currencyToToken(uint256[],uint256[])": FunctionFragment;
     "getPrice_tokenToCurrency(uint256[],uint256[])": FunctionFragment;
     "getSellPrice(uint256,uint256,uint256)": FunctionFragment;
     "getTokenAddress()": FunctionFragment;
     "getTotalSupply(uint256[])": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
-    "isValidSignature(address,bytes32,bytes,bytes)": FunctionFragment;
-    "metaSafeBatchTransferFrom(address,address,uint256[],uint256[],bool,bytes)": FunctionFragment;
-    "metaSafeTransferFrom(address,address,uint256,uint256,bool,bytes)": FunctionFragment;
-    "metaSetApprovalForAll(address,address,bool,bool,bytes)": FunctionFragment;
     "onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)": FunctionFragment;
     "onERC1155Received(address,address,uint256,uint256,bytes)": FunctionFragment;
     "safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)": FunctionFragment;
@@ -70,7 +65,6 @@ interface NiftyswapExchangeInterface extends ethers.utils.Interface {
     functionFragment: "getFactoryAddress",
     values?: void
   ): string;
-  encodeFunctionData(functionFragment: "getNonce", values: [string]): string;
   encodeFunctionData(
     functionFragment: "getPrice_currencyToToken",
     values: [BigNumberish[], BigNumberish[]]
@@ -94,22 +88,6 @@ interface NiftyswapExchangeInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "isApprovedForAll",
     values: [string, string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isValidSignature",
-    values: [string, BytesLike, BytesLike, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "metaSafeBatchTransferFrom",
-    values: [string, string, BigNumberish[], BigNumberish[], boolean, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "metaSafeTransferFrom",
-    values: [string, string, BigNumberish, BigNumberish, boolean, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "metaSetApprovalForAll",
-    values: [string, string, boolean, boolean, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "onERC1155BatchReceived",
@@ -157,7 +135,6 @@ interface NiftyswapExchangeInterface extends ethers.utils.Interface {
     functionFragment: "getFactoryAddress",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "getNonce", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getPrice_currencyToToken",
     data: BytesLike
@@ -180,22 +157,6 @@ interface NiftyswapExchangeInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "isApprovedForAll",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "isValidSignature",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "metaSafeBatchTransferFrom",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "metaSafeTransferFrom",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "metaSetApprovalForAll",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -228,22 +189,18 @@ interface NiftyswapExchangeInterface extends ethers.utils.Interface {
     "CurrencyPurchase(address,address,uint256[],uint256[],uint256[])": EventFragment;
     "LiquidityAdded(address,uint256[],uint256[],uint256[])": EventFragment;
     "LiquidityRemoved(address,uint256[],uint256[],uint256[])": EventFragment;
-    "NonceChange(address,uint256)": EventFragment;
     "TokensPurchase(address,address,uint256[],uint256[],uint256[])": EventFragment;
     "TransferBatch(address,address,address,uint256[],uint256[])": EventFragment;
     "TransferSingle(address,address,address,uint256,uint256)": EventFragment;
-    "URI(string,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "ApprovalForAll"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "CurrencyPurchase"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LiquidityAdded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LiquidityRemoved"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "NonceChange"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TokensPurchase"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferBatch"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferSingle"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "URI"): EventFragment;
 }
 
 export class NiftyswapExchange extends Contract {
@@ -306,14 +263,6 @@ export class NiftyswapExchange extends Contract {
       0: string;
     }>;
 
-    getNonce(
-      _signer: string,
-      overrides?: CallOverrides
-    ): Promise<{
-      nonce: BigNumber;
-      0: BigNumber;
-    }>;
-
     getPrice_currencyToToken(
       _ids: BigNumberish[],
       _tokensBought: BigNumberish[],
@@ -361,46 +310,6 @@ export class NiftyswapExchange extends Contract {
       isOperator: boolean;
       0: boolean;
     }>;
-
-    isValidSignature(
-      _signerAddress: string,
-      _hash: BytesLike,
-      _data: BytesLike,
-      _sig: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<{
-      isValid: boolean;
-      0: boolean;
-    }>;
-
-    metaSafeBatchTransferFrom(
-      _from: string,
-      _to: string,
-      _ids: BigNumberish[],
-      _amounts: BigNumberish[],
-      _isGasFee: boolean,
-      _data: BytesLike,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    metaSafeTransferFrom(
-      _from: string,
-      _to: string,
-      _id: BigNumberish,
-      _amount: BigNumberish,
-      _isGasFee: boolean,
-      _data: BytesLike,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    metaSetApprovalForAll(
-      _owner: string,
-      _operator: string,
-      _approved: boolean,
-      _isGasFee: boolean,
-      _data: BytesLike,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
 
     onERC1155BatchReceived(
       arg0: string,
@@ -485,8 +394,6 @@ export class NiftyswapExchange extends Contract {
 
   getFactoryAddress(overrides?: CallOverrides): Promise<string>;
 
-  getNonce(_signer: string, overrides?: CallOverrides): Promise<BigNumber>;
-
   getPrice_currencyToToken(
     _ids: BigNumberish[],
     _tokensBought: BigNumberish[],
@@ -518,43 +425,6 @@ export class NiftyswapExchange extends Contract {
     _operator: string,
     overrides?: CallOverrides
   ): Promise<boolean>;
-
-  isValidSignature(
-    _signerAddress: string,
-    _hash: BytesLike,
-    _data: BytesLike,
-    _sig: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  metaSafeBatchTransferFrom(
-    _from: string,
-    _to: string,
-    _ids: BigNumberish[],
-    _amounts: BigNumberish[],
-    _isGasFee: boolean,
-    _data: BytesLike,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  metaSafeTransferFrom(
-    _from: string,
-    _to: string,
-    _id: BigNumberish,
-    _amount: BigNumberish,
-    _isGasFee: boolean,
-    _data: BytesLike,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  metaSetApprovalForAll(
-    _owner: string,
-    _operator: string,
-    _approved: boolean,
-    _isGasFee: boolean,
-    _data: BytesLike,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
 
   onERC1155BatchReceived(
     arg0: string,
@@ -637,8 +507,6 @@ export class NiftyswapExchange extends Contract {
 
     getFactoryAddress(overrides?: CallOverrides): Promise<string>;
 
-    getNonce(_signer: string, overrides?: CallOverrides): Promise<BigNumber>;
-
     getPrice_currencyToToken(
       _ids: BigNumberish[],
       _tokensBought: BigNumberish[],
@@ -670,43 +538,6 @@ export class NiftyswapExchange extends Contract {
       _operator: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
-
-    isValidSignature(
-      _signerAddress: string,
-      _hash: BytesLike,
-      _data: BytesLike,
-      _sig: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    metaSafeBatchTransferFrom(
-      _from: string,
-      _to: string,
-      _ids: BigNumberish[],
-      _amounts: BigNumberish[],
-      _isGasFee: boolean,
-      _data: BytesLike,
-      overrides?: Overrides
-    ): Promise<void>;
-
-    metaSafeTransferFrom(
-      _from: string,
-      _to: string,
-      _id: BigNumberish,
-      _amount: BigNumberish,
-      _isGasFee: boolean,
-      _data: BytesLike,
-      overrides?: Overrides
-    ): Promise<void>;
-
-    metaSetApprovalForAll(
-      _owner: string,
-      _operator: string,
-      _approved: boolean,
-      _isGasFee: boolean,
-      _data: BytesLike,
-      overrides?: Overrides
-    ): Promise<void>;
 
     onERC1155BatchReceived(
       arg0: string,
@@ -785,8 +616,6 @@ export class NiftyswapExchange extends Contract {
       currencyAmounts: null
     ): EventFilter;
 
-    NonceChange(signer: string | null, newNonce: null): EventFilter;
-
     TokensPurchase(
       buyer: string | null,
       recipient: string | null,
@@ -810,8 +639,6 @@ export class NiftyswapExchange extends Contract {
       _id: null,
       _amount: null
     ): EventFilter;
-
-    URI(_amount: null, _id: BigNumberish | null): EventFilter;
   };
 
   estimateGas: {
@@ -825,7 +652,6 @@ export class NiftyswapExchange extends Contract {
     getCurrencyInfo(): Promise<BigNumber>;
     getCurrencyReserves(_ids: BigNumberish[]): Promise<BigNumber>;
     getFactoryAddress(): Promise<BigNumber>;
-    getNonce(_signer: string): Promise<BigNumber>;
     getPrice_currencyToToken(
       _ids: BigNumberish[],
       _tokensBought: BigNumberish[]
@@ -842,35 +668,6 @@ export class NiftyswapExchange extends Contract {
     getTokenAddress(): Promise<BigNumber>;
     getTotalSupply(_ids: BigNumberish[]): Promise<BigNumber>;
     isApprovedForAll(_owner: string, _operator: string): Promise<BigNumber>;
-    isValidSignature(
-      _signerAddress: string,
-      _hash: BytesLike,
-      _data: BytesLike,
-      _sig: BytesLike
-    ): Promise<BigNumber>;
-    metaSafeBatchTransferFrom(
-      _from: string,
-      _to: string,
-      _ids: BigNumberish[],
-      _amounts: BigNumberish[],
-      _isGasFee: boolean,
-      _data: BytesLike
-    ): Promise<BigNumber>;
-    metaSafeTransferFrom(
-      _from: string,
-      _to: string,
-      _id: BigNumberish,
-      _amount: BigNumberish,
-      _isGasFee: boolean,
-      _data: BytesLike
-    ): Promise<BigNumber>;
-    metaSetApprovalForAll(
-      _owner: string,
-      _operator: string,
-      _approved: boolean,
-      _isGasFee: boolean,
-      _data: BytesLike
-    ): Promise<BigNumber>;
     onERC1155BatchReceived(
       arg0: string,
       _from: string,
@@ -920,7 +717,6 @@ export class NiftyswapExchange extends Contract {
     getCurrencyInfo(): Promise<PopulatedTransaction>;
     getCurrencyReserves(_ids: BigNumberish[]): Promise<PopulatedTransaction>;
     getFactoryAddress(): Promise<PopulatedTransaction>;
-    getNonce(_signer: string): Promise<PopulatedTransaction>;
     getPrice_currencyToToken(
       _ids: BigNumberish[],
       _tokensBought: BigNumberish[]
@@ -939,35 +735,6 @@ export class NiftyswapExchange extends Contract {
     isApprovedForAll(
       _owner: string,
       _operator: string
-    ): Promise<PopulatedTransaction>;
-    isValidSignature(
-      _signerAddress: string,
-      _hash: BytesLike,
-      _data: BytesLike,
-      _sig: BytesLike
-    ): Promise<PopulatedTransaction>;
-    metaSafeBatchTransferFrom(
-      _from: string,
-      _to: string,
-      _ids: BigNumberish[],
-      _amounts: BigNumberish[],
-      _isGasFee: boolean,
-      _data: BytesLike
-    ): Promise<PopulatedTransaction>;
-    metaSafeTransferFrom(
-      _from: string,
-      _to: string,
-      _id: BigNumberish,
-      _amount: BigNumberish,
-      _isGasFee: boolean,
-      _data: BytesLike
-    ): Promise<PopulatedTransaction>;
-    metaSetApprovalForAll(
-      _owner: string,
-      _operator: string,
-      _approved: boolean,
-      _isGasFee: boolean,
-      _data: BytesLike
     ): Promise<PopulatedTransaction>;
     onERC1155BatchReceived(
       arg0: string,

@@ -19,22 +19,23 @@ import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 
-interface Erc1155MetaPackedBalanceInterface extends ethers.utils.Interface {
+interface Erc1155MintBurnPackedBalanceMockInterface
+  extends ethers.utils.Interface {
   functions: {
     "balanceOf(address,uint256)": FunctionFragment;
     "balanceOfBatch(address[],uint256[])": FunctionFragment;
+    "batchBurnMock(address,uint256[],uint256[])": FunctionFragment;
+    "batchMintMock(address,uint256[],uint256[],bytes)": FunctionFragment;
+    "burnMock(address,uint256,uint256)": FunctionFragment;
     "getIDBinIndex(uint256)": FunctionFragment;
-    "getNonce(address)": FunctionFragment;
     "getValueInBin(uint256,uint256)": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
-    "isValidSignature(address,bytes32,bytes,bytes)": FunctionFragment;
-    "metaSafeBatchTransferFrom(address,address,uint256[],uint256[],bool,bytes)": FunctionFragment;
-    "metaSafeTransferFrom(address,address,uint256,uint256,bool,bytes)": FunctionFragment;
-    "metaSetApprovalForAll(address,address,bool,bool,bytes)": FunctionFragment;
+    "mintMock(address,uint256,uint256,bytes)": FunctionFragment;
     "safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)": FunctionFragment;
     "safeTransferFrom(address,address,uint256,uint256,bytes)": FunctionFragment;
     "setApprovalForAll(address,bool)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
+    "uri(uint256)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -46,10 +47,21 @@ interface Erc1155MetaPackedBalanceInterface extends ethers.utils.Interface {
     values: [string[], BigNumberish[]]
   ): string;
   encodeFunctionData(
+    functionFragment: "batchBurnMock",
+    values: [string, BigNumberish[], BigNumberish[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "batchMintMock",
+    values: [string, BigNumberish[], BigNumberish[], BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "burnMock",
+    values: [string, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getIDBinIndex",
     values: [BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "getNonce", values: [string]): string;
   encodeFunctionData(
     functionFragment: "getValueInBin",
     values: [BigNumberish, BigNumberish]
@@ -59,20 +71,8 @@ interface Erc1155MetaPackedBalanceInterface extends ethers.utils.Interface {
     values: [string, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "isValidSignature",
-    values: [string, BytesLike, BytesLike, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "metaSafeBatchTransferFrom",
-    values: [string, string, BigNumberish[], BigNumberish[], boolean, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "metaSafeTransferFrom",
-    values: [string, string, BigNumberish, BigNumberish, boolean, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "metaSetApprovalForAll",
-    values: [string, string, boolean, boolean, BytesLike]
+    functionFragment: "mintMock",
+    values: [string, BigNumberish, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "safeBatchTransferFrom",
@@ -90,6 +90,7 @@ interface Erc1155MetaPackedBalanceInterface extends ethers.utils.Interface {
     functionFragment: "supportsInterface",
     values: [BytesLike]
   ): string;
+  encodeFunctionData(functionFragment: "uri", values: [BigNumberish]): string;
 
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(
@@ -97,10 +98,18 @@ interface Erc1155MetaPackedBalanceInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "batchBurnMock",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "batchMintMock",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "burnMock", data: BytesLike): Result;
+  decodeFunctionResult(
     functionFragment: "getIDBinIndex",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "getNonce", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getValueInBin",
     data: BytesLike
@@ -109,22 +118,7 @@ interface Erc1155MetaPackedBalanceInterface extends ethers.utils.Interface {
     functionFragment: "isApprovedForAll",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "isValidSignature",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "metaSafeBatchTransferFrom",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "metaSafeTransferFrom",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "metaSetApprovalForAll",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "mintMock", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "safeBatchTransferFrom",
     data: BytesLike
@@ -141,23 +135,22 @@ interface Erc1155MetaPackedBalanceInterface extends ethers.utils.Interface {
     functionFragment: "supportsInterface",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "uri", data: BytesLike): Result;
 
   events: {
     "ApprovalForAll(address,address,bool)": EventFragment;
-    "NonceChange(address,uint256)": EventFragment;
     "TransferBatch(address,address,address,uint256[],uint256[])": EventFragment;
     "TransferSingle(address,address,address,uint256,uint256)": EventFragment;
     "URI(string,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "ApprovalForAll"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "NonceChange"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferBatch"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferSingle"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "URI"): EventFragment;
 }
 
-export class Erc1155MetaPackedBalance extends Contract {
+export class Erc1155MintBurnPackedBalanceMock extends Contract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -168,7 +161,7 @@ export class Erc1155MetaPackedBalance extends Contract {
   removeAllListeners(eventName: EventFilter | string): this;
   removeListener(eventName: any, listener: Listener): this;
 
-  interface: Erc1155MetaPackedBalanceInterface;
+  interface: Erc1155MintBurnPackedBalanceMockInterface;
 
   functions: {
     balanceOf(
@@ -187,6 +180,28 @@ export class Erc1155MetaPackedBalance extends Contract {
       0: BigNumber[];
     }>;
 
+    batchBurnMock(
+      _from: string,
+      _ids: BigNumberish[],
+      _values: BigNumberish[],
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
+    batchMintMock(
+      _to: string,
+      _ids: BigNumberish[],
+      _values: BigNumberish[],
+      _data: BytesLike,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
+    burnMock(
+      _from: string,
+      _id: BigNumberish,
+      _value: BigNumberish,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
     getIDBinIndex(
       _id: BigNumberish,
       overrides?: CallOverrides
@@ -195,14 +210,6 @@ export class Erc1155MetaPackedBalance extends Contract {
       index: BigNumber;
       0: BigNumber;
       1: BigNumber;
-    }>;
-
-    getNonce(
-      _signer: string,
-      overrides?: CallOverrides
-    ): Promise<{
-      nonce: BigNumber;
-      0: BigNumber;
     }>;
 
     getValueInBin(
@@ -222,42 +229,10 @@ export class Erc1155MetaPackedBalance extends Contract {
       0: boolean;
     }>;
 
-    isValidSignature(
-      _signerAddress: string,
-      _hash: BytesLike,
-      _data: BytesLike,
-      _sig: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<{
-      isValid: boolean;
-      0: boolean;
-    }>;
-
-    metaSafeBatchTransferFrom(
-      _from: string,
-      _to: string,
-      _ids: BigNumberish[],
-      _amounts: BigNumberish[],
-      _isGasFee: boolean,
-      _data: BytesLike,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    metaSafeTransferFrom(
-      _from: string,
+    mintMock(
       _to: string,
       _id: BigNumberish,
-      _amount: BigNumberish,
-      _isGasFee: boolean,
-      _data: BytesLike,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    metaSetApprovalForAll(
-      _owner: string,
-      _operator: string,
-      _approved: boolean,
-      _isGasFee: boolean,
+      _value: BigNumberish,
       _data: BytesLike,
       overrides?: Overrides
     ): Promise<ContractTransaction>;
@@ -292,6 +267,13 @@ export class Erc1155MetaPackedBalance extends Contract {
     ): Promise<{
       0: boolean;
     }>;
+
+    uri(
+      _id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<{
+      0: string;
+    }>;
   };
 
   balanceOf(
@@ -306,6 +288,28 @@ export class Erc1155MetaPackedBalance extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber[]>;
 
+  batchBurnMock(
+    _from: string,
+    _ids: BigNumberish[],
+    _values: BigNumberish[],
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
+  batchMintMock(
+    _to: string,
+    _ids: BigNumberish[],
+    _values: BigNumberish[],
+    _data: BytesLike,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
+  burnMock(
+    _from: string,
+    _id: BigNumberish,
+    _value: BigNumberish,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
   getIDBinIndex(
     _id: BigNumberish,
     overrides?: CallOverrides
@@ -315,8 +319,6 @@ export class Erc1155MetaPackedBalance extends Contract {
     0: BigNumber;
     1: BigNumber;
   }>;
-
-  getNonce(_signer: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   getValueInBin(
     _binValues: BigNumberish,
@@ -330,39 +332,10 @@ export class Erc1155MetaPackedBalance extends Contract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  isValidSignature(
-    _signerAddress: string,
-    _hash: BytesLike,
-    _data: BytesLike,
-    _sig: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  metaSafeBatchTransferFrom(
-    _from: string,
-    _to: string,
-    _ids: BigNumberish[],
-    _amounts: BigNumberish[],
-    _isGasFee: boolean,
-    _data: BytesLike,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  metaSafeTransferFrom(
-    _from: string,
+  mintMock(
     _to: string,
     _id: BigNumberish,
-    _amount: BigNumberish,
-    _isGasFee: boolean,
-    _data: BytesLike,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  metaSetApprovalForAll(
-    _owner: string,
-    _operator: string,
-    _approved: boolean,
-    _isGasFee: boolean,
+    _value: BigNumberish,
     _data: BytesLike,
     overrides?: Overrides
   ): Promise<ContractTransaction>;
@@ -396,6 +369,8 @@ export class Erc1155MetaPackedBalance extends Contract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
+  uri(_id: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
   staticCall: {
     balanceOf(
       _owner: string,
@@ -409,6 +384,28 @@ export class Erc1155MetaPackedBalance extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber[]>;
 
+    batchBurnMock(
+      _from: string,
+      _ids: BigNumberish[],
+      _values: BigNumberish[],
+      overrides?: Overrides
+    ): Promise<void>;
+
+    batchMintMock(
+      _to: string,
+      _ids: BigNumberish[],
+      _values: BigNumberish[],
+      _data: BytesLike,
+      overrides?: Overrides
+    ): Promise<void>;
+
+    burnMock(
+      _from: string,
+      _id: BigNumberish,
+      _value: BigNumberish,
+      overrides?: Overrides
+    ): Promise<void>;
+
     getIDBinIndex(
       _id: BigNumberish,
       overrides?: CallOverrides
@@ -418,8 +415,6 @@ export class Erc1155MetaPackedBalance extends Contract {
       0: BigNumber;
       1: BigNumber;
     }>;
-
-    getNonce(_signer: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     getValueInBin(
       _binValues: BigNumberish,
@@ -433,39 +428,10 @@ export class Erc1155MetaPackedBalance extends Contract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    isValidSignature(
-      _signerAddress: string,
-      _hash: BytesLike,
-      _data: BytesLike,
-      _sig: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    metaSafeBatchTransferFrom(
-      _from: string,
-      _to: string,
-      _ids: BigNumberish[],
-      _amounts: BigNumberish[],
-      _isGasFee: boolean,
-      _data: BytesLike,
-      overrides?: Overrides
-    ): Promise<void>;
-
-    metaSafeTransferFrom(
-      _from: string,
+    mintMock(
       _to: string,
       _id: BigNumberish,
-      _amount: BigNumberish,
-      _isGasFee: boolean,
-      _data: BytesLike,
-      overrides?: Overrides
-    ): Promise<void>;
-
-    metaSetApprovalForAll(
-      _owner: string,
-      _operator: string,
-      _approved: boolean,
-      _isGasFee: boolean,
+      _value: BigNumberish,
       _data: BytesLike,
       overrides?: Overrides
     ): Promise<void>;
@@ -498,6 +464,8 @@ export class Erc1155MetaPackedBalance extends Contract {
       _interfaceID: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    uri(_id: BigNumberish, overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -506,8 +474,6 @@ export class Erc1155MetaPackedBalance extends Contract {
       _operator: string | null,
       _approved: null
     ): EventFilter;
-
-    NonceChange(signer: string | null, newNonce: null): EventFilter;
 
     TransferBatch(
       _operator: string | null,
@@ -525,46 +491,38 @@ export class Erc1155MetaPackedBalance extends Contract {
       _amount: null
     ): EventFilter;
 
-    URI(_amount: null, _id: BigNumberish | null): EventFilter;
+    URI(_uri: null, _id: BigNumberish | null): EventFilter;
   };
 
   estimateGas: {
     balanceOf(_owner: string, _id: BigNumberish): Promise<BigNumber>;
     balanceOfBatch(_owners: string[], _ids: BigNumberish[]): Promise<BigNumber>;
+    batchBurnMock(
+      _from: string,
+      _ids: BigNumberish[],
+      _values: BigNumberish[]
+    ): Promise<BigNumber>;
+    batchMintMock(
+      _to: string,
+      _ids: BigNumberish[],
+      _values: BigNumberish[],
+      _data: BytesLike
+    ): Promise<BigNumber>;
+    burnMock(
+      _from: string,
+      _id: BigNumberish,
+      _value: BigNumberish
+    ): Promise<BigNumber>;
     getIDBinIndex(_id: BigNumberish): Promise<BigNumber>;
-    getNonce(_signer: string): Promise<BigNumber>;
     getValueInBin(
       _binValues: BigNumberish,
       _index: BigNumberish
     ): Promise<BigNumber>;
     isApprovedForAll(_owner: string, _operator: string): Promise<BigNumber>;
-    isValidSignature(
-      _signerAddress: string,
-      _hash: BytesLike,
-      _data: BytesLike,
-      _sig: BytesLike
-    ): Promise<BigNumber>;
-    metaSafeBatchTransferFrom(
-      _from: string,
-      _to: string,
-      _ids: BigNumberish[],
-      _amounts: BigNumberish[],
-      _isGasFee: boolean,
-      _data: BytesLike
-    ): Promise<BigNumber>;
-    metaSafeTransferFrom(
-      _from: string,
+    mintMock(
       _to: string,
       _id: BigNumberish,
-      _amount: BigNumberish,
-      _isGasFee: boolean,
-      _data: BytesLike
-    ): Promise<BigNumber>;
-    metaSetApprovalForAll(
-      _owner: string,
-      _operator: string,
-      _approved: boolean,
-      _isGasFee: boolean,
+      _value: BigNumberish,
       _data: BytesLike
     ): Promise<BigNumber>;
     safeBatchTransferFrom(
@@ -586,6 +544,7 @@ export class Erc1155MetaPackedBalance extends Contract {
       _approved: boolean
     ): Promise<BigNumber>;
     supportsInterface(_interfaceID: BytesLike): Promise<BigNumber>;
+    uri(_id: BigNumberish): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -594,8 +553,23 @@ export class Erc1155MetaPackedBalance extends Contract {
       _owners: string[],
       _ids: BigNumberish[]
     ): Promise<PopulatedTransaction>;
+    batchBurnMock(
+      _from: string,
+      _ids: BigNumberish[],
+      _values: BigNumberish[]
+    ): Promise<PopulatedTransaction>;
+    batchMintMock(
+      _to: string,
+      _ids: BigNumberish[],
+      _values: BigNumberish[],
+      _data: BytesLike
+    ): Promise<PopulatedTransaction>;
+    burnMock(
+      _from: string,
+      _id: BigNumberish,
+      _value: BigNumberish
+    ): Promise<PopulatedTransaction>;
     getIDBinIndex(_id: BigNumberish): Promise<PopulatedTransaction>;
-    getNonce(_signer: string): Promise<PopulatedTransaction>;
     getValueInBin(
       _binValues: BigNumberish,
       _index: BigNumberish
@@ -604,33 +578,10 @@ export class Erc1155MetaPackedBalance extends Contract {
       _owner: string,
       _operator: string
     ): Promise<PopulatedTransaction>;
-    isValidSignature(
-      _signerAddress: string,
-      _hash: BytesLike,
-      _data: BytesLike,
-      _sig: BytesLike
-    ): Promise<PopulatedTransaction>;
-    metaSafeBatchTransferFrom(
-      _from: string,
-      _to: string,
-      _ids: BigNumberish[],
-      _amounts: BigNumberish[],
-      _isGasFee: boolean,
-      _data: BytesLike
-    ): Promise<PopulatedTransaction>;
-    metaSafeTransferFrom(
-      _from: string,
+    mintMock(
       _to: string,
       _id: BigNumberish,
-      _amount: BigNumberish,
-      _isGasFee: boolean,
-      _data: BytesLike
-    ): Promise<PopulatedTransaction>;
-    metaSetApprovalForAll(
-      _owner: string,
-      _operator: string,
-      _approved: boolean,
-      _isGasFee: boolean,
+      _value: BigNumberish,
       _data: BytesLike
     ): Promise<PopulatedTransaction>;
     safeBatchTransferFrom(
@@ -652,5 +603,6 @@ export class Erc1155MetaPackedBalance extends Contract {
       _approved: boolean
     ): Promise<PopulatedTransaction>;
     supportsInterface(_interfaceID: BytesLike): Promise<PopulatedTransaction>;
+    uri(_id: BigNumberish): Promise<PopulatedTransaction>;
   };
 }

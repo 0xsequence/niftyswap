@@ -129,14 +129,12 @@ interface Erc1155MetaInterface extends ethers.utils.Interface {
     "NonceChange(address,uint256)": EventFragment;
     "TransferBatch(address,address,address,uint256[],uint256[])": EventFragment;
     "TransferSingle(address,address,address,uint256,uint256)": EventFragment;
-    "URI(string,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "ApprovalForAll"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NonceChange"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferBatch"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferSingle"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "URI"): EventFragment;
 }
 
 export class Erc1155Meta extends Contract {
@@ -456,8 +454,6 @@ export class Erc1155Meta extends Contract {
       _id: null,
       _amount: null
     ): EventFilter;
-
-    URI(_amount: null, _id: BigNumberish | null): EventFilter;
   };
 
   estimateGas: {

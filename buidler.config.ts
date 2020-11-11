@@ -9,7 +9,7 @@ const config: BuidlerConfig = {
     artifacts: './artifacts'
   },
   solc: {
-    version: '0.6.8',
+    version: '0.7.4',
     optimizer: {
       enabled: true,
       runs: 200

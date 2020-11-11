@@ -27,7 +27,11 @@ interface Ierc1155MetadataInterface extends ethers.utils.Interface {
 
   decodeFunctionResult(functionFragment: "uri", data: BytesLike): Result;
 
-  events: {};
+  events: {
+    "URI(string,uint256)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "URI"): EventFragment;
 }
 
 export class Ierc1155Metadata extends Contract {
@@ -58,7 +62,9 @@ export class Ierc1155Metadata extends Contract {
     uri(_id: BigNumberish, overrides?: CallOverrides): Promise<string>;
   };
 
-  filters: {};
+  filters: {
+    URI(_uri: null, _id: BigNumberish | null): EventFilter;
+  };
 
   estimateGas: {
     uri(_id: BigNumberish): Promise<BigNumber>;

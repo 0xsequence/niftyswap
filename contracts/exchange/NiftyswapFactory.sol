@@ -1,4 +1,4 @@
-pragma solidity ^0.6.8;
+pragma solidity 0.7.4;
 import "./NiftyswapExchange.sol";
 import "../interfaces/INiftyswapFactory.sol";
 
@@ -11,7 +11,6 @@ contract NiftyswapFactory is INiftyswapFactory {
 
   // tokensToExchange[erc1155_token_address][currency_address][currency_token_id]
   mapping(address => mapping(address => mapping(uint256 => address))) public override tokensToExchange;
-  event NewExchange(address indexed token, address indexed currency, uint256 indexed currencyID, address exchange);
 
   /***********************************|
   |            Constructor            |
