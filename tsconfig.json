@@ -10,11 +10,5 @@
     "strictPropertyInitialization": false
   },
   "include": ["test", "typings"],
-  "files": [
-    "./buidler.config.ts",
-    "./node_modules/@nomiclabs/buidler-ethers/src/type-extensions.d.ts",
-    "./node_modules/@nomiclabs/buidler-web3/src/type-extensions.d.ts",
-    "./node_modules/@nomiclabs/buidler-truffle5/src/type-extensions.d.ts",
-    "./node_modules/buidler-gas-reporter/src/type-extensions.d.ts"
-  ]
+  "files": ["./hardhat.config.ts"]
 }

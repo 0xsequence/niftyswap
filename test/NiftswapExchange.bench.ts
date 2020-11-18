@@ -15,13 +15,13 @@ import {
 
 import * as utils from './utils'
 
-import { Erc1155Mock } from '../typings/contracts/Erc1155Mock'
-import { Erc1155PackedBalanceMock } from '../typings/contracts/Erc1155PackedBalanceMock'
+import { ERC1155Mock } from '../typings/contracts/ERC1155Mock'
+import { ERC1155PackedBalanceMock } from '../typings/contracts/ERC1155PackedBalanceMock'
 import { NiftyswapExchange } from '../typings/contracts/NiftyswapExchange'
 import { NiftyswapFactory } from '../typings/contracts/NiftyswapFactory'
 //@ts-ignore
-import { abi as exchangeABI } from '../artifacts/NiftyswapExchange.json'
-import { web3 } from '@nomiclabs/buidler'
+import { abi as exchangeABI } from '../artifacts/contracts/exchange/NiftyswapExchange.sol/NiftyswapExchange.json'
+import { web3 } from 'hardhat'
 
 // init test wallets from package.json mnemonic
 
@@ -59,14 +59,14 @@ describe('NiftyswapExchange', () => {
   let operatorAbstract: AbstractContract
 
   // ERC-1155 token
-  let ownerERC1155Contract: Erc1155PackedBalanceMock
-  let userERC1155Contract: Erc1155PackedBalanceMock
-  let operatorERC1155Contract: Erc1155PackedBalanceMock
+  let ownerERC1155Contract: ERC1155PackedBalanceMock
+  let userERC1155Contract: ERC1155PackedBalanceMock
+  let operatorERC1155Contract: ERC1155PackedBalanceMock
 
   // Currency
-  let ownerCurrencyContract: Erc1155Mock
-  let userCurrencyContract: Erc1155Mock
-  let operatorCurrencyContract: Erc1155Mock
+  let ownerCurrencyContract: ERC1155Mock
+  let userCurrencyContract: ERC1155Mock
+  let operatorCurrencyContract: ERC1155Mock
 
 
   let niftyswapFactoryContract: NiftyswapFactory
@@ -97,14 +97,14 @@ describe('NiftyswapExchange', () => {
   // deploy before each test, to reset state of contract
   beforeEach(async () => {
     // Deploy currency contract
-    ownerCurrencyContract = await erc1155Abstract.deploy(ownerWallet) as Erc1155Mock
-    userCurrencyContract = await ownerCurrencyContract.connect(userSigner) as Erc1155Mock
-    operatorCurrencyContract = await ownerCurrencyContract.connect(operatorSigner) as Erc1155Mock
+    ownerCurrencyContract = await erc1155Abstract.deploy(ownerWallet) as ERC1155Mock
+    userCurrencyContract = await ownerCurrencyContract.connect(userSigner) as ERC1155Mock
+    operatorCurrencyContract = await ownerCurrencyContract.connect(operatorSigner) as ERC1155Mock
 
     // Deploy ERC-1155
-    ownerERC1155Contract = await erc1155PackedAbstract.deploy(ownerWallet) as Erc1155PackedBalanceMock
-    operatorERC1155Contract = await ownerERC1155Contract.connect(operatorSigner) as Erc1155PackedBalanceMock
-    userERC1155Contract = await ownerERC1155Contract.connect(userSigner) as Erc1155PackedBalanceMock
+    ownerERC1155Contract = await erc1155PackedAbstract.deploy(ownerWallet) as ERC1155PackedBalanceMock
+    operatorERC1155Contract = await ownerERC1155Contract.connect(operatorSigner) as ERC1155PackedBalanceMock
+    userERC1155Contract = await ownerERC1155Contract.connect(userSigner) as ERC1155PackedBalanceMock
     
     // Deploy Niftyswap factory
     niftyswapFactoryContract = await niftyswapFactoryAbstract.deploy(ownerWallet) as NiftyswapFactory

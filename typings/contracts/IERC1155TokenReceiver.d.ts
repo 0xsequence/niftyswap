@@ -20,11 +20,10 @@ import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 
-interface IWrapAndNiftyswapInterface extends ethers.utils.Interface {
+interface IERC1155TokenReceiverInterface extends ethers.utils.Interface {
   functions: {
     "onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)": FunctionFragment;
     "onERC1155Received(address,address,uint256,uint256,bytes)": FunctionFragment;
-    "wrapAndSwap(uint256,address,bytes)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -35,10 +34,6 @@ interface IWrapAndNiftyswapInterface extends ethers.utils.Interface {
     functionFragment: "onERC1155Received",
     values: [string, string, BigNumberish, BigNumberish, BytesLike]
   ): string;
-  encodeFunctionData(
-    functionFragment: "wrapAndSwap",
-    values: [BigNumberish, string, BytesLike]
-  ): string;
 
   decodeFunctionResult(
     functionFragment: "onERC1155BatchReceived",
@@ -48,15 +43,11 @@ interface IWrapAndNiftyswapInterface extends ethers.utils.Interface {
     functionFragment: "onERC1155Received",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "wrapAndSwap",
-    data: BytesLike
-  ): Result;
 
   events: {};
 }
 
-export class IWrapAndNiftyswap extends Contract {
+export class IERC1155TokenReceiver extends Contract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -67,11 +58,11 @@ export class IWrapAndNiftyswap extends Contract {
   removeAllListeners(eventName: EventFilter | string): this;
   removeListener(eventName: any, listener: Listener): this;
 
-  interface: IWrapAndNiftyswapInterface;
+  interface: IERC1155TokenReceiverInterface;
 
   functions: {
     onERC1155BatchReceived(
-      arg0: string,
+      _operator: string,
       _from: string,
       _ids: BigNumberish[],
       _amounts: BigNumberish[],
@@ -80,7 +71,7 @@ export class IWrapAndNiftyswap extends Contract {
     ): Promise<ContractTransaction>;
 
     "onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"(
-      arg0: string,
+      _operator: string,
       _from: string,
       _ids: BigNumberish[],
       _amounts: BigNumberish[],
@@ -105,24 +96,10 @@ export class IWrapAndNiftyswap extends Contract {
       _data: BytesLike,
       overrides?: Overrides
     ): Promise<ContractTransaction>;
-
-    wrapAndSwap(
-      _maxAmount: BigNumberish,
-      _recipient: string,
-      _niftyswapOrder: BytesLike,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "wrapAndSwap(uint256,address,bytes)"(
-      _maxAmount: BigNumberish,
-      _recipient: string,
-      _niftyswapOrder: BytesLike,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
   };
 
   onERC1155BatchReceived(
-    arg0: string,
+    _operator: string,
     _from: string,
     _ids: BigNumberish[],
     _amounts: BigNumberish[],
@@ -131,7 +108,7 @@ export class IWrapAndNiftyswap extends Contract {
   ): Promise<ContractTransaction>;
 
   "onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"(
-    arg0: string,
+    _operator: string,
     _from: string,
     _ids: BigNumberish[],
     _amounts: BigNumberish[],
@@ -157,23 +134,9 @@ export class IWrapAndNiftyswap extends Contract {
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
-  wrapAndSwap(
-    _maxAmount: BigNumberish,
-    _recipient: string,
-    _niftyswapOrder: BytesLike,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "wrapAndSwap(uint256,address,bytes)"(
-    _maxAmount: BigNumberish,
-    _recipient: string,
-    _niftyswapOrder: BytesLike,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
   callStatic: {
     onERC1155BatchReceived(
-      arg0: string,
+      _operator: string,
       _from: string,
       _ids: BigNumberish[],
       _amounts: BigNumberish[],
@@ -182,7 +145,7 @@ export class IWrapAndNiftyswap extends Contract {
     ): Promise<string>;
 
     "onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"(
-      arg0: string,
+      _operator: string,
       _from: string,
       _ids: BigNumberish[],
       _amounts: BigNumberish[],
@@ -207,27 +170,13 @@ export class IWrapAndNiftyswap extends Contract {
       _data: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
-
-    wrapAndSwap(
-      _maxAmount: BigNumberish,
-      _recipient: string,
-      _niftyswapOrder: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "wrapAndSwap(uint256,address,bytes)"(
-      _maxAmount: BigNumberish,
-      _recipient: string,
-      _niftyswapOrder: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
   };
 
   filters: {};
 
   estimateGas: {
     onERC1155BatchReceived(
-      arg0: string,
+      _operator: string,
       _from: string,
       _ids: BigNumberish[],
       _amounts: BigNumberish[],
@@ -236,7 +185,7 @@ export class IWrapAndNiftyswap extends Contract {
     ): Promise<BigNumber>;
 
     "onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"(
-      arg0: string,
+      _operator: string,
       _from: string,
       _ids: BigNumberish[],
       _amounts: BigNumberish[],
@@ -259,27 +208,13 @@ export class IWrapAndNiftyswap extends Contract {
       _id: BigNumberish,
       _amount: BigNumberish,
       _data: BytesLike,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    wrapAndSwap(
-      _maxAmount: BigNumberish,
-      _recipient: string,
-      _niftyswapOrder: BytesLike,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "wrapAndSwap(uint256,address,bytes)"(
-      _maxAmount: BigNumberish,
-      _recipient: string,
-      _niftyswapOrder: BytesLike,
       overrides?: Overrides
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     onERC1155BatchReceived(
-      arg0: string,
+      _operator: string,
       _from: string,
       _ids: BigNumberish[],
       _amounts: BigNumberish[],
@@ -288,7 +223,7 @@ export class IWrapAndNiftyswap extends Contract {
     ): Promise<PopulatedTransaction>;
 
     "onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"(
-      arg0: string,
+      _operator: string,
       _from: string,
       _ids: BigNumberish[],
       _amounts: BigNumberish[],
@@ -311,20 +246,6 @@ export class IWrapAndNiftyswap extends Contract {
       _id: BigNumberish,
       _amount: BigNumberish,
       _data: BytesLike,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    wrapAndSwap(
-      _maxAmount: BigNumberish,
-      _recipient: string,
-      _niftyswapOrder: BytesLike,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "wrapAndSwap(uint256,address,bytes)"(
-      _maxAmount: BigNumberish,
-      _recipient: string,
-      _niftyswapOrder: BytesLike,
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
   };
