@@ -19,14 +19,14 @@ import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 
-interface SignatureValidatorInterface extends ethers.utils.Interface {
+interface IERC1271WalletInterface extends ethers.utils.Interface {
   functions: {
-    "isValidSignature(address,bytes32,bytes,bytes)": FunctionFragment;
+    "isValidSignature(bytes32,bytes)": FunctionFragment;
   };
 
   encodeFunctionData(
     functionFragment: "isValidSignature",
-    values: [string, BytesLike, BytesLike, BytesLike]
+    values: [BytesLike, BytesLike]
   ): string;
 
   decodeFunctionResult(
@@ -37,7 +37,7 @@ interface SignatureValidatorInterface extends ethers.utils.Interface {
   events: {};
 }
 
-export class SignatureValidator extends Contract {
+export class IERC1271Wallet extends Contract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -48,100 +48,80 @@ export class SignatureValidator extends Contract {
   removeAllListeners(eventName: EventFilter | string): this;
   removeListener(eventName: any, listener: Listener): this;
 
-  interface: SignatureValidatorInterface;
+  interface: IERC1271WalletInterface;
 
   functions: {
-    isValidSignature(
-      _signerAddress: string,
+    "isValidSignature(bytes32,bytes)"(
       _hash: BytesLike,
-      _data: BytesLike,
-      _sig: BytesLike,
+      _signature: BytesLike,
       overrides?: CallOverrides
     ): Promise<{
-      isValid: boolean;
-      0: boolean;
+      magicValue: string;
+      0: string;
     }>;
 
-    "isValidSignature(address,bytes32,bytes,bytes)"(
-      _signerAddress: string,
-      _hash: BytesLike,
+    "isValidSignature(bytes,bytes)"(
       _data: BytesLike,
-      _sig: BytesLike,
+      _signature: BytesLike,
       overrides?: CallOverrides
     ): Promise<{
-      isValid: boolean;
-      0: boolean;
+      magicValue: string;
+      0: string;
     }>;
   };
 
-  isValidSignature(
-    _signerAddress: string,
+  "isValidSignature(bytes32,bytes)"(
     _hash: BytesLike,
-    _data: BytesLike,
-    _sig: BytesLike,
+    _signature: BytesLike,
     overrides?: CallOverrides
-  ): Promise<boolean>;
+  ): Promise<string>;
 
-  "isValidSignature(address,bytes32,bytes,bytes)"(
-    _signerAddress: string,
-    _hash: BytesLike,
+  "isValidSignature(bytes,bytes)"(
     _data: BytesLike,
-    _sig: BytesLike,
+    _signature: BytesLike,
     overrides?: CallOverrides
-  ): Promise<boolean>;
+  ): Promise<string>;
 
   callStatic: {
-    isValidSignature(
-      _signerAddress: string,
+    "isValidSignature(bytes32,bytes)"(
       _hash: BytesLike,
-      _data: BytesLike,
-      _sig: BytesLike,
+      _signature: BytesLike,
       overrides?: CallOverrides
-    ): Promise<boolean>;
+    ): Promise<string>;
 
-    "isValidSignature(address,bytes32,bytes,bytes)"(
-      _signerAddress: string,
-      _hash: BytesLike,
+    "isValidSignature(bytes,bytes)"(
       _data: BytesLike,
-      _sig: BytesLike,
+      _signature: BytesLike,
       overrides?: CallOverrides
-    ): Promise<boolean>;
+    ): Promise<string>;
   };
 
   filters: {};
 
   estimateGas: {
-    isValidSignature(
-      _signerAddress: string,
+    "isValidSignature(bytes32,bytes)"(
       _hash: BytesLike,
-      _data: BytesLike,
-      _sig: BytesLike,
+      _signature: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "isValidSignature(address,bytes32,bytes,bytes)"(
-      _signerAddress: string,
-      _hash: BytesLike,
+    "isValidSignature(bytes,bytes)"(
       _data: BytesLike,
-      _sig: BytesLike,
+      _signature: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    isValidSignature(
-      _signerAddress: string,
+    "isValidSignature(bytes32,bytes)"(
       _hash: BytesLike,
-      _data: BytesLike,
-      _sig: BytesLike,
+      _signature: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "isValidSignature(address,bytes32,bytes,bytes)"(
-      _signerAddress: string,
-      _hash: BytesLike,
+    "isValidSignature(bytes,bytes)"(
       _data: BytesLike,
-      _sig: BytesLike,
+      _signature: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };

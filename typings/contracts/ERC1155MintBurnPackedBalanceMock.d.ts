@@ -20,26 +20,23 @@ import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 
-interface NiftyswapExchangeInterface extends ethers.utils.Interface {
+interface ERC1155MintBurnPackedBalanceMockInterface
+  extends ethers.utils.Interface {
   functions: {
     "balanceOf(address,uint256)": FunctionFragment;
     "balanceOfBatch(address[],uint256[])": FunctionFragment;
-    "getBuyPrice(uint256,uint256,uint256)": FunctionFragment;
-    "getCurrencyInfo()": FunctionFragment;
-    "getCurrencyReserves(uint256[])": FunctionFragment;
-    "getFactoryAddress()": FunctionFragment;
-    "getPrice_currencyToToken(uint256[],uint256[])": FunctionFragment;
-    "getPrice_tokenToCurrency(uint256[],uint256[])": FunctionFragment;
-    "getSellPrice(uint256,uint256,uint256)": FunctionFragment;
-    "getTokenAddress()": FunctionFragment;
-    "getTotalSupply(uint256[])": FunctionFragment;
+    "batchBurnMock(address,uint256[],uint256[])": FunctionFragment;
+    "batchMintMock(address,uint256[],uint256[],bytes)": FunctionFragment;
+    "burnMock(address,uint256,uint256)": FunctionFragment;
+    "getIDBinIndex(uint256)": FunctionFragment;
+    "getValueInBin(uint256,uint256)": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
-    "onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)": FunctionFragment;
-    "onERC1155Received(address,address,uint256,uint256,bytes)": FunctionFragment;
+    "mintMock(address,uint256,uint256,bytes)": FunctionFragment;
     "safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)": FunctionFragment;
     "safeTransferFrom(address,address,uint256,uint256,bytes)": FunctionFragment;
     "setApprovalForAll(address,bool)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
+    "uri(uint256)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -51,52 +48,32 @@ interface NiftyswapExchangeInterface extends ethers.utils.Interface {
     values: [string[], BigNumberish[]]
   ): string;
   encodeFunctionData(
-    functionFragment: "getBuyPrice",
-    values: [BigNumberish, BigNumberish, BigNumberish]
+    functionFragment: "batchBurnMock",
+    values: [string, BigNumberish[], BigNumberish[]]
   ): string;
   encodeFunctionData(
-    functionFragment: "getCurrencyInfo",
-    values?: undefined
+    functionFragment: "batchMintMock",
+    values: [string, BigNumberish[], BigNumberish[], BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "getCurrencyReserves",
-    values: [BigNumberish[]]
+    functionFragment: "burnMock",
+    values: [string, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "getFactoryAddress",
-    values?: undefined
+    functionFragment: "getIDBinIndex",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "getPrice_currencyToToken",
-    values: [BigNumberish[], BigNumberish[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getPrice_tokenToCurrency",
-    values: [BigNumberish[], BigNumberish[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getSellPrice",
-    values: [BigNumberish, BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getTokenAddress",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getTotalSupply",
-    values: [BigNumberish[]]
+    functionFragment: "getValueInBin",
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "isApprovedForAll",
     values: [string, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "onERC1155BatchReceived",
-    values: [string, string, BigNumberish[], BigNumberish[], BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "onERC1155Received",
-    values: [string, string, BigNumberish, BigNumberish, BytesLike]
+    functionFragment: "mintMock",
+    values: [string, BigNumberish, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "safeBatchTransferFrom",
@@ -114,6 +91,7 @@ interface NiftyswapExchangeInterface extends ethers.utils.Interface {
     functionFragment: "supportsInterface",
     values: [BytesLike]
   ): string;
+  encodeFunctionData(functionFragment: "uri", values: [BigNumberish]): string;
 
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(
@@ -121,53 +99,27 @@ interface NiftyswapExchangeInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getBuyPrice",
+    functionFragment: "batchBurnMock",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getCurrencyInfo",
+    functionFragment: "batchMintMock",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "burnMock", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getIDBinIndex",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getCurrencyReserves",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getFactoryAddress",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getPrice_currencyToToken",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getPrice_tokenToCurrency",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getSellPrice",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getTokenAddress",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getTotalSupply",
+    functionFragment: "getValueInBin",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "isApprovedForAll",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "onERC1155BatchReceived",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "onERC1155Received",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "mintMock", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "safeBatchTransferFrom",
     data: BytesLike
@@ -184,27 +136,22 @@ interface NiftyswapExchangeInterface extends ethers.utils.Interface {
     functionFragment: "supportsInterface",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "uri", data: BytesLike): Result;
 
   events: {
     "ApprovalForAll(address,address,bool)": EventFragment;
-    "CurrencyPurchase(address,address,uint256[],uint256[],uint256[])": EventFragment;
-    "LiquidityAdded(address,uint256[],uint256[],uint256[])": EventFragment;
-    "LiquidityRemoved(address,uint256[],uint256[],uint256[])": EventFragment;
-    "TokensPurchase(address,address,uint256[],uint256[],uint256[])": EventFragment;
     "TransferBatch(address,address,address,uint256[],uint256[])": EventFragment;
     "TransferSingle(address,address,address,uint256,uint256)": EventFragment;
+    "URI(string,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "ApprovalForAll"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "CurrencyPurchase"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "LiquidityAdded"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "LiquidityRemoved"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "TokensPurchase"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferBatch"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferSingle"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "URI"): EventFragment;
 }
 
-export class NiftyswapExchange extends Contract {
+export class ERC1155MintBurnPackedBalanceMock extends Contract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -215,7 +162,7 @@ export class NiftyswapExchange extends Contract {
   removeAllListeners(eventName: EventFilter | string): this;
   removeListener(eventName: any, listener: Listener): this;
 
-  interface: NiftyswapExchangeInterface;
+  interface: ERC1155MintBurnPackedBalanceMockInterface;
 
   functions: {
     balanceOf(
@@ -250,142 +197,84 @@ export class NiftyswapExchange extends Contract {
       0: BigNumber[];
     }>;
 
-    getBuyPrice(
-      _assetBoughtAmount: BigNumberish,
-      _assetSoldReserve: BigNumberish,
-      _assetBoughtReserve: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<{
-      price: BigNumber;
-      0: BigNumber;
-    }>;
+    batchBurnMock(
+      _from: string,
+      _ids: BigNumberish[],
+      _values: BigNumberish[],
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
 
-    "getBuyPrice(uint256,uint256,uint256)"(
-      _assetBoughtAmount: BigNumberish,
-      _assetSoldReserve: BigNumberish,
-      _assetBoughtReserve: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<{
-      price: BigNumber;
-      0: BigNumber;
-    }>;
+    "batchBurnMock(address,uint256[],uint256[])"(
+      _from: string,
+      _ids: BigNumberish[],
+      _values: BigNumberish[],
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
 
-    getCurrencyInfo(
+    batchMintMock(
+      _to: string,
+      _ids: BigNumberish[],
+      _values: BigNumberish[],
+      _data: BytesLike,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
+    "batchMintMock(address,uint256[],uint256[],bytes)"(
+      _to: string,
+      _ids: BigNumberish[],
+      _values: BigNumberish[],
+      _data: BytesLike,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
+    burnMock(
+      _from: string,
+      _id: BigNumberish,
+      _value: BigNumberish,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
+    "burnMock(address,uint256,uint256)"(
+      _from: string,
+      _id: BigNumberish,
+      _value: BigNumberish,
+      overrides?: Overrides
+    ): Promise<ContractTransaction>;
+
+    getIDBinIndex(
+      _id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<{
-      0: string;
+      bin: BigNumber;
+      index: BigNumber;
+      0: BigNumber;
       1: BigNumber;
     }>;
 
-    "getCurrencyInfo()"(
+    "getIDBinIndex(uint256)"(
+      _id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<{
-      0: string;
+      bin: BigNumber;
+      index: BigNumber;
+      0: BigNumber;
       1: BigNumber;
     }>;
 
-    getCurrencyReserves(
-      _ids: BigNumberish[],
+    getValueInBin(
+      _binValues: BigNumberish,
+      _index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<{
-      0: BigNumber[];
-    }>;
-
-    "getCurrencyReserves(uint256[])"(
-      _ids: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<{
-      0: BigNumber[];
-    }>;
-
-    getFactoryAddress(
-      overrides?: CallOverrides
-    ): Promise<{
-      0: string;
-    }>;
-
-    "getFactoryAddress()"(
-      overrides?: CallOverrides
-    ): Promise<{
-      0: string;
-    }>;
-
-    getPrice_currencyToToken(
-      _ids: BigNumberish[],
-      _tokensBought: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<{
-      0: BigNumber[];
-    }>;
-
-    "getPrice_currencyToToken(uint256[],uint256[])"(
-      _ids: BigNumberish[],
-      _tokensBought: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<{
-      0: BigNumber[];
-    }>;
-
-    getPrice_tokenToCurrency(
-      _ids: BigNumberish[],
-      _tokensSold: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<{
-      0: BigNumber[];
-    }>;
-
-    "getPrice_tokenToCurrency(uint256[],uint256[])"(
-      _ids: BigNumberish[],
-      _tokensSold: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<{
-      0: BigNumber[];
-    }>;
-
-    getSellPrice(
-      _assetSoldAmount: BigNumberish,
-      _assetSoldReserve: BigNumberish,
-      _assetBoughtReserve: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<{
-      price: BigNumber;
       0: BigNumber;
     }>;
 
-    "getSellPrice(uint256,uint256,uint256)"(
-      _assetSoldAmount: BigNumberish,
-      _assetSoldReserve: BigNumberish,
-      _assetBoughtReserve: BigNumberish,
+    "getValueInBin(uint256,uint256)"(
+      _binValues: BigNumberish,
+      _index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<{
-      price: BigNumber;
       0: BigNumber;
-    }>;
-
-    getTokenAddress(
-      overrides?: CallOverrides
-    ): Promise<{
-      0: string;
-    }>;
-
-    "getTokenAddress()"(
-      overrides?: CallOverrides
-    ): Promise<{
-      0: string;
-    }>;
-
-    getTotalSupply(
-      _ids: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<{
-      0: BigNumber[];
-    }>;
-
-    "getTotalSupply(uint256[])"(
-      _ids: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<{
-      0: BigNumber[];
     }>;
 
     isApprovedForAll(
@@ -406,38 +295,18 @@ export class NiftyswapExchange extends Contract {
       0: boolean;
     }>;
 
-    onERC1155BatchReceived(
-      arg0: string,
-      _from: string,
-      _ids: BigNumberish[],
-      _amounts: BigNumberish[],
-      _data: BytesLike,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"(
-      arg0: string,
-      _from: string,
-      _ids: BigNumberish[],
-      _amounts: BigNumberish[],
-      _data: BytesLike,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    onERC1155Received(
-      _operator: string,
-      _from: string,
+    mintMock(
+      _to: string,
       _id: BigNumberish,
-      _amount: BigNumberish,
+      _value: BigNumberish,
       _data: BytesLike,
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
-    "onERC1155Received(address,address,uint256,uint256,bytes)"(
-      _operator: string,
-      _from: string,
+    "mintMock(address,uint256,uint256,bytes)"(
+      _to: string,
       _id: BigNumberish,
-      _amount: BigNumberish,
+      _value: BigNumberish,
       _data: BytesLike,
       overrides?: Overrides
     ): Promise<ContractTransaction>;
@@ -491,17 +360,31 @@ export class NiftyswapExchange extends Contract {
     ): Promise<ContractTransaction>;
 
     supportsInterface(
-      interfaceID: BytesLike,
+      _interfaceID: BytesLike,
       overrides?: CallOverrides
     ): Promise<{
       0: boolean;
     }>;
 
     "supportsInterface(bytes4)"(
-      interfaceID: BytesLike,
+      _interfaceID: BytesLike,
       overrides?: CallOverrides
     ): Promise<{
       0: boolean;
+    }>;
+
+    uri(
+      _id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<{
+      0: string;
+    }>;
+
+    "uri(uint256)"(
+      _id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<{
+      0: string;
     }>;
   };
 
@@ -529,99 +412,81 @@ export class NiftyswapExchange extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber[]>;
 
-  getBuyPrice(
-    _assetBoughtAmount: BigNumberish,
-    _assetSoldReserve: BigNumberish,
-    _assetBoughtReserve: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  batchBurnMock(
+    _from: string,
+    _ids: BigNumberish[],
+    _values: BigNumberish[],
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
 
-  "getBuyPrice(uint256,uint256,uint256)"(
-    _assetBoughtAmount: BigNumberish,
-    _assetSoldReserve: BigNumberish,
-    _assetBoughtReserve: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  "batchBurnMock(address,uint256[],uint256[])"(
+    _from: string,
+    _ids: BigNumberish[],
+    _values: BigNumberish[],
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
 
-  getCurrencyInfo(
+  batchMintMock(
+    _to: string,
+    _ids: BigNumberish[],
+    _values: BigNumberish[],
+    _data: BytesLike,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
+  "batchMintMock(address,uint256[],uint256[],bytes)"(
+    _to: string,
+    _ids: BigNumberish[],
+    _values: BigNumberish[],
+    _data: BytesLike,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
+  burnMock(
+    _from: string,
+    _id: BigNumberish,
+    _value: BigNumberish,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
+  "burnMock(address,uint256,uint256)"(
+    _from: string,
+    _id: BigNumberish,
+    _value: BigNumberish,
+    overrides?: Overrides
+  ): Promise<ContractTransaction>;
+
+  getIDBinIndex(
+    _id: BigNumberish,
     overrides?: CallOverrides
   ): Promise<{
-    0: string;
+    bin: BigNumber;
+    index: BigNumber;
+    0: BigNumber;
     1: BigNumber;
   }>;
 
-  "getCurrencyInfo()"(
+  "getIDBinIndex(uint256)"(
+    _id: BigNumberish,
     overrides?: CallOverrides
   ): Promise<{
-    0: string;
+    bin: BigNumber;
+    index: BigNumber;
+    0: BigNumber;
     1: BigNumber;
   }>;
 
-  getCurrencyReserves(
-    _ids: BigNumberish[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
-
-  "getCurrencyReserves(uint256[])"(
-    _ids: BigNumberish[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
-
-  getFactoryAddress(overrides?: CallOverrides): Promise<string>;
-
-  "getFactoryAddress()"(overrides?: CallOverrides): Promise<string>;
-
-  getPrice_currencyToToken(
-    _ids: BigNumberish[],
-    _tokensBought: BigNumberish[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
-
-  "getPrice_currencyToToken(uint256[],uint256[])"(
-    _ids: BigNumberish[],
-    _tokensBought: BigNumberish[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
-
-  getPrice_tokenToCurrency(
-    _ids: BigNumberish[],
-    _tokensSold: BigNumberish[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
-
-  "getPrice_tokenToCurrency(uint256[],uint256[])"(
-    _ids: BigNumberish[],
-    _tokensSold: BigNumberish[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
-
-  getSellPrice(
-    _assetSoldAmount: BigNumberish,
-    _assetSoldReserve: BigNumberish,
-    _assetBoughtReserve: BigNumberish,
+  getValueInBin(
+    _binValues: BigNumberish,
+    _index: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  "getSellPrice(uint256,uint256,uint256)"(
-    _assetSoldAmount: BigNumberish,
-    _assetSoldReserve: BigNumberish,
-    _assetBoughtReserve: BigNumberish,
+  "getValueInBin(uint256,uint256)"(
+    _binValues: BigNumberish,
+    _index: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
-
-  getTokenAddress(overrides?: CallOverrides): Promise<string>;
-
-  "getTokenAddress()"(overrides?: CallOverrides): Promise<string>;
-
-  getTotalSupply(
-    _ids: BigNumberish[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
-
-  "getTotalSupply(uint256[])"(
-    _ids: BigNumberish[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
 
   isApprovedForAll(
     _owner: string,
@@ -635,38 +500,18 @@ export class NiftyswapExchange extends Contract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  onERC1155BatchReceived(
-    arg0: string,
-    _from: string,
-    _ids: BigNumberish[],
-    _amounts: BigNumberish[],
-    _data: BytesLike,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"(
-    arg0: string,
-    _from: string,
-    _ids: BigNumberish[],
-    _amounts: BigNumberish[],
-    _data: BytesLike,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  onERC1155Received(
-    _operator: string,
-    _from: string,
+  mintMock(
+    _to: string,
     _id: BigNumberish,
-    _amount: BigNumberish,
+    _value: BigNumberish,
     _data: BytesLike,
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
-  "onERC1155Received(address,address,uint256,uint256,bytes)"(
-    _operator: string,
-    _from: string,
+  "mintMock(address,uint256,uint256,bytes)"(
+    _to: string,
     _id: BigNumberish,
-    _amount: BigNumberish,
+    _value: BigNumberish,
     _data: BytesLike,
     overrides?: Overrides
   ): Promise<ContractTransaction>;
@@ -720,14 +565,18 @@ export class NiftyswapExchange extends Contract {
   ): Promise<ContractTransaction>;
 
   supportsInterface(
-    interfaceID: BytesLike,
+    _interfaceID: BytesLike,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
   "supportsInterface(bytes4)"(
-    interfaceID: BytesLike,
+    _interfaceID: BytesLike,
     overrides?: CallOverrides
   ): Promise<boolean>;
+
+  uri(_id: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
+  "uri(uint256)"(_id: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     balanceOf(
@@ -754,99 +603,81 @@ export class NiftyswapExchange extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber[]>;
 
-    getBuyPrice(
-      _assetBoughtAmount: BigNumberish,
-      _assetSoldReserve: BigNumberish,
-      _assetBoughtReserve: BigNumberish,
+    batchBurnMock(
+      _from: string,
+      _ids: BigNumberish[],
+      _values: BigNumberish[],
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<void>;
 
-    "getBuyPrice(uint256,uint256,uint256)"(
-      _assetBoughtAmount: BigNumberish,
-      _assetSoldReserve: BigNumberish,
-      _assetBoughtReserve: BigNumberish,
+    "batchBurnMock(address,uint256[],uint256[])"(
+      _from: string,
+      _ids: BigNumberish[],
+      _values: BigNumberish[],
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<void>;
 
-    getCurrencyInfo(
+    batchMintMock(
+      _to: string,
+      _ids: BigNumberish[],
+      _values: BigNumberish[],
+      _data: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "batchMintMock(address,uint256[],uint256[],bytes)"(
+      _to: string,
+      _ids: BigNumberish[],
+      _values: BigNumberish[],
+      _data: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    burnMock(
+      _from: string,
+      _id: BigNumberish,
+      _value: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "burnMock(address,uint256,uint256)"(
+      _from: string,
+      _id: BigNumberish,
+      _value: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    getIDBinIndex(
+      _id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<{
-      0: string;
+      bin: BigNumber;
+      index: BigNumber;
+      0: BigNumber;
       1: BigNumber;
     }>;
 
-    "getCurrencyInfo()"(
+    "getIDBinIndex(uint256)"(
+      _id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<{
-      0: string;
+      bin: BigNumber;
+      index: BigNumber;
+      0: BigNumber;
       1: BigNumber;
     }>;
 
-    getCurrencyReserves(
-      _ids: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    "getCurrencyReserves(uint256[])"(
-      _ids: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    getFactoryAddress(overrides?: CallOverrides): Promise<string>;
-
-    "getFactoryAddress()"(overrides?: CallOverrides): Promise<string>;
-
-    getPrice_currencyToToken(
-      _ids: BigNumberish[],
-      _tokensBought: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    "getPrice_currencyToToken(uint256[],uint256[])"(
-      _ids: BigNumberish[],
-      _tokensBought: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    getPrice_tokenToCurrency(
-      _ids: BigNumberish[],
-      _tokensSold: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    "getPrice_tokenToCurrency(uint256[],uint256[])"(
-      _ids: BigNumberish[],
-      _tokensSold: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    getSellPrice(
-      _assetSoldAmount: BigNumberish,
-      _assetSoldReserve: BigNumberish,
-      _assetBoughtReserve: BigNumberish,
+    getValueInBin(
+      _binValues: BigNumberish,
+      _index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "getSellPrice(uint256,uint256,uint256)"(
-      _assetSoldAmount: BigNumberish,
-      _assetSoldReserve: BigNumberish,
-      _assetBoughtReserve: BigNumberish,
+    "getValueInBin(uint256,uint256)"(
+      _binValues: BigNumberish,
+      _index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    getTokenAddress(overrides?: CallOverrides): Promise<string>;
-
-    "getTokenAddress()"(overrides?: CallOverrides): Promise<string>;
-
-    getTotalSupply(
-      _ids: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    "getTotalSupply(uint256[])"(
-      _ids: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
 
     isApprovedForAll(
       _owner: string,
@@ -860,41 +691,21 @@ export class NiftyswapExchange extends Contract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    onERC1155BatchReceived(
-      arg0: string,
-      _from: string,
-      _ids: BigNumberish[],
-      _amounts: BigNumberish[],
-      _data: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    "onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"(
-      arg0: string,
-      _from: string,
-      _ids: BigNumberish[],
-      _amounts: BigNumberish[],
-      _data: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    onERC1155Received(
-      _operator: string,
-      _from: string,
+    mintMock(
+      _to: string,
       _id: BigNumberish,
-      _amount: BigNumberish,
+      _value: BigNumberish,
       _data: BytesLike,
       overrides?: CallOverrides
-    ): Promise<string>;
+    ): Promise<void>;
 
-    "onERC1155Received(address,address,uint256,uint256,bytes)"(
-      _operator: string,
-      _from: string,
+    "mintMock(address,uint256,uint256,bytes)"(
+      _to: string,
       _id: BigNumberish,
-      _amount: BigNumberish,
+      _value: BigNumberish,
       _data: BytesLike,
       overrides?: CallOverrides
-    ): Promise<string>;
+    ): Promise<void>;
 
     safeBatchTransferFrom(
       _from: string,
@@ -945,14 +756,21 @@ export class NiftyswapExchange extends Contract {
     ): Promise<void>;
 
     supportsInterface(
-      interfaceID: BytesLike,
+      _interfaceID: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     "supportsInterface(bytes4)"(
-      interfaceID: BytesLike,
+      _interfaceID: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    uri(_id: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
+    "uri(uint256)"(
+      _id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<string>;
   };
 
   filters: {
@@ -960,36 +778,6 @@ export class NiftyswapExchange extends Contract {
       _owner: string | null,
       _operator: string | null,
       _approved: null
-    ): EventFilter;
-
-    CurrencyPurchase(
-      buyer: string | null,
-      recipient: string | null,
-      tokensSoldIds: null,
-      tokensSoldAmounts: null,
-      currencyBoughtAmounts: null
-    ): EventFilter;
-
-    LiquidityAdded(
-      provider: string | null,
-      tokenIds: null,
-      tokenAmounts: null,
-      currencyAmounts: null
-    ): EventFilter;
-
-    LiquidityRemoved(
-      provider: string | null,
-      tokenIds: null,
-      tokenAmounts: null,
-      currencyAmounts: null
-    ): EventFilter;
-
-    TokensPurchase(
-      buyer: string | null,
-      recipient: string | null,
-      tokensBoughtIds: null,
-      tokensBoughtAmounts: null,
-      currencySoldAmounts: null
     ): EventFilter;
 
     TransferBatch(
@@ -1007,6 +795,8 @@ export class NiftyswapExchange extends Contract {
       _id: null,
       _amount: null
     ): EventFilter;
+
+    URI(_uri: null, _id: BigNumberish | null): EventFilter;
   };
 
   estimateGas: {
@@ -1034,87 +824,69 @@ export class NiftyswapExchange extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getBuyPrice(
-      _assetBoughtAmount: BigNumberish,
-      _assetSoldReserve: BigNumberish,
-      _assetBoughtReserve: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getBuyPrice(uint256,uint256,uint256)"(
-      _assetBoughtAmount: BigNumberish,
-      _assetSoldReserve: BigNumberish,
-      _assetBoughtReserve: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getCurrencyInfo(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getCurrencyInfo()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getCurrencyReserves(
+    batchBurnMock(
+      _from: string,
       _ids: BigNumberish[],
-      overrides?: CallOverrides
+      _values: BigNumberish[],
+      overrides?: Overrides
     ): Promise<BigNumber>;
 
-    "getCurrencyReserves(uint256[])"(
+    "batchBurnMock(address,uint256[],uint256[])"(
+      _from: string,
       _ids: BigNumberish[],
-      overrides?: CallOverrides
+      _values: BigNumberish[],
+      overrides?: Overrides
     ): Promise<BigNumber>;
 
-    getFactoryAddress(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getFactoryAddress()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getPrice_currencyToToken(
+    batchMintMock(
+      _to: string,
       _ids: BigNumberish[],
-      _tokensBought: BigNumberish[],
-      overrides?: CallOverrides
+      _values: BigNumberish[],
+      _data: BytesLike,
+      overrides?: Overrides
     ): Promise<BigNumber>;
 
-    "getPrice_currencyToToken(uint256[],uint256[])"(
+    "batchMintMock(address,uint256[],uint256[],bytes)"(
+      _to: string,
       _ids: BigNumberish[],
-      _tokensBought: BigNumberish[],
+      _values: BigNumberish[],
+      _data: BytesLike,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
+
+    burnMock(
+      _from: string,
+      _id: BigNumberish,
+      _value: BigNumberish,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
+
+    "burnMock(address,uint256,uint256)"(
+      _from: string,
+      _id: BigNumberish,
+      _value: BigNumberish,
+      overrides?: Overrides
+    ): Promise<BigNumber>;
+
+    getIDBinIndex(
+      _id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getPrice_tokenToCurrency(
-      _ids: BigNumberish[],
-      _tokensSold: BigNumberish[],
+    "getIDBinIndex(uint256)"(
+      _id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "getPrice_tokenToCurrency(uint256[],uint256[])"(
-      _ids: BigNumberish[],
-      _tokensSold: BigNumberish[],
+    getValueInBin(
+      _binValues: BigNumberish,
+      _index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getSellPrice(
-      _assetSoldAmount: BigNumberish,
-      _assetSoldReserve: BigNumberish,
-      _assetBoughtReserve: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getSellPrice(uint256,uint256,uint256)"(
-      _assetSoldAmount: BigNumberish,
-      _assetSoldReserve: BigNumberish,
-      _assetBoughtReserve: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getTokenAddress(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getTokenAddress()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getTotalSupply(
-      _ids: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getTotalSupply(uint256[])"(
-      _ids: BigNumberish[],
+    "getValueInBin(uint256,uint256)"(
+      _binValues: BigNumberish,
+      _index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1130,38 +902,18 @@ export class NiftyswapExchange extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    onERC1155BatchReceived(
-      arg0: string,
-      _from: string,
-      _ids: BigNumberish[],
-      _amounts: BigNumberish[],
-      _data: BytesLike,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"(
-      arg0: string,
-      _from: string,
-      _ids: BigNumberish[],
-      _amounts: BigNumberish[],
-      _data: BytesLike,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    onERC1155Received(
-      _operator: string,
-      _from: string,
+    mintMock(
+      _to: string,
       _id: BigNumberish,
-      _amount: BigNumberish,
+      _value: BigNumberish,
       _data: BytesLike,
       overrides?: Overrides
     ): Promise<BigNumber>;
 
-    "onERC1155Received(address,address,uint256,uint256,bytes)"(
-      _operator: string,
-      _from: string,
+    "mintMock(address,uint256,uint256,bytes)"(
+      _to: string,
       _id: BigNumberish,
-      _amount: BigNumberish,
+      _value: BigNumberish,
       _data: BytesLike,
       overrides?: Overrides
     ): Promise<BigNumber>;
@@ -1215,12 +967,19 @@ export class NiftyswapExchange extends Contract {
     ): Promise<BigNumber>;
 
     supportsInterface(
-      interfaceID: BytesLike,
+      _interfaceID: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     "supportsInterface(bytes4)"(
-      interfaceID: BytesLike,
+      _interfaceID: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    uri(_id: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+
+    "uri(uint256)"(
+      _id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
@@ -1250,93 +1009,69 @@ export class NiftyswapExchange extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getBuyPrice(
-      _assetBoughtAmount: BigNumberish,
-      _assetSoldReserve: BigNumberish,
-      _assetBoughtReserve: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getBuyPrice(uint256,uint256,uint256)"(
-      _assetBoughtAmount: BigNumberish,
-      _assetSoldReserve: BigNumberish,
-      _assetBoughtReserve: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getCurrencyInfo(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "getCurrencyInfo()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getCurrencyReserves(
+    batchBurnMock(
+      _from: string,
       _ids: BigNumberish[],
-      overrides?: CallOverrides
+      _values: BigNumberish[],
+      overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
-    "getCurrencyReserves(uint256[])"(
+    "batchBurnMock(address,uint256[],uint256[])"(
+      _from: string,
       _ids: BigNumberish[],
-      overrides?: CallOverrides
+      _values: BigNumberish[],
+      overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
-    getFactoryAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "getFactoryAddress()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getPrice_currencyToToken(
+    batchMintMock(
+      _to: string,
       _ids: BigNumberish[],
-      _tokensBought: BigNumberish[],
-      overrides?: CallOverrides
+      _values: BigNumberish[],
+      _data: BytesLike,
+      overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
-    "getPrice_currencyToToken(uint256[],uint256[])"(
+    "batchMintMock(address,uint256[],uint256[],bytes)"(
+      _to: string,
       _ids: BigNumberish[],
-      _tokensBought: BigNumberish[],
+      _values: BigNumberish[],
+      _data: BytesLike,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
+    burnMock(
+      _from: string,
+      _id: BigNumberish,
+      _value: BigNumberish,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
+    "burnMock(address,uint256,uint256)"(
+      _from: string,
+      _id: BigNumberish,
+      _value: BigNumberish,
+      overrides?: Overrides
+    ): Promise<PopulatedTransaction>;
+
+    getIDBinIndex(
+      _id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getPrice_tokenToCurrency(
-      _ids: BigNumberish[],
-      _tokensSold: BigNumberish[],
+    "getIDBinIndex(uint256)"(
+      _id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "getPrice_tokenToCurrency(uint256[],uint256[])"(
-      _ids: BigNumberish[],
-      _tokensSold: BigNumberish[],
+    getValueInBin(
+      _binValues: BigNumberish,
+      _index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getSellPrice(
-      _assetSoldAmount: BigNumberish,
-      _assetSoldReserve: BigNumberish,
-      _assetBoughtReserve: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getSellPrice(uint256,uint256,uint256)"(
-      _assetSoldAmount: BigNumberish,
-      _assetSoldReserve: BigNumberish,
-      _assetBoughtReserve: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getTokenAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "getTokenAddress()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getTotalSupply(
-      _ids: BigNumberish[],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getTotalSupply(uint256[])"(
-      _ids: BigNumberish[],
+    "getValueInBin(uint256,uint256)"(
+      _binValues: BigNumberish,
+      _index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1352,38 +1087,18 @@ export class NiftyswapExchange extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    onERC1155BatchReceived(
-      arg0: string,
-      _from: string,
-      _ids: BigNumberish[],
-      _amounts: BigNumberish[],
-      _data: BytesLike,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"(
-      arg0: string,
-      _from: string,
-      _ids: BigNumberish[],
-      _amounts: BigNumberish[],
-      _data: BytesLike,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    onERC1155Received(
-      _operator: string,
-      _from: string,
+    mintMock(
+      _to: string,
       _id: BigNumberish,
-      _amount: BigNumberish,
+      _value: BigNumberish,
       _data: BytesLike,
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
-    "onERC1155Received(address,address,uint256,uint256,bytes)"(
-      _operator: string,
-      _from: string,
+    "mintMock(address,uint256,uint256,bytes)"(
+      _to: string,
       _id: BigNumberish,
-      _amount: BigNumberish,
+      _value: BigNumberish,
       _data: BytesLike,
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
@@ -1437,12 +1152,22 @@ export class NiftyswapExchange extends Contract {
     ): Promise<PopulatedTransaction>;
 
     supportsInterface(
-      interfaceID: BytesLike,
+      _interfaceID: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     "supportsInterface(bytes4)"(
-      interfaceID: BytesLike,
+      _interfaceID: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    uri(
+      _id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "uri(uint256)"(
+      _id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };

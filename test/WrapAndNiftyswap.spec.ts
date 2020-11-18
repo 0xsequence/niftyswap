@@ -12,16 +12,16 @@ import {
 
 import * as utils from './utils'
 
-import { Erc1155Mock } from '../typings/contracts/Erc1155Mock'
+import { ERC1155Mock } from '../typings/contracts/ERC1155Mock'
 import { Erc20Mock } from 'erc20-meta-token/typings/contracts/Erc20Mock'
 import { NiftyswapExchange } from '../typings/contracts/NiftyswapExchange'
 import { NiftyswapFactory } from '../typings/contracts/NiftyswapFactory'
 import { Erc20Wrapper } from 'erc20-meta-token/typings/contracts/Erc20Wrapper'
 import { WrapAndNiftyswap } from '../typings/contracts/WrapAndNiftyswap'
 
-import { abi as exchangeABI } from '../artifacts/NiftyswapExchange.json'
+import { abi as exchangeABI } from '../artifacts/contracts/exchange/NiftyswapExchange.sol/NiftyswapExchange.json'
 import { BigNumber } from 'ethers'
-import { web3 } from '@nomiclabs/buidler'
+import { web3 } from 'hardhat'
 
 // init test wallets from package.json mnemonic
 
@@ -64,9 +64,9 @@ describe('WrapAndSwap', () => {
   let wrapAndNiftyswapAbstract: AbstractContract
 
   // ERC-1155 token
-  let ownerERC1155Contract: Erc1155Mock
-  let userERC1155Contract: Erc1155Mock
-  let operatorERC1155Contract: Erc1155Mock
+  let ownerERC1155Contract: ERC1155Mock
+  let userERC1155Contract: ERC1155Mock
+  let operatorERC1155Contract: ERC1155Mock
 
   // ERC-1155 token
   let ownerERC20Contract: Erc20Mock
@@ -131,9 +131,9 @@ describe('WrapAndSwap', () => {
   // deploy before each test, to reset state of contract
   beforeEach(async () => {
   // Deploy ERC-1155
-    ownerERC1155Contract = await erc1155Abstract.deploy(ownerWallet) as Erc1155Mock
-    operatorERC1155Contract = await ownerERC1155Contract.connect(operatorSigner) as Erc1155Mock
-    userERC1155Contract = await ownerERC1155Contract.connect(userSigner) as Erc1155Mock
+    ownerERC1155Contract = await erc1155Abstract.deploy(ownerWallet) as ERC1155Mock
+    operatorERC1155Contract = await ownerERC1155Contract.connect(operatorSigner) as ERC1155Mock
+    userERC1155Contract = await ownerERC1155Contract.connect(userSigner) as ERC1155Mock
 
     // Deploy Currency Token contract
     ownerERC20Contract = await erc20Abstract.deploy(ownerWallet) as Erc20Mock
