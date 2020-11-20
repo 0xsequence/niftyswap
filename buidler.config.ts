@@ -12,7 +12,7 @@ const config: BuidlerConfig = {
     version: '0.7.4',
     optimizer: {
       enabled: true,
-      runs: 200
+      runs: 100000
     }
   },
   networks: {
