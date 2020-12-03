@@ -1,6 +1,6 @@
 {
   "name": "niftyswap",
-  "version": "1.0.1-a",
+  "version": "2.0.0",
   "description": "Non-custodial exchange for ERC-1155 tokens, based on Uniswap",
   "repository": "https://github.com/niftyswap/niftyswap",
   "license": "MIT",
