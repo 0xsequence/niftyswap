@@ -12,12 +12,12 @@ import {
 
 import * as utils from './utils'
 
-import { ERC1155Mock } from '../typings/contracts/ERC1155Mock'
+import { ERC1155Mock } from 'typings/contracts/ERC1155Mock'
 import { Erc20Mock } from 'erc20-meta-token/typings/contracts/Erc20Mock'
-import { NiftyswapExchange } from '../typings/contracts/NiftyswapExchange'
-import { NiftyswapFactory } from '../typings/contracts/NiftyswapFactory'
+import { NiftyswapExchange } from 'typings/contracts/NiftyswapExchange'
+import { NiftyswapFactory } from 'typings/contracts/NiftyswapFactory'
 import { Erc20Wrapper } from 'erc20-meta-token/typings/contracts/Erc20Wrapper'
-import { WrapAndNiftyswap } from '../typings/contracts/WrapAndNiftyswap'
+import { WrapAndNiftyswap } from 'typings/contracts/WrapAndNiftyswap'
 
 import { abi as exchangeABI } from '../artifacts/contracts/exchange/NiftyswapExchange.sol/NiftyswapExchange.json'
 import { BigNumber } from 'ethers'

@@ -9,10 +9,10 @@ import {
 
 import * as utils from './utils'
 
-import { ERC1155Mock } from '../typings/contracts/ERC1155Mock'
-import { ERC1155PackedBalanceMock } from '../typings/contracts/ERC1155PackedBalanceMock'
-import { NiftyswapExchange } from '../typings/contracts/NiftyswapExchange'
-import { NiftyswapFactory } from '../typings/contracts/NiftyswapFactory'
+import { ERC1155Mock } from 'typings/contracts/ERC1155Mock'
+import { ERC1155PackedBalanceMock } from 'typings/contracts/ERC1155PackedBalanceMock'
+import { NiftyswapExchange } from 'typings/contracts/NiftyswapExchange'
+import { NiftyswapFactory } from 'typings/contracts/NiftyswapFactory'
 //@ts-ignore
 import { web3 } from 'hardhat'
 
