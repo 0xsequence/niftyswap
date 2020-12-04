@@ -1763,6 +1763,11 @@ create-hmac@^1.1.0, create-hmac@^1.1.4, create-hmac@^1.1.7:
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
 
+create-require@^1.1.0:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/create-require/-/create-require-1.1.1.tgz#c1d7e8f1e5f6cfc9ff65f9cd352d37348756c333"
+  integrity sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==
+
 cross-spawn@^5.0.1:
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/cross-spawn/-/cross-spawn-5.1.0.tgz#e8bd0efee58fcff6f8f94510a0a554bbfa235449"
@@ -2152,12 +2157,12 @@ eol@^0.9.1:
   resolved "https://registry.yarnpkg.com/eol/-/eol-0.9.1.tgz#f701912f504074be35c6117a5c4ade49cd547acd"
   integrity sha512-Ds/TEoZjwggRoz/Q2O7SE3i4Jm66mqTDfmdHdq/7DKVk3bro9Q8h6WdXKdPqFLMoqxrDK5SVRzHVPOS6uuGtrg==
 
-erc20-meta-token@1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/erc20-meta-token/-/erc20-meta-token-1.0.0.tgz#642d30af1df3b1d556fdf06818b7a65f41691f3a"
-  integrity sha512-oV74EYsl+8r96BkY5a46AvlnivCD/JnlBODi31jhwest/3T+UEOuY4ENJX3HXlPrlaWFBHK9oY09VPQ9PJy/fg==
+erc20-meta-token@2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/erc20-meta-token/-/erc20-meta-token-2.1.0.tgz#2d2e9a9749d0447d4489726e9b798e3612eaf9be"
+  integrity sha512-Gfa5YXCYmb9JxTLe+8TKrc3bm1tY0Zj2gFYE2IjXaZ+Je+sqyziqOGNAoCpoNsjARW7X2Uwj6yEpiZZ7BjvUqQ==
   dependencies:
-    multi-token-standard "1.0.0"
+    multi-token-standard "2.0.1"
 
 errno@~0.1.1:
   version "0.1.7"
@@ -4534,15 +4539,10 @@ ms@2.1.2, ms@^2.1.1:
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.2.tgz#d09d1f357b443f493382a8eb3ccd183872ae6009"
   integrity sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==
 
-multi-token-standard@1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/multi-token-standard/-/multi-token-standard-1.0.0.tgz#74118cdb02b44ae57994a54c0885e112a74fc83d"
-  integrity sha512-C+kZsNDY9jfu/ZWyqMyUfbUUe9cT24mzJ+OlNLIMp1PYK7owBgQWrv3J6PB9rVMTF09CzHXhcGCkjKVp9Fx00A==
-
-multi-token-standard@1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/multi-token-standard/-/multi-token-standard-1.0.1.tgz#cbc3651e9c96696afb3bef680cbb5a9525fffcfd"
-  integrity sha512-Ztf3HPWtmpktTA3tkdtUwu1NnDx5by8PGMkUE/MbmWV7kipW+9Uj6sJBOrkLdlhmy4ON6+Rn6FBY4EerxYjfvQ==
+multi-token-standard@2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/multi-token-standard/-/multi-token-standard-2.0.1.tgz#91d9888c0508691389829d1b67434c5f2e991697"
+  integrity sha512-Fhwu+hCufS4AAiBxO+v0uYQp298R69xo1Diprqee8gew2Oh4FgsqtuBwELFhngTy4rmRUM85A+RwbAgmmZliWg==
 
 multibase@^0.7.0:
   version "0.7.0"
@@ -6094,11 +6094,12 @@ ts-generator@^0.1.1:
     ts-essentials "^1.0.0"
 
 ts-node@^9.0.0:
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/ts-node/-/ts-node-9.0.0.tgz#e7699d2a110cc8c0d3b831715e417688683460b3"
-  integrity sha512-/TqB4SnererCDR/vb4S/QvSZvzQMJN8daAslg7MeaiHvD8rDZsSfXmNeNumyZZzMned72Xoq/isQljYSt8Ynfg==
+  version "9.1.0"
+  resolved "https://registry.yarnpkg.com/ts-node/-/ts-node-9.1.0.tgz#95eae4c6d0f94f2545884078e1eb1b14d2155639"
+  integrity sha512-0yqcL4sgruCvM+w64LiAfNJo6+lHfCYc5Ajj4yiLNkJ9oZ2HWaa+Kso7htYOOxVQ7+csAjdUjffOe9PIqC4pMg==
   dependencies:
     arg "^4.1.0"
+    create-require "^1.1.0"
     diff "^4.0.1"
     make-error "^1.1.1"
     source-map-support "^0.5.17"

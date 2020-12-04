@@ -71,7 +71,7 @@
     "typescript": "4.0.5"
   },
   "dependencies": {
-    "erc20-meta-token": "1.0.0",
-    "multi-token-standard": "1.0.1"
+    "erc20-meta-token": "2.1.0",
+    "multi-token-standard": "2.0.1"
   }
 }
