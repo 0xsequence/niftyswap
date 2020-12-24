@@ -56,5 +56,5 @@ Niftyswap has been audited by two independant parties and all issues discovered 
 
 1. `yarn install`
 2. `yarn build`
-3. `yarn ganache`
-4. in another terminal run, `yarn test` - executes test suite
+3. `yarn start:ganache`
+4. in another terminal run, `yarn test:ganache` - executes test suite
