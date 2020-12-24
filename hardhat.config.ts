@@ -5,9 +5,6 @@ import "@nomiclabs/hardhat-ethers"
 import 'hardhat-gas-reporter'
 
 const config: HardhatUserConfig = {
-  paths: {
-    artifacts: './artifacts'
-  },
   solidity: {
     version: '0.7.4',
     settings: {
@@ -19,6 +16,9 @@ const config: HardhatUserConfig = {
         }
       }
     }
+  },
+  paths: {
+    tests: 'tests'
   },
   networks: {
     ganache: {

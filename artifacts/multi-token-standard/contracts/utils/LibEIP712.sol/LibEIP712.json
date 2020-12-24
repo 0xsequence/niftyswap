@@ -1,0 +1,10 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "LibEIP712",
+  "sourceName": "multi-token-standard/contracts/utils/LibEIP712.sol",
+  "abi": [],
+  "bytecode": "0x6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea2646970667358221220080f8e98cebcc2cc94fbbb39ff0b1ab44b7ef398360246f064f93849ab07339564736f6c63430007040033",
+  "deployedBytecode": "0x6080604052600080fdfea2646970667358221220080f8e98cebcc2cc94fbbb39ff0b1ab44b7ef398360246f064f93849ab07339564736f6c63430007040033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
