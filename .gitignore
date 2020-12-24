@@ -1,9 +1,8 @@
 build
-artifacts
 cache
-typings/contracts
 
 .vscode/
 .vs_code/
 
 node_modules/
+yarn-error.log

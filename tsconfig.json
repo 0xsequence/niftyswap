@@ -10,6 +10,6 @@
     "strictPropertyInitialization": false,
     "baseUrl": "."
   },
-  "include": ["test", "typings"],
+  "include": ["tests", "typings"],
   "files": ["./hardhat.config.ts"]
 }
