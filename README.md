@@ -13,7 +13,7 @@ Most exchanges maintain an order book and facilitate matches between buyers and 
 
 An important feature of Nitfyswap is the utilization of a factory/registry contract that deploys a separate exchange contract for each ERC-1155 token contract. These exchange contracts each hold independent reserves of a single fungible ERC-1155 currency and their associated ERC-1155 token id. This allows trades between the [Currency](#currency) and the ERC-1155 tokens based on the relative supplies. 
 
-For more details, see [Specification.pdf](https://github.com/arcadeum/niftyswap/blob/master/SPECIFICATIONS.pdf)
+For more details, see [Specification.pdf](https://github.com/0xsequence/niftyswap/blob/master/SPECIFICATIONS.pdf)
 
 # Differences with Uniswap
 
@@ -32,14 +32,14 @@ There are pros and cons to these differences and we welcome you to discuss these
 
 ## Contracts
 
-[NiftyswapExchange.sol](https://github.com/arcadeum/niftyswap/blob/master/contracts/exchange/NiftyswapExchange.sol): The exchange contract that handles the logic for exchanging assets for a given base token.
-[NiftyswapFactory.sol](https://github.com/arcadeum/niftyswap/blob/master/contracts/exchange/NiftyswapFactory.sol): The exchange factory that allows the creation of nifyswap exchanges for the tokens of a given ERC-1155 token conract and an ERC-1155 base currency.
+[NiftyswapExchange.sol](https://github.com/0xsequence/niftyswap/blob/master/contracts/exchange/NiftyswapExchange.sol): The exchange contract that handles the logic for exchanging assets for a given base token.
+[NiftyswapFactory.sol](https://github.com/0xsequence/niftyswap/blob/master/contracts/exchange/NiftyswapFactory.sol): The exchange factory that allows the creation of nifyswap exchanges for the tokens of a given ERC-1155 token conract and an ERC-1155 base currency.
 
 ## Security
 
 Niftyswap has been audited by two independant parties and all issues discovered were addressed. 
-- [Agustín Aguilar**](https://github.com/arcadeum/niftyswap/blob/master/audits/Security_Audit_Nitfyswap_Horizon_Games_1.pdf)
-- [Consensys Diligence](https://github.com/arcadeum/niftyswap/blob/master/audits/April_2020_Balance_Patch_1.md) 
+- [Agustín Aguilar**](https://github.com/0xsequence/niftyswap/blob/master/audits/Security_Audit_Nitfyswap_Horizon_Games_1.pdf)
+- [Consensys Diligence](https://github.com/0xsequence/niftyswap/blob/master/audits/April_2020_Balance_Patch_1.md) 
 
 ** Agustín was hired as a full-time employee at Horizon after the audit was completed. Agustín did not take part in the writing of Niftyswap contracts.
 

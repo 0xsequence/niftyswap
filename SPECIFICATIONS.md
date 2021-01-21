@@ -85,7 +85,7 @@ function onERC1155BatchReceived(
   public returns(bytes4);
 ```
 
-The first 4 bytes of the `_data` argument indicate which of the four main [NiftyswapExchange.sol](https://github.com/arcadeum/niftyswap/blob/master/contracts/exchange/NiftyswapExchange.sol) methods to call. How to build and encode the `_data` payload for the respective methods is explained in the [Data Encoding](#data-encoding) section. 
+The first 4 bytes of the `_data` argument indicate which of the four main [NiftyswapExchange.sol](https://github.com/0xsequence/niftyswap/blob/master/contracts/exchange/NiftyswapExchange.sol) methods to call. How to build and encode the `_data` payload for the respective methods is explained in the [Data Encoding](#data-encoding) section. 
 
 ## Exchanging Tokens
 
@@ -223,7 +223,7 @@ Within Niftyswap, there are two main types of assets: the **currency** and the *
 
 ## Currency
 
-The currency is an ERC-1155 token that is fungible (>0 decimals) that is used to price each token $i$ in a given ERC-1155 token contract. For instance, this currency could be wrapped Ether or wrapped DAI (see [erc20-meta-wrapper](https://github.com/arcadeum/erc20-meta-wrapper)). Since the currency is an ERC-1155, the NiftyswapExchange.sol contract also needs to be aware of what the currency `id` is in the currency contract. The currency can be the same contract as the Tokens contract.
+The currency is an ERC-1155 token that is fungible (>0 decimals) that is used to price each token $i$ in a given ERC-1155 token contract. For instance, this currency could be wrapped Ether or wrapped DAI (see [erc20-meta-wrapper](https://github.com/0xsequence/erc20-meta-wrapper)). Since the currency is an ERC-1155, the NiftyswapExchange.sol contract also needs to be aware of what the currency `id` is in the currency contract. The currency can be the same contract as the Tokens contract.
 
 Both the address and the token id of the currency can be retrieved by calling [getCurrencyInfo()](#getcurrencyinfo()). Note that if the currency and the tokens are the same ERC-1155 contract, the `currencyID <=> currencyID` pool will be prohibited for security reasons.
 

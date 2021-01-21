@@ -13,7 +13,7 @@ import "multi-token-standard/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
  * This Uniswap-like implementation supports ERC-1155 standard tokens
  * with an ERC-1155 based token used as a currency instead of Ether.
  *
- * See https://github.com/arcadeum/erc20-meta-token for a generalized
+ * See https://github.com/0xsequence/erc20-meta-token for a generalized
  * ERC-20 => ERC-1155 token wrapper
  *
  * Liquidity tokens are also ERC-1155 tokens you can find the ERC-1155
@@ -360,7 +360,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
 
         // Proportion of the liquidity pool to give to current liquidity provider
         // If rounding error occured, round down to favor previous liquidity providers
-        // See https://github.com/arcadeum/niftyswap/issues/19
+        // See https://github.com/0xsequence/niftyswap/issues/19
         liquiditiesToMint[i] = (currencyAmount.sub(rounded ? 1 : 0)).mul(totalLiquidity) / currencyReserve;
         currencyAmounts[i] = currencyAmount;
 
