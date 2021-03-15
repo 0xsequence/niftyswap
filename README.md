@@ -59,8 +59,8 @@ we have the root ./package.json for the development environment, contract compil
 source code and distribution files are packaged in "src/package.json".
 
 To release a new version, make sure to bump the version, tag it, and run `yarn release`. The `release` command
-will publish the `0xsequence/niftyswap` package in the "src/" folder, separate from the root package. The advantage
-here is that application developers who consume `0xsequence/niftyswap` aren't required to install any of the devDependencies
+will publish the `@0xsequence/niftyswap` package in the "src/" folder, separate from the root package. The advantage
+here is that application developers who consume `@0xsequence/niftyswap` aren't required to install any of the devDependencies
 in their toolchains as our build and contract packages are separated.
 
 
