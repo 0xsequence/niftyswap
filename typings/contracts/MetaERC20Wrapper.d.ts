@@ -20,6 +20,7 @@ import {
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
+import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface MetaERC20WrapperInterface extends ethers.utils.Interface {
   functions: {
@@ -194,11 +195,41 @@ export class MetaERC20Wrapper extends Contract {
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  on(event: EventFilter | string, listener: Listener): this;
-  once(event: EventFilter | string, listener: Listener): this;
-  addListener(eventName: EventFilter | string, listener: Listener): this;
-  removeAllListeners(eventName: EventFilter | string): this;
-  removeListener(eventName: any, listener: Listener): this;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
+
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    fromBlockOrBlockhash?: string | number | undefined,
+    toBlock?: string | number | undefined
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
   interface: MetaERC20WrapperInterface;
 
@@ -991,11 +1022,26 @@ export class MetaERC20Wrapper extends Contract {
       _owner: string | null,
       _operator: string | null,
       _approved: null
-    ): EventFilter;
+    ): TypedEventFilter<
+      [string, string, boolean],
+      { _owner: string; _operator: string; _approved: boolean }
+    >;
 
-    NonceChange(signer: string | null, newNonce: null): EventFilter;
+    NonceChange(
+      signer: string | null,
+      newNonce: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { signer: string; newNonce: BigNumber }
+    >;
 
-    TokenRegistration(token_address: null, token_id: null): EventFilter;
+    TokenRegistration(
+      token_address: null,
+      token_id: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { token_address: string; token_id: BigNumber }
+    >;
 
     TransferBatch(
       _operator: string | null,
@@ -1003,7 +1049,16 @@ export class MetaERC20Wrapper extends Contract {
       _to: string | null,
       _ids: null,
       _amounts: null
-    ): EventFilter;
+    ): TypedEventFilter<
+      [string, string, string, BigNumber[], BigNumber[]],
+      {
+        _operator: string;
+        _from: string;
+        _to: string;
+        _ids: BigNumber[];
+        _amounts: BigNumber[];
+      }
+    >;
 
     TransferSingle(
       _operator: string | null,
@@ -1011,7 +1066,16 @@ export class MetaERC20Wrapper extends Contract {
       _to: string | null,
       _id: null,
       _amount: null
-    ): EventFilter;
+    ): TypedEventFilter<
+      [string, string, string, BigNumber, BigNumber],
+      {
+        _operator: string;
+        _from: string;
+        _to: string;
+        _id: BigNumber;
+        _amount: BigNumber;
+      }
+    >;
   };
 
   estimateGas: {

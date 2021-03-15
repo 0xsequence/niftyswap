@@ -47,10 +47,8 @@ Niftyswap has been audited by two independant parties and all issues discovered 
 
 ## Dependencies
 
-1. Install node v14+, 
-2. Install yarn: `npm install -g yarn`
-3. Install the multi-token-standard package: `npm install multi-token-standard` or `yarn add multi-token-standard`
-4. Intsall the niftyswap package: `npm install niftyswap` or `yarn add niftyswap`
+1. Install the multi-token-standard package: `npm install multi-token-standard` or `yarn add multi-token-standard`
+2. Intsall the niftyswap package: `npm install niftyswap` or `yarn add niftyswap`
 
 ## Dev / running the tests
 
