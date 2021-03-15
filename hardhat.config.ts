@@ -18,7 +18,8 @@ const config: HardhatUserConfig = {
     }
   },
   paths: {
-    tests: 'tests'
+    root: 'src',
+    tests: '../tests'
   },
   networks: {
     ganache: {

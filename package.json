@@ -1,14 +1,13 @@
 {
-  "name": "niftyswap",
-  "version": "2.2.0",
-  "description": "AMM exchange for ERC-1155 tokens, inspired by Uniswap",
-  "repository": "https://github.com/0xsequence/niftyswap",
+  "name": "root",
+  "private": true,
+  "workspaces": ["src"],
   "license": "Apache-2.0",
   "scripts": {
     "build": "yarn clean && yarn compile && yarn gen:typings",
-    "clean": "rimraf artifacts && rimraf typings/contracts && rimraf cache",
+    "clean": "rimraf src/artifacts && rimraf src/typings/contracts && rimraf src/cache",
     "compile": "hardhat --max-memory 4096 compile",
-    "gen:typings": "rimraf typings/contracts && typechain --target ethers-v5 --outDir typings/contracts './artifacts/!(build-info)/**/*[^dbg].json'",
+    "gen:typings": "rimraf src/typings/contracts && typechain --target ethers-v5 --outDir src/typings/contracts './src/artifacts/!(build-info)/**/*[^dbg].json'",
     "test": "yarn build && yarn concurrently -k --success first 'yarn start:ganache' 'yarn test:ganache'",
     "test:hardhat": "hardhat test tests/*.spec.ts",
     "test:ganache": "hardhat --network ganache test tests/*.spec.ts",
@@ -16,30 +15,27 @@
     "test:benchmark": "hardhat --network ganache test tests/*.bench.ts",
     "lint": "yarn lint:ts && yarn lint:sol",
     "lint:fix": "yarn lint:ts:fix && yarn lint:sol:fix",
-    "lint:sol": "solhint './contracts/**/*.sol'",
-    "lint:sol:fix": "solhint './contracts/**/*.sol' --fix",
+    "lint:sol": "solhint './src/contracts/**/*.sol'",
+    "lint:sol:fix": "solhint './src/contracts/**/*.sol' --fix",
     "lint:ts": "eslint -c .eslintrc.js './**/*.ts'",
     "lint:ts:fix": "eslint -c .eslintrc.js --fix './**/*.ts'",
     "format": "prettier --write ./**/*.ts",
     "start:ganache": "ganache-cli --chainId ${npm_package_config_ganacheChainID} --networkId ${npm_package_config_ganacheChainID} --port ${npm_package_config_ganachePort} --gasLimit ${npm_package_config_ganacheGasLimit} --gasPrice ${npm_package_config_ganacheGasPrice} --defaultBalanceEther ${npm_package_config_etherBalance} --deterministic --mnemonic \"${npm_package_config_mnemonic}\" ${npm_package_config_extra}",
     "start:ganache:verbose": "yarn run start:ganache --verbose",
-    "stop:ganache": "ps aux | grep ganache-cli | grep -v grep | awk '{print $2}' | xargs kill -9"
-  },
-  "dependencies": {
-    "erc20-meta-token": "^2.2.0",
-    "multi-token-standard": "^2.2.0"
+    "stop:ganache": "ps aux | grep ganache-cli | grep -v grep | awk '{print $2}' | xargs kill -9",
+    "release": "yarn publish src"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-truffle5": "^2.0.0",
     "@nomiclabs/hardhat-web3": "^2.0.0",
-    "@typechain/ethers-v5": "^6.0.2",
+    "@typechain/ethers-v5": "^6.0.3",
     "@types/chai-as-promised": "^7.1.0",
     "@types/chai-string": "^1.4.1",
     "@types/mocha": "^8.2.1",
-    "@types/node": "^14.14.34",
-    "@typescript-eslint/eslint-plugin": "^4.17.0",
-    "@typescript-eslint/parser": "^4.17.0",
+    "@types/node": "^14.14.35",
+    "@typescript-eslint/eslint-plugin": "^4.18.0",
+    "@typescript-eslint/parser": "^4.18.0",
     "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",
     "chai-bignumber": "^3.0.0",
@@ -60,22 +56,6 @@
     "typechain": "^4.0.3",
     "typescript": "4.2.3"
   },
-  "files": [
-    "README.md",
-    "LICENSE",
-    "artifacts",
-    "contracts",
-    "typings"
-  ],
-  "keywords": [
-    "Ethereum",
-    "Niftyswap",
-    "Uniswap",
-    "ERC-1155",
-    "ERC-20",
-    "Token",
-    "NFT"
-  ],
   "config": {
     "mnemonic": "test test test test test test test test test test test junk",
     "ganacheChainID": 127001,

@@ -13,13 +13,13 @@ import {
 import * as utils from './utils'
 
 import { ERC1155Mock } from 'typings/contracts/ERC1155Mock'
-import { ERC20Mock } from 'erc20-meta-token/typings/contracts/ERC20Mock'
+import { ERC20Mock } from '@0xsequence/erc20-meta-token/typings/contracts/ERC20Mock'
 import { NiftyswapExchange } from 'typings/contracts/NiftyswapExchange'
 import { NiftyswapFactory } from 'typings/contracts/NiftyswapFactory'
-import { ERC20Wrapper } from 'erc20-meta-token/typings/contracts/ERC20Wrapper'
+import { ERC20Wrapper } from '@0xsequence/erc20-meta-token/typings/contracts/ERC20Wrapper'
 import { WrapAndNiftyswap } from 'typings/contracts/WrapAndNiftyswap'
 
-import { abi as exchangeABI } from '../artifacts/contracts/exchange/NiftyswapExchange.sol/NiftyswapExchange.json'
+import { abi as exchangeABI } from '@0xsequence/niftyswap/artifacts/contracts/exchange/NiftyswapExchange.sol/NiftyswapExchange.json'
 import { BigNumber } from 'ethers'
 import { web3 } from 'hardhat'
 

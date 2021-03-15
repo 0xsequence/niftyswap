@@ -8,8 +8,11 @@
     "resolveJsonModule": true,
     "noImplicitAny": false,
     "strictPropertyInitialization": false,
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "typings/*": ["src/typings/*"],
+    }
   },
-  "include": ["tests", "typings"],
-  "files": ["./hardhat.config.ts"]
+  "include": ["tests", "src/typings"],
+  "files": ["hardhat.config.ts"]
 }
