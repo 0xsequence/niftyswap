@@ -41,8 +41,8 @@ There are pros and cons to these differences and we welcome you to discuss these
 
 ## Contracts
 
-* [NiftyswapExchange.sol](https://github.com/0xsequence/niftyswap/blob/master/contracts/exchange/NiftyswapExchange.sol): The exchange contract that handles the logic for exchanging assets for a given base token.
-* [NiftyswapFactory.sol](https://github.com/0xsequence/niftyswap/blob/master/contracts/exchange/NiftyswapFactory.sol): The exchange factory that allows the creation of nifyswap exchanges for the tokens of a given ERC-1155 token conract and an ERC-1155 base currency.
+* [NiftyswapExchange.sol](https://github.com/0xsequence/niftyswap/blob/master/src/contracts/exchange/NiftyswapExchange.sol): The exchange contract that handles the logic for exchanging assets for a given base token.
+* [NiftyswapFactory.sol](https://github.com/0xsequence/niftyswap/blob/master/src/contracts/exchange/NiftyswapFactory.sol): The exchange factory that allows the creation of nifyswap exchanges for the tokens of a given ERC-1155 token conract and an ERC-1155 base currency.
 
 ## Security Review
 
