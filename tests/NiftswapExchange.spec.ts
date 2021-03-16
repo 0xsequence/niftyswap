@@ -12,10 +12,13 @@ import {
 
 import * as utils from './utils'
 
-import { ERC1155Mock } from 'typings/contracts/ERC1155Mock'
-import { ERC1155PackedBalanceMock } from 'typings/contracts/ERC1155PackedBalanceMock'
-import { NiftyswapExchange } from 'typings/contracts/NiftyswapExchange'
-import { NiftyswapFactory } from 'typings/contracts/NiftyswapFactory'
+import {
+  ERC1155Mock,
+  ERC1155PackedBalanceMock,
+  NiftyswapExchange,
+  NiftyswapFactory
+} from 'src/gen/typechain'
+
 import { abi as exchangeABI } from '@0xsequence/niftyswap/artifacts/contracts/exchange/NiftyswapExchange.sol/NiftyswapExchange.json'
 import { BigNumber } from 'ethers'
 import { web3 } from 'hardhat'

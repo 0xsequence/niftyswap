@@ -4,9 +4,12 @@ import { AbstractContract, BigNumber, expect, RevertError } from './utils'
 
 import * as utils from './utils'
 
-import { ERC1155Mock } from 'typings/contracts/ERC1155Mock'
-import { ERC1155PackedBalanceMock } from 'typings/contracts/ERC1155PackedBalanceMock'
-import { NiftyswapFactory } from 'typings/contracts/NiftyswapFactory'
+import {
+  ERC1155Mock,
+  ERC1155PackedBalanceMock,
+  NiftyswapFactory
+} from 'src/gen/typechain'
+
 import { web3 } from 'hardhat'
 
 // init test wallets from package.json mnemonic

@@ -9,7 +9,7 @@ import {
   SellTokensObj, 
   AddLiquidityObj, 
   RemoveLiquidityObj 
-} from 'typings/tx-types'
+} from 'src/typings/tx-types'
 import { BigNumber } from 'ethers';
 
 // createTestWallet creates a new wallet

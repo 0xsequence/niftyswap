@@ -1,19 +1,13 @@
 {
   "name": "@0xsequence/niftyswap",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Swap protocol for ERC-1155 tokens, inspired by Uniswap",
   "repository": "https://github.com/0xsequence/niftyswap",
   "homepage": "https://sequence.build",
   "license": "Apache-2.0",
-  "source": "typings/contracts/index.ts",
-  "types": "typings/contracts/index.ts",
+  "main": "gen/adapter/index.js",
+  "types": "gen/typechain/index.ts",
   "scripts": {
-  },
-  "dependencies": {
-    "@0xsequence/erc20-meta-token": "^3.0.3",
-    "@0xsequence/erc-1155": "^3.0.3"
-  },
-  "devDependencies": {
   },
   "keywords": [
     "Ethereum",
@@ -23,5 +17,14 @@
     "ERC-20",
     "Token",
     "NFT"
-  ]
+  ],
+  "peerDependencies": {
+    "ethers": "^5.0.32"
+  },
+  "dependencies": {
+    "@0xsequence/erc-1155": "^3.0.4",
+    "@0xsequence/erc20-meta-token": "^3.0.5"
+  },
+  "devDependencies": {
+  }
 }
