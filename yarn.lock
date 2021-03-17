@@ -7,10 +7,10 @@
   resolved "https://registry.yarnpkg.com/@0xsequence/erc-1155/-/erc-1155-3.0.4.tgz#38b1a548d97fbe8cc21f96f5bae0ede4dbfb0f0f"
   integrity sha512-Bm5abCWp1ZXPB7AhxhP6Rj1UTLi/OyNfoTy/HD76QmA6ysz9dw0VoK3EFLK5HeUbfXZTu/Fg9PmgG9uJ0c6Urw==
 
-"@0xsequence/erc20-meta-token@^3.0.4":
-  version "3.0.4"
-  resolved "https://registry.yarnpkg.com/@0xsequence/erc20-meta-token/-/erc20-meta-token-3.0.4.tgz#aeb9c335081101e5fae38ef18f50d71b15fb335f"
-  integrity sha512-Oyo/r7WW8ObBwubH3O9UDZgWg4SqEwW6gskQMTfGe26DpgjeAL4c03GKRNAJhjCHeCgDzbiTnD2gE1bSTUZAfw==
+"@0xsequence/erc20-meta-token@^3.0.5":
+  version "3.0.5"
+  resolved "https://registry.yarnpkg.com/@0xsequence/erc20-meta-token/-/erc20-meta-token-3.0.5.tgz#67291d0ee4dd9a7161714a612dc9f982e773bc3b"
+  integrity sha512-/huCxtb8nXWfFbGsoS3T/f+/xYf4gw1bcc8+vdXy5IvY5GeyskfIaaW5IQnpeIBM5IIzg66kqUplXLDpyjZN1w==
   dependencies:
     "@0xsequence/erc-1155" "^3.0.4"
 
@@ -674,10 +674,10 @@
     strip-indent "^2.0.0"
     super-split "^1.1.0"
 
-"@typechain/ethers-v5@^6.0.3":
-  version "6.0.3"
-  resolved "https://registry.yarnpkg.com/@typechain/ethers-v5/-/ethers-v5-6.0.3.tgz#7111864ccdb2f3b1efd27283cc2f14999b05e5f0"
-  integrity sha512-Ut2arLNddngPTPboSP8EYiPRGWOTCLY3Iu0BU9CAXVEsABdx+n0XE5q+0YaGkq+0zus2D++WIz0U7Z0wHT6kTA==
+"@typechain/ethers-v5@^6.0.4":
+  version "6.0.4"
+  resolved "https://registry.yarnpkg.com/@typechain/ethers-v5/-/ethers-v5-6.0.4.tgz#b9bb2da36fcb4e10b8249dfb4408667151277010"
+  integrity sha512-m6mLwkwBtjmTfrMdvB+sZgbKSsMkfTCV5g2aqxZJFMyX1b9vLNPyqStmUQ8LaNs6ipCkG6+Q7erXJEkdjoDBSA==
 
 "@types/bignumber.js@^5.0.0":
   version "5.0.0"
