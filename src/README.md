@@ -13,6 +13,9 @@ For more information see, [github.com/0xsequence/niftyswap](https://github.com/0
 
 `yarn add @0xsequence/niftyswap` or `npm install @0xsequence/niftyswap`
 
+### Contract Verification
+
+`yarn verify --network {NETWORK_NAME} "{CONTRACT_NAME}={CONTRACT_ADDRESS}"`
 
 ## NOTES
 
