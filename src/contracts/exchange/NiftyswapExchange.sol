@@ -431,8 +431,8 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
     // Get token reserves
     tokenReserves = _getTokenReserves(_tokenIds);
 
-    // Assumes NITFY liquidity tokens are already received by contract, but not
-    // the currency  nor the Tokens Ids
+    // Assumes NIFTY liquidity tokens are already received by contract, but not
+    // the currency nor the Tokens Ids
 
     // Remove liquidity for each Token ID in _tokenIds
     for (uint256 i = 0; i < nTokens; i++) {
