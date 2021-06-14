@@ -30,6 +30,8 @@ export function RevertError(errorMessage?: string) {
   let prefix = 'VM Exception while processing transaction: revert'
   return errorMessage ? RegExp(`^${prefix + ' ' + errorMessage}$`) : RegExp(`^${prefix}$`)
 }
+// In some cases hardhat throws invalid op code when Ganache throws revert
+export const OpCodeError = () => RegExp('^VM Exception while processing transaction: (revert|invalid opcode)$')
 
 export const methodsSignature = {
   BUYTOKENS: "0xb2d81047",
