@@ -2,9 +2,13 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { NiftyswapExchange } from "./NiftyswapExchange";
+export type { NiftyswapExchange20 } from "./NiftyswapExchange20";
 export type { NiftyswapFactory } from "./NiftyswapFactory";
+export type { NiftyswapFactory20 } from "./NiftyswapFactory20";
 export type { INiftyswapExchange } from "./INiftyswapExchange";
+export type { INiftyswapExchange20 } from "./INiftyswapExchange20";
 export type { INiftyswapFactory } from "./INiftyswapFactory";
+export type { INiftyswapFactory20 } from "./INiftyswapFactory20";
 export type { IWrapAndNiftyswap } from "./IWrapAndNiftyswap";
 export type { ERC1155Mock } from "./ERC1155Mock";
 export type { ERC1155PackedBalanceMock } from "./ERC1155PackedBalanceMock";
@@ -13,9 +17,13 @@ export type { ERC20WrapperMock } from "./ERC20WrapperMock";
 export type { WrapAndNiftyswap } from "./WrapAndNiftyswap";
 
 export { NiftyswapExchange__factory } from "./factories/NiftyswapExchange__factory";
+export { NiftyswapExchange20__factory } from "./factories/NiftyswapExchange20__factory";
 export { NiftyswapFactory__factory } from "./factories/NiftyswapFactory__factory";
+export { NiftyswapFactory20__factory } from "./factories/NiftyswapFactory20__factory";
 export { INiftyswapExchange__factory } from "./factories/INiftyswapExchange__factory";
+export { INiftyswapExchange20__factory } from "./factories/INiftyswapExchange20__factory";
 export { INiftyswapFactory__factory } from "./factories/INiftyswapFactory__factory";
+export { INiftyswapFactory20__factory } from "./factories/INiftyswapFactory20__factory";
 export { IWrapAndNiftyswap__factory } from "./factories/IWrapAndNiftyswap__factory";
 export { ERC1155Mock__factory } from "./factories/ERC1155Mock__factory";
 export { ERC1155PackedBalanceMock__factory } from "./factories/ERC1155PackedBalanceMock__factory";
