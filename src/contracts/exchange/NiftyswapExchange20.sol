@@ -132,7 +132,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
 
     // Refund currency token if any
     if (totalRefundCurrency > 0) {
-      currency.transfer(_recipient, totalRefundCurrency);
+      require(currency.transfer(_recipient, totalRefundCurrency), "NiftyswapExchange20#_currencyToToken: TRANSFER_FAILED");
     }
 
     // Send Tokens all tokens purchased
@@ -232,7 +232,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     require(totalCurrency >= _minCurrency, "NiftyswapExchange20#_tokenToCurrency: INSUFFICIENT_CURRENCY_AMOUNT");
 
     // Transfer currency here
-    currency.transfer(_recipient, totalCurrency);
+    require(currency.transfer(_recipient, totalCurrency), "NiftyswapExchange20#_tokenToCurrency: TRANSFER_FAILED");
 
     return currencyBought;
   }
@@ -378,7 +378,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     _batchMint(_provider, _tokenIds, liquiditiesToMint, "");
 
     // Transfer all currency to this contract
-    currency.transferFrom(_provider, address(this), totalCurrency);
+    require(currency.transferFrom(_provider, address(this), totalCurrency), "NiftyswapExchange20#_addLiquidity: TRANSFER_FAILED");
 
     // Emit event
     emit LiquidityAdded(_provider, _tokenIds, _tokenAmounts, currencyAmounts);
@@ -457,7 +457,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     _batchBurn(address(this), _tokenIds, _poolTokenAmounts);
 
     // Transfer total currency and all Tokens ids
-    currency.transfer(_provider, totalCurrency);
+    require(currency.transfer(_provider, totalCurrency), "NiftyswapExchange20#_removeLiquidity: TRANSFER_FAILED");
     token.safeBatchTransferFrom(address(this), _provider, _tokenIds, tokenAmounts, "");
 
     // Emit event
@@ -510,7 +510,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     require(_tokenIds.length > 0, "NiftyswapExchange20#buyTokens: INVALID_CURRENCY_IDS_AMOUNT");
 
     // Transfer the tokens for purchase
-    currency.transferFrom(msg.sender, address(this), _maxCurrency);
+    require(currency.transferFrom(msg.sender, address(this), _maxCurrency), "NiftyswapExchange20#buyTokens: TRANSFER_FAILED");
 
     address recipient = _recipient == address(0x0) ? msg.sender : _recipient;
 
