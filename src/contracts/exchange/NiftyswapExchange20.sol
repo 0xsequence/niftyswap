@@ -13,9 +13,6 @@ import "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
  * This Uniswap-like implementation supports ERC-1155 standard tokens
  * with an ERC-20 based token used as a currency instead of Ether.
  *
- * See https://github.com/0xsequence/erc20-meta-token for a generalized
- * ERC-20 => ERC-1155 token wrapper
- *
  * Liquidity tokens are also ERC-1155 tokens you can find the ERC-1155
  * implementation used here:
  *    https://github.com/horizon-games/multi-token-standard/tree/master/contracts/tokens/ERC1155
