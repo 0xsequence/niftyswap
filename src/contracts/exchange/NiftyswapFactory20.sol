@@ -23,7 +23,7 @@ contract NiftyswapFactory20 is INiftyswapFactory20 {
    * @param _currency   The address of the ERC-20 token contract
    */
   function createExchange(address _token, address _currency) public override {
-    require(tokensToExchange[_token][_currency] == address(0x0), "NiftyswapFactory#createExchange: EXCHANGE_ALREADY_CREATED");
+    require(tokensToExchange[_token][_currency] == address(0x0), "NiftyswapFactory20#createExchange: EXCHANGE_ALREADY_CREATED");
 
     // Create new exchange contract
     NiftyswapExchange20 exchange = new NiftyswapExchange20(_token, _currency);
