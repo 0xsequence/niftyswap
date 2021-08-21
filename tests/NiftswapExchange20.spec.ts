@@ -1555,7 +1555,7 @@ describe('NiftyswapExchange20', () => {
             niftyswapExchangeContract.address,
             { gasLimit: 8000000 }
           )
-          await expect(tx).to.be.rejectedWith(RevertError('SafeMath#sub: UNDERFLOW'))
+          await expect(tx).to.be.rejectedWith(RevertError('TransferHelper::transferFrom: transferFrom failed'))
         })
 
         it('should fail if deadline is passed', async () => {

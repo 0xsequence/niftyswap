@@ -8,6 +8,7 @@ import "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 import "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
 import "@0xsequence/erc-1155/contracts/interfaces/IERC1155TokenReceiver.sol";
 import "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
+import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 
 /**
  * This Uniswap-like implementation supports ERC-1155 standard tokens
@@ -30,7 +31,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
 
   // Variables
   IERC1155 internal token;                        // address of the ERC-1155 token contract
-  IERC20 internal currency;                       // address of the ERC-20 currency used for exchange
+  address internal currency;                      // address of the ERC-20 currency used for exchange
   address internal factory;                       // address for the factory that created this contract
   uint256 internal constant FEE_MULTIPLIER = 995; // Multiplier that calculates the fee (0.5%)
 
@@ -54,7 +55,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     );
     factory = msg.sender;
     token = IERC1155(_tokenAddr);
-    currency = IERC20(_currencyAddr);
+    currency = _currencyAddr;
   }
 
   /***********************************|
@@ -129,7 +130,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
 
     // Refund currency token if any
     if (totalRefundCurrency > 0) {
-      require(currency.transfer(_recipient, totalRefundCurrency), "NiftyswapExchange20#_currencyToToken: TRANSFER_FAILED");
+      TransferHelper.safeTransfer(currency, _recipient, totalRefundCurrency);
     }
 
     // Send Tokens all tokens purchased
@@ -229,7 +230,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     require(totalCurrency >= _minCurrency, "NiftyswapExchange20#_tokenToCurrency: INSUFFICIENT_CURRENCY_AMOUNT");
 
     // Transfer currency here
-    require(currency.transfer(_recipient, totalCurrency), "NiftyswapExchange20#_tokenToCurrency: TRANSFER_FAILED");
+    TransferHelper.safeTransfer(currency, _recipient, totalCurrency);
 
     return currencyBought;
   }
@@ -375,7 +376,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     _batchMint(_provider, _tokenIds, liquiditiesToMint, "");
 
     // Transfer all currency to this contract
-    require(currency.transferFrom(_provider, address(this), totalCurrency), "NiftyswapExchange20#_addLiquidity: TRANSFER_FAILED");
+    TransferHelper.safeTransferFrom(currency, _provider, address(this), totalCurrency);
 
     // Emit event
     emit LiquidityAdded(_provider, _tokenIds, _tokenAmounts, currencyAmounts);
@@ -454,7 +455,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     _batchBurn(address(this), _tokenIds, _poolTokenAmounts);
 
     // Transfer total currency and all Tokens ids
-    require(currency.transfer(_provider, totalCurrency), "NiftyswapExchange20#_removeLiquidity: TRANSFER_FAILED");
+    TransferHelper.safeTransfer(currency, _provider, totalCurrency);
     token.safeBatchTransferFrom(address(this), _provider, _tokenIds, tokenAmounts, "");
 
     // Emit event
@@ -507,7 +508,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     require(_tokenIds.length > 0, "NiftyswapExchange20#buyTokens: INVALID_CURRENCY_IDS_AMOUNT");
 
     // Transfer the tokens for purchase
-    require(currency.transferFrom(msg.sender, address(this), _maxCurrency), "NiftyswapExchange20#buyTokens: TRANSFER_FAILED");
+    TransferHelper.safeTransferFrom(currency, msg.sender, address(this), _maxCurrency);
 
     address recipient = _recipient == address(0x0) ? msg.sender : _recipient;
 
