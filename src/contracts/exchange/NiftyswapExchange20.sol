@@ -30,9 +30,9 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
   |__________________________________*/
 
   // Variables
-  IERC1155 internal token;                        // address of the ERC-1155 token contract
-  address internal currency;                      // address of the ERC-20 currency used for exchange
-  address internal factory;                       // address for the factory that created this contract
+  IERC1155 internal immutable token;                        // address of the ERC-1155 token contract
+  address internal immutable currency;                      // address of the ERC-20 currency used for exchange
+  address internal immutable factory;                       // address for the factory that created this contract
   uint256 internal constant FEE_MULTIPLIER = 995; // Multiplier that calculates the fee (0.5%)
 
   // Mapping variables
@@ -50,7 +50,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
    */
   constructor(address _tokenAddr, address _currencyAddr) public {
     require(
-      address(_tokenAddr) != address(0) && _currencyAddr != address(0),
+      _tokenAddr != address(0) && _currencyAddr != address(0),
       "NiftyswapExchange20#constructor:INVALID_INPUT"
     );
     factory = msg.sender;
@@ -92,10 +92,9 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
 
     // Initialize variables
     currencySold = new uint256[](nTokens); // Amount of currency tokens sold per ID
-    uint256[] memory tokenReserves = new uint256[](nTokens);  // Amount of tokens in reserve for each Token id
 
     // Get token reserves
-    tokenReserves = _getTokenReserves(_tokenIds);
+    uint256[] memory tokenReserves = _getTokenReserves(_tokenIds);
 
     // Assumes the currency Tokens are already received by contract, but not
     // the Tokens Ids
@@ -190,10 +189,9 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     // Initialize variables
     uint256 totalCurrency = 0; // Total amount of currency tokens to transfer
     currencyBought = new uint256[](nTokens);
-    uint256[] memory tokenReserves = new uint256[](nTokens);
 
     // Get token reserves
-    tokenReserves = _getTokenReserves(_tokenIds);
+    uint256[] memory tokenReserves = _getTokenReserves(_tokenIds);
 
     // Assumes the Tokens ids are already received by contract, but not
     // the Tokens Ids. Will return cards not sold if invalid price.
@@ -292,10 +290,9 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     // Initialize arrays
     uint256[] memory liquiditiesToMint = new uint256[](nTokens);
     uint256[] memory currencyAmounts = new uint256[](nTokens);
-    uint256[] memory tokenReserves = new uint256[](nTokens);
 
     // Get token reserves
-    tokenReserves = _getTokenReserves(_tokenIds);
+    uint256[] memory tokenReserves = _getTokenReserves(_tokenIds);
 
     // Assumes tokens _ids are deposited already, but not currency tokens
     // as this is calculated and executed below.
@@ -409,10 +406,9 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     uint256 totalCurrency = 0;                                 // Total amount of currency  to transfer
     uint256[] memory tokenAmounts = new uint256[](nTokens);    // Amount of Tokens to transfer for each id
     uint256[] memory currencyAmounts = new uint256[](nTokens); // Amount of currency to transfer for each id
-    uint256[] memory tokenReserves = new uint256[](nTokens);
 
     // Get token reserves
-    tokenReserves = _getTokenReserves(_tokenIds);
+    uint256[] memory tokenReserves = _getTokenReserves(_tokenIds);
 
     // Assumes NIFTY liquidity tokens are already received by contract, but not
     // the currency nor the Tokens Ids
