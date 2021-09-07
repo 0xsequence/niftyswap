@@ -29,6 +29,10 @@ const config: HardhatUserConfig = {
     },
     matic: {
       url: 'https://rpc-mainnet.matic.network'
+    },
+    hardhat: {
+      blockGasLimit: 0xfffffffffff,
+      gasPrice: 20000000000,
     }
   },
   gasReporter: {

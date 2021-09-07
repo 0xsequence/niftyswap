@@ -23,7 +23,8 @@
   },
   "dependencies": {
     "@0xsequence/erc-1155": "^3.0.4",
-    "@0xsequence/erc20-meta-token": "^3.0.5"
+    "@0xsequence/erc20-meta-token": "^3.0.5",
+    "@uniswap/lib": "^4.0.1-alpha"
   },
   "devDependencies": {
   }
