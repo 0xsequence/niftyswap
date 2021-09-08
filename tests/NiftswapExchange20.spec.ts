@@ -1652,7 +1652,7 @@ describe('NiftyswapExchange20', () => {
 
         describe('When trade is successful', async () => {
           beforeEach(async () => {
-            userExchangeContract.functions.buyTokens(
+            await userExchangeContract.functions.buyTokens(
               types,
               tokensAmountsToBuy,
               cost,
