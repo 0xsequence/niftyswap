@@ -28,6 +28,7 @@
     "start:ganache:verbose": "yarn run start:ganache --verbose",
     "stop:ganache": "ps aux | grep ganache-cli | grep -v grep | awk '{print $2}' | xargs kill -9",
     "release": "yarn publish src",
+    "release-list": "cd src && yarn release-list",
     "verify": "hardhat tenderly:verify"
   },
   "devDependencies": {
