@@ -39,8 +39,8 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
 
   // Royalty variables
   bool internal immutable IS_ERC2981; // whether token contract supports ERC-2981
-  uint256 internal royaltyFee;        // global royalty fee multiplier if ERC2981 is not used
-  address internal royaltyRecipient;  // global royalty fee recipient if ERC2981 is not used
+  uint256 internal globalRoyaltyFee;        // global royalty fee multiplier if ERC2981 is not used
+  address internal globalRoyaltyRecipient;  // global royalty fee recipient if ERC2981 is not used
 
   // Mapping variables
   mapping(uint256 => uint256) internal totalSupplies;    // Liquidity pool token supply per Token id
@@ -135,17 +135,17 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
 
       // If royalty, increase amount buyer will need to pay after LP fees were calculated
       // Note: Royalty will be a bit higher since LF fees are added first
-      (address royalty_recipient, uint256 royalty_amount) = getRoyaltyInfo(idBought, currencyAmount);
-      if (royalty_amount > 0) {
-        royalties[royalty_recipient] = royalties[royalty_recipient].add(royalty_amount);
+      (address royaltyRecipient, uint256 royaltyAmount) = getRoyaltyInfo(idBought, currencyAmount);
+      if (royaltyAmount > 0) {
+        royalties[royaltyRecipient] = royalties[royaltyRecipient].add(royaltyAmount);
       }
 
       // Calculate currency token amount to refund (if any) where whatever is not used will be returned
       // Will throw if total cost exceeds _maxCurrency
-      totalRefundCurrency = totalRefundCurrency.sub(currencyAmount).sub(royalty_amount);
+      totalRefundCurrency = totalRefundCurrency.sub(currencyAmount).sub(royaltyAmount);
 
       // Append Token id, Token id amount and currency token amount to tracking arrays
-      currencySold[i] = currencyAmount.add(royalty_amount);
+      currencySold[i] = currencyAmount.add(royaltyAmount);
 
       // Update individual currency reseve amount (royalty is not added to liquidity)
       currencyReserves[idBought] = currencyReserve.add(currencyAmount);
@@ -260,19 +260,19 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
 
       // If royalty, substract amount seller will receive after LP fees were calculated
       // Note: Royalty will be a bit lower since LF fees are substracted first
-      (address royalty_recipient, uint256 royalty_amount) = getRoyaltyInfo(idSold, currencyAmount);
-      if (royalty_amount > 0) {
-        royalties[royalty_recipient] = royalties[royalty_recipient].add(royalty_amount);
+      (address royaltyRecipient, uint256 royaltyAmount) = getRoyaltyInfo(idSold, currencyAmount);
+      if (royaltyAmount > 0) {
+        royalties[royaltyRecipient] = royalties[royaltyRecipient].add(royaltyAmount);
       }
 
       // Increase total amount of currency to receive (minus royalty to pay)
-      totalCurrency = totalCurrency.add(currencyAmount.sub(royalty_amount));
+      totalCurrency = totalCurrency.add(currencyAmount.sub(royaltyAmount));
 
       // Update individual currency reseve amount
       currencyReserves[idSold] = currencyReserve.sub(currencyAmount);
 
       // Append Token id, Token id amount and currency token amount to tracking arrays
-      currencyBought[i] = currencyAmount.sub(royalty_amount);
+      currencyBought[i] = currencyAmount.sub(royaltyAmount);
     }
 
     // If minCurrency is not met
@@ -712,9 +712,9 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
   function setRoyaltyInfo(uint256 _fee, address _recipient) onlyOwner public {
     require(!IS_ERC2981, "NiftyswapExchange20#setRoyaltyInfo: TOKEN SUPPORTS ERC-2981");
     require(_fee < FEE_MULTIPLIER, "NiftyswapExchange20#setRoyaltyInfo: ROYALTY_FEE_IS_TOO_HIGH");
-    royaltyFee = _fee;
-    royaltyRecipient = _recipient;
-    emit RoyaltyChanged(royaltyRecipient, royaltyFee);
+    globalRoyaltyFee = _fee;
+    globalRoyaltyRecipient = _recipient;
+    emit RoyaltyChanged(_recipient, _fee);
   }
 
   /**
@@ -740,7 +740,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     if (IS_ERC2981) {
       return IERC2981(address(token)).royaltyInfo(_tokenId, _cost); 
     } else {
-      return (royaltyRecipient, (_cost.mul(royaltyFee)).div(1000));
+      return (globalRoyaltyRecipient, (_cost.mul(globalRoyaltyFee)).div(1000));
     }
   }
 
@@ -860,15 +860,15 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
   /**
    * @return Global royalty fee % if not supporting ERC-2981
    */
-  function getRoyaltyFee() override external view returns (uint256) {
-    return royaltyFee;
+  function getGlobalRoyaltyFee() override external view returns (uint256) {
+    return globalRoyaltyFee;
   }
 
   /**
    * @return Global royalty recipient if token not supporting ERC-2981
    */
-  function getRoyaltyRecipient() override external view returns (address) {
-    return royaltyRecipient;
+  function getGlobalRoyaltyRecipient() override external view returns (address) {
+    return globalRoyaltyRecipient;
   }
 
   /**

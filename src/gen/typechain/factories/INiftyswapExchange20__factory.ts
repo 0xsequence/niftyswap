@@ -126,6 +126,25 @@ const _abi = [
       {
         indexed: true,
         internalType: "address",
+        name: "royaltyRecipient",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "royaltyFee",
+        type: "uint256",
+      },
+    ],
+    name: "RoyaltyChanged",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
         name: "buyer",
         type: "address",
       },
@@ -305,6 +324,32 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "getGlobalRoyaltyFee",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getGlobalRoyaltyRecipient",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "uint256[]",
@@ -366,32 +411,6 @@ const _abi = [
         internalType: "uint256",
         name: "",
         type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "getRoyaltyFee",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "getRoyaltyRecipient",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
       },
     ],
     stateMutability: "view",
@@ -567,6 +586,19 @@ const _abi = [
         type: "bytes4",
       },
     ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_royaltyRecipient",
+        type: "address",
+      },
+    ],
+    name: "sendRoyalties",
+    outputs: [],
     stateMutability: "nonpayable",
     type: "function",
   },

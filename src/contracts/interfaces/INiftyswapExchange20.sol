@@ -215,12 +215,12 @@ interface INiftyswapExchange20 {
   /**
    * @return Global royalty fee % if not supporting ERC-2981
    */
-  function getRoyaltyFee() external view returns (uint256);  
+  function getGlobalRoyaltyFee() external view returns (uint256);  
 
   /**
    * @return Global royalty recipient if token not supporting ERC-2981
    */
-  function getRoyaltyRecipient() external view returns (address);
+  function getGlobalRoyaltyRecipient() external view returns (address);
 
   /**
    * @return Get amount of currency in royalty an address can claim

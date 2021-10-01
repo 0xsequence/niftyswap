@@ -30,13 +30,13 @@ interface NiftyswapExchange20Interface extends ethers.utils.Interface {
     "getCurrencyInfo()": FunctionFragment;
     "getCurrencyReserves(uint256[])": FunctionFragment;
     "getFactoryAddress()": FunctionFragment;
+    "getGlobalRoyaltyFee()": FunctionFragment;
+    "getGlobalRoyaltyRecipient()": FunctionFragment;
     "getOwner()": FunctionFragment;
     "getPrice_currencyToToken(uint256[],uint256[])": FunctionFragment;
     "getPrice_tokenToCurrency(uint256[],uint256[])": FunctionFragment;
     "getRoyalties(address)": FunctionFragment;
-    "getRoyaltyFee()": FunctionFragment;
     "getRoyaltyInfo(uint256,uint256)": FunctionFragment;
-    "getRoyaltyRecipient()": FunctionFragment;
     "getSellPrice(uint256,uint256,uint256)": FunctionFragment;
     "getSellPriceWithRoyalty(uint256,uint256,uint256,uint256)": FunctionFragment;
     "getTokenAddress()": FunctionFragment;
@@ -88,6 +88,14 @@ interface NiftyswapExchange20Interface extends ethers.utils.Interface {
     functionFragment: "getFactoryAddress",
     values?: undefined
   ): string;
+  encodeFunctionData(
+    functionFragment: "getGlobalRoyaltyFee",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getGlobalRoyaltyRecipient",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "getOwner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getPrice_currencyToToken",
@@ -102,16 +110,8 @@ interface NiftyswapExchange20Interface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
-    functionFragment: "getRoyaltyFee",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "getRoyaltyInfo",
     values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getRoyaltyRecipient",
-    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getSellPrice",
@@ -196,6 +196,14 @@ interface NiftyswapExchange20Interface extends ethers.utils.Interface {
     functionFragment: "getFactoryAddress",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "getGlobalRoyaltyFee",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getGlobalRoyaltyRecipient",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "getOwner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getPrice_currencyToToken",
@@ -210,15 +218,7 @@ interface NiftyswapExchange20Interface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getRoyaltyFee",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "getRoyaltyInfo",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getRoyaltyRecipient",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -280,6 +280,7 @@ interface NiftyswapExchange20Interface extends ethers.utils.Interface {
     "LiquidityAdded(address,uint256[],uint256[],uint256[])": EventFragment;
     "LiquidityRemoved(address,uint256[],uint256[],uint256[])": EventFragment;
     "ParentOwnerChanged(address,address)": EventFragment;
+    "RoyaltyChanged(address,uint256)": EventFragment;
     "TokensPurchase(address,address,uint256[],uint256[],uint256[])": EventFragment;
     "TransferBatch(address,address,address,uint256[],uint256[])": EventFragment;
     "TransferSingle(address,address,address,uint256,uint256)": EventFragment;
@@ -290,6 +291,7 @@ interface NiftyswapExchange20Interface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "LiquidityAdded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LiquidityRemoved"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ParentOwnerChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RoyaltyChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TokensPurchase"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferBatch"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TransferSingle"): EventFragment;
@@ -439,6 +441,14 @@ export class NiftyswapExchange20 extends Contract {
 
     "getFactoryAddress()"(overrides?: CallOverrides): Promise<[string]>;
 
+    getGlobalRoyaltyFee(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "getGlobalRoyaltyFee()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    getGlobalRoyaltyRecipient(overrides?: CallOverrides): Promise<[string]>;
+
+    "getGlobalRoyaltyRecipient()"(overrides?: CallOverrides): Promise<[string]>;
+
     getOwner(overrides?: CallOverrides): Promise<[string]>;
 
     "getOwner()"(overrides?: CallOverrides): Promise<[string]>;
@@ -477,10 +487,6 @@ export class NiftyswapExchange20 extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    getRoyaltyFee(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "getRoyaltyFee()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     getRoyaltyInfo(
       _tokenId: BigNumberish,
       _cost: BigNumberish,
@@ -492,10 +498,6 @@ export class NiftyswapExchange20 extends Contract {
       _cost: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string, BigNumber] & { recipient: string; royalty: BigNumber }>;
-
-    getRoyaltyRecipient(overrides?: CallOverrides): Promise<[string]>;
-
-    "getRoyaltyRecipient()"(overrides?: CallOverrides): Promise<[string]>;
 
     getSellPrice(
       _assetSoldAmount: BigNumberish,
@@ -770,6 +772,14 @@ export class NiftyswapExchange20 extends Contract {
 
   "getFactoryAddress()"(overrides?: CallOverrides): Promise<string>;
 
+  getGlobalRoyaltyFee(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "getGlobalRoyaltyFee()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+  getGlobalRoyaltyRecipient(overrides?: CallOverrides): Promise<string>;
+
+  "getGlobalRoyaltyRecipient()"(overrides?: CallOverrides): Promise<string>;
+
   getOwner(overrides?: CallOverrides): Promise<string>;
 
   "getOwner()"(overrides?: CallOverrides): Promise<string>;
@@ -808,10 +818,6 @@ export class NiftyswapExchange20 extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  getRoyaltyFee(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "getRoyaltyFee()"(overrides?: CallOverrides): Promise<BigNumber>;
-
   getRoyaltyInfo(
     _tokenId: BigNumberish,
     _cost: BigNumberish,
@@ -823,10 +829,6 @@ export class NiftyswapExchange20 extends Contract {
     _cost: BigNumberish,
     overrides?: CallOverrides
   ): Promise<[string, BigNumber] & { recipient: string; royalty: BigNumber }>;
-
-  getRoyaltyRecipient(overrides?: CallOverrides): Promise<string>;
-
-  "getRoyaltyRecipient()"(overrides?: CallOverrides): Promise<string>;
 
   getSellPrice(
     _assetSoldAmount: BigNumberish,
@@ -1101,6 +1103,14 @@ export class NiftyswapExchange20 extends Contract {
 
     "getFactoryAddress()"(overrides?: CallOverrides): Promise<string>;
 
+    getGlobalRoyaltyFee(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "getGlobalRoyaltyFee()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getGlobalRoyaltyRecipient(overrides?: CallOverrides): Promise<string>;
+
+    "getGlobalRoyaltyRecipient()"(overrides?: CallOverrides): Promise<string>;
+
     getOwner(overrides?: CallOverrides): Promise<string>;
 
     "getOwner()"(overrides?: CallOverrides): Promise<string>;
@@ -1139,10 +1149,6 @@ export class NiftyswapExchange20 extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getRoyaltyFee(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getRoyaltyFee()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     getRoyaltyInfo(
       _tokenId: BigNumberish,
       _cost: BigNumberish,
@@ -1154,10 +1160,6 @@ export class NiftyswapExchange20 extends Contract {
       _cost: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string, BigNumber] & { recipient: string; royalty: BigNumber }>;
-
-    getRoyaltyRecipient(overrides?: CallOverrides): Promise<string>;
-
-    "getRoyaltyRecipient()"(overrides?: CallOverrides): Promise<string>;
 
     getSellPrice(
       _assetSoldAmount: BigNumberish,
@@ -1397,6 +1399,14 @@ export class NiftyswapExchange20 extends Contract {
       { previousParent: string; newParent: string }
     >;
 
+    RoyaltyChanged(
+      royaltyRecipient: string | null,
+      royaltyFee: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { royaltyRecipient: string; royaltyFee: BigNumber }
+    >;
+
     TokensPurchase(
       buyer: string | null,
       recipient: string | null,
@@ -1550,6 +1560,16 @@ export class NiftyswapExchange20 extends Contract {
 
     "getFactoryAddress()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getGlobalRoyaltyFee(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "getGlobalRoyaltyFee()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getGlobalRoyaltyRecipient(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "getGlobalRoyaltyRecipient()"(
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getOwner(overrides?: CallOverrides): Promise<BigNumber>;
 
     "getOwner()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1588,10 +1608,6 @@ export class NiftyswapExchange20 extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getRoyaltyFee(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getRoyaltyFee()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     getRoyaltyInfo(
       _tokenId: BigNumberish,
       _cost: BigNumberish,
@@ -1603,10 +1619,6 @@ export class NiftyswapExchange20 extends Contract {
       _cost: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    getRoyaltyRecipient(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getRoyaltyRecipient()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     getSellPrice(
       _assetSoldAmount: BigNumberish,
@@ -1886,6 +1898,22 @@ export class NiftyswapExchange20 extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    getGlobalRoyaltyFee(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getGlobalRoyaltyFee()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getGlobalRoyaltyRecipient(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getGlobalRoyaltyRecipient()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "getOwner()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1924,10 +1952,6 @@ export class NiftyswapExchange20 extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getRoyaltyFee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "getRoyaltyFee()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     getRoyaltyInfo(
       _tokenId: BigNumberish,
       _cost: BigNumberish,
@@ -1937,14 +1961,6 @@ export class NiftyswapExchange20 extends Contract {
     "getRoyaltyInfo(uint256,uint256)"(
       _tokenId: BigNumberish,
       _cost: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getRoyaltyRecipient(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getRoyaltyRecipient()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

@@ -1933,12 +1933,12 @@ describe('NiftyswapExchange20', () => {
         })
 
         it('Exchange royalty fee should be 0', async () => {
-          const fee = (await niftyswapExchangeContract.functions.getRoyaltyFee())[0]
+          const fee = (await niftyswapExchangeContract.functions.getGlobalRoyaltyFee())[0]
           expect(fee).to.be.eql(BigNumber.from(0))
         })
 
         it('Exchange royalty fee recipient should be 0x0', async () => {
-          const recipient = (await niftyswapExchangeContract.functions.getRoyaltyRecipient())[0]
+          const recipient = (await niftyswapExchangeContract.functions.getGlobalRoyaltyRecipient())[0]
           expect(recipient).to.be.eql(ethers.constants.AddressZero)
         })
 
