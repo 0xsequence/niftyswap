@@ -220,6 +220,40 @@ var _abi = [
         type: "function"
     },
     {
+        inputs: [
+            {
+                internalType: "uint256",
+                name: "_tokenId",
+                type: "uint256"
+            },
+            {
+                internalType: "uint256",
+                name: "_assetBoughtAmount",
+                type: "uint256"
+            },
+            {
+                internalType: "uint256",
+                name: "_assetSoldReserve",
+                type: "uint256"
+            },
+            {
+                internalType: "uint256",
+                name: "_assetBoughtReserve",
+                type: "uint256"
+            },
+        ],
+        name: "getBuyPriceWithRoyalty",
+        outputs: [
+            {
+                internalType: "uint256",
+                name: "price",
+                type: "uint256"
+            },
+        ],
+        stateMutability: "view",
+        type: "function"
+    },
+    {
         inputs: [],
         name: "getCurrencyInfo",
         outputs: [
@@ -315,6 +349,51 @@ var _abi = [
     {
         inputs: [
             {
+                internalType: "address",
+                name: "_royaltyRecipient",
+                type: "address"
+            },
+        ],
+        name: "getRoyalties",
+        outputs: [
+            {
+                internalType: "uint256",
+                name: "",
+                type: "uint256"
+            },
+        ],
+        stateMutability: "view",
+        type: "function"
+    },
+    {
+        inputs: [],
+        name: "getRoyaltyFee",
+        outputs: [
+            {
+                internalType: "uint256",
+                name: "",
+                type: "uint256"
+            },
+        ],
+        stateMutability: "view",
+        type: "function"
+    },
+    {
+        inputs: [],
+        name: "getRoyaltyRecipient",
+        outputs: [
+            {
+                internalType: "address",
+                name: "",
+                type: "address"
+            },
+        ],
+        stateMutability: "view",
+        type: "function"
+    },
+    {
+        inputs: [
+            {
                 internalType: "uint256",
                 name: "_assetSoldAmount",
                 type: "uint256"
@@ -339,6 +418,40 @@ var _abi = [
             },
         ],
         stateMutability: "pure",
+        type: "function"
+    },
+    {
+        inputs: [
+            {
+                internalType: "uint256",
+                name: "_tokenId",
+                type: "uint256"
+            },
+            {
+                internalType: "uint256",
+                name: "_assetSoldAmount",
+                type: "uint256"
+            },
+            {
+                internalType: "uint256",
+                name: "_assetSoldReserve",
+                type: "uint256"
+            },
+            {
+                internalType: "uint256",
+                name: "_assetBoughtReserve",
+                type: "uint256"
+            },
+        ],
+        name: "getSellPriceWithRoyalty",
+        outputs: [
+            {
+                internalType: "uint256",
+                name: "price",
+                type: "uint256"
+            },
+        ],
+        stateMutability: "view",
         type: "function"
     },
     {
