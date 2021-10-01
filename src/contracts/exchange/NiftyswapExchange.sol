@@ -37,7 +37,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
   bool internal currencyPoolBanned;               // Whether the currency token ID can have a pool or not
   address internal factory;                       // address for the factory that created this contract
   uint256 internal currencyID;                    // ID of currency token in ERC-1155 currency contract
-  uint256 internal constant FEE_MULTIPLIER = 995; // Multiplier that calculates the fee (0.5%)
+  uint256 internal constant FEE_MULTIPLIER = 995; // Multiplier that calculates the fee (1.0%)
 
   // Mapping variables
   mapping(uint256 => uint256) internal totalSupplies;    // Liquidity pool token supply per Token id
