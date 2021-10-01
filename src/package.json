@@ -8,6 +8,7 @@
   "main": "gen/adapter/index.js",
   "types": "gen/typechain/index.ts",
   "scripts": {
+    "release-list": "rm ./0xsequence-niftyswap-v*.tgz && yarn pack && tar --list -zf 0xsequence-niftyswap-v*.tgz"
   },
   "keywords": [
     "Ethereum",
