@@ -37,6 +37,11 @@ interface INiftyswapExchange20 {
     uint256[] currencyAmounts
   );
 
+  event RoyaltyChanged(
+    address indexed royaltyRecipient,
+    uint256 royaltyFee
+  );
+
     // OnReceive Objects
   struct BuyTokensObj {
     address recipient;             // Who receives the tokens
@@ -62,6 +67,8 @@ interface INiftyswapExchange20 {
     uint256 deadline;      // Timestamp after which the tx isn't valid anymore
   }
 
+
+
   /***********************************|
   |        Purchasing Functions       |
   |__________________________________*/
@@ -73,6 +80,18 @@ interface INiftyswapExchange20 {
     uint256 _deadline,
     address _recipient
   ) external returns (uint256[] memory);
+
+  /***********************************|
+  |         Royalties Functions       |
+  |__________________________________*/
+
+  /**
+   * @notice Will send the royalties that _royaltyRecipient can claim, if any 
+   * @dev Anyone can call this function such that payout could be distributed 
+   *      regularly instead of being claimed. 
+   * @param _royaltyRecipient Address that is able to claim royalties
+   */
+  function sendRoyalties(address _royaltyRecipient) external;
 
   /***********************************|
   |        OnReceive Functions        |
@@ -120,6 +139,16 @@ interface INiftyswapExchange20 {
   function getBuyPrice(uint256 _assetBoughtAmount, uint256 _assetSoldReserve, uint256 _assetBoughtReserve) external pure returns (uint256);
 
   /**
+   * @dev Pricing function used for converting Tokens to currency token (including royalty fee)
+   * @param _tokenId            Id ot token being sold
+   * @param _assetBoughtAmount  Amount of Tokens being bought.
+   * @param _assetSoldReserve   Amount of currency tokens in exchange reserves.
+   * @param _assetBoughtReserve Amount of Tokens (output type) in exchange reserves.
+   * @return price Amount of currency tokens to send to Niftyswap.
+   */
+  function getBuyPriceWithRoyalty(uint256 _tokenId, uint256 _assetBoughtAmount, uint256 _assetSoldReserve, uint256 _assetBoughtReserve) external view returns (uint256 price);
+
+  /**
    * @dev Pricing function used for converting Tokens to currency token.
    * @param _assetSoldAmount    Amount of Tokens being sold.
    * @param _assetSoldReserve   Amount of Tokens in exchange reserves.
@@ -127,6 +156,16 @@ interface INiftyswapExchange20 {
    * @return Amount of currency tokens to receive from Niftyswap.
    */
   function getSellPrice(uint256 _assetSoldAmount,uint256 _assetSoldReserve, uint256 _assetBoughtReserve) external pure returns (uint256);
+
+  /**
+   * @dev Pricing function used for converting Tokens to currency token (including royalty fee)
+   * @param _tokenId            Id ot token being sold
+   * @param _assetSoldAmount    Amount of Tokens being sold.
+   * @param _assetSoldReserve   Amount of Tokens in exchange reserves.
+   * @param _assetBoughtReserve Amount of currency tokens in exchange reserves.
+   * @return price Amount of currency tokens to receive from Niftyswap.
+   */
+  function getSellPriceWithRoyalty(uint256 _tokenId, uint256 _assetSoldAmount, uint256 _assetSoldReserve, uint256 _assetBoughtReserve) external view returns (uint256 price);
 
   /**
    * @notice Get amount of currency in reserve for each Token _id in _ids
@@ -173,4 +212,19 @@ interface INiftyswapExchange20 {
    */
   function getFactoryAddress() external view returns (address);
 
+  /**
+   * @return Global royalty fee % if not supporting ERC-2981
+   */
+  function getRoyaltyFee() external view returns (uint256);  
+
+  /**
+   * @return Global royalty recipient if token not supporting ERC-2981
+   */
+  function getRoyaltyRecipient() external view returns (address);
+
+  /**
+   * @return Get amount of currency in royalty an address can claim
+   * @param _royaltyRecipient Address to check the claimable royalties
+   */
+  function getRoyalties(address _royaltyRecipient) external view returns (uint256);
 }

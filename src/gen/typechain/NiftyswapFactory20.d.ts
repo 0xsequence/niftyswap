@@ -22,32 +22,46 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 interface NiftyswapFactory20Interface extends ethers.utils.Interface {
   functions: {
     "createExchange(address,address)": FunctionFragment;
+    "getOwner()": FunctionFragment;
     "tokensToExchange(address,address)": FunctionFragment;
+    "transferOwnership(address)": FunctionFragment;
   };
 
   encodeFunctionData(
     functionFragment: "createExchange",
     values: [string, string]
   ): string;
+  encodeFunctionData(functionFragment: "getOwner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "tokensToExchange",
     values: [string, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "transferOwnership",
+    values: [string]
   ): string;
 
   decodeFunctionResult(
     functionFragment: "createExchange",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getOwner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "tokensToExchange",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "transferOwnership",
     data: BytesLike
   ): Result;
 
   events: {
     "NewExchange(address,address,address)": EventFragment;
+    "OwnershipTransferred(address,address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "NewExchange"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 }
 
 export class NiftyswapFactory20 extends Contract {
@@ -106,6 +120,10 @@ export class NiftyswapFactory20 extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    getOwner(overrides?: CallOverrides): Promise<[string]>;
+
+    "getOwner()"(overrides?: CallOverrides): Promise<[string]>;
+
     tokensToExchange(
       arg0: string,
       arg1: string,
@@ -117,6 +135,16 @@ export class NiftyswapFactory20 extends Contract {
       arg1: string,
       overrides?: CallOverrides
     ): Promise<[string]>;
+
+    transferOwnership(
+      _newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "transferOwnership(address)"(
+      _newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
   };
 
   createExchange(
@@ -131,6 +159,10 @@ export class NiftyswapFactory20 extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  getOwner(overrides?: CallOverrides): Promise<string>;
+
+  "getOwner()"(overrides?: CallOverrides): Promise<string>;
+
   tokensToExchange(
     arg0: string,
     arg1: string,
@@ -142,6 +174,16 @@ export class NiftyswapFactory20 extends Contract {
     arg1: string,
     overrides?: CallOverrides
   ): Promise<string>;
+
+  transferOwnership(
+    _newOwner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "transferOwnership(address)"(
+    _newOwner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   callStatic: {
     createExchange(
@@ -156,6 +198,10 @@ export class NiftyswapFactory20 extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    getOwner(overrides?: CallOverrides): Promise<string>;
+
+    "getOwner()"(overrides?: CallOverrides): Promise<string>;
+
     tokensToExchange(
       arg0: string,
       arg1: string,
@@ -167,6 +213,16 @@ export class NiftyswapFactory20 extends Contract {
       arg1: string,
       overrides?: CallOverrides
     ): Promise<string>;
+
+    transferOwnership(
+      _newOwner: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "transferOwnership(address)"(
+      _newOwner: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
   };
 
   filters: {
@@ -177,6 +233,14 @@ export class NiftyswapFactory20 extends Contract {
     ): TypedEventFilter<
       [string, string, string],
       { token: string; currency: string; exchange: string }
+    >;
+
+    OwnershipTransferred(
+      previousOwner: string | null,
+      newOwner: string | null
+    ): TypedEventFilter<
+      [string, string],
+      { previousOwner: string; newOwner: string }
     >;
   };
 
@@ -193,6 +257,10 @@ export class NiftyswapFactory20 extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    getOwner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "getOwner()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     tokensToExchange(
       arg0: string,
       arg1: string,
@@ -203,6 +271,16 @@ export class NiftyswapFactory20 extends Contract {
       arg0: string,
       arg1: string,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    transferOwnership(
+      _newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "transferOwnership(address)"(
+      _newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
@@ -219,6 +297,10 @@ export class NiftyswapFactory20 extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    getOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "getOwner()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     tokensToExchange(
       arg0: string,
       arg1: string,
@@ -229,6 +311,16 @@ export class NiftyswapFactory20 extends Contract {
       arg0: string,
       arg1: string,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    transferOwnership(
+      _newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "transferOwnership(address)"(
+      _newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

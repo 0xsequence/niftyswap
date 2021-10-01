@@ -7,6 +7,11 @@
   resolved "https://registry.yarnpkg.com/@0xsequence/erc-1155/-/erc-1155-3.0.4.tgz#38b1a548d97fbe8cc21f96f5bae0ede4dbfb0f0f"
   integrity sha512-Bm5abCWp1ZXPB7AhxhP6Rj1UTLi/OyNfoTy/HD76QmA6ysz9dw0VoK3EFLK5HeUbfXZTu/Fg9PmgG9uJ0c6Urw==
 
+"@0xsequence/erc-1155@^3.0.7":
+  version "3.0.7"
+  resolved "https://registry.yarnpkg.com/@0xsequence/erc-1155/-/erc-1155-3.0.7.tgz#0643ed5e53d2f07f390091d3e061bffa7c72bc94"
+  integrity sha512-jo+OvbrhxLvo+SKYqiU//61mhlLmB1MfzazS08a0C+WG+XNntqrpJn9QUwQY1J0XU6Cotfv6KKMCXhzvBZNanw==
+
 "@0xsequence/erc20-meta-token@^3.0.5":
   version "3.0.5"
   resolved "https://registry.yarnpkg.com/@0xsequence/erc20-meta-token/-/erc20-meta-token-3.0.5.tgz#67291d0ee4dd9a7161714a612dc9f982e773bc3b"

@@ -81,7 +81,7 @@ describe('NiftyswapFactory20', () => {
     userERC1155Contract = (await ownerERC1155Contract.connect(userSigner)) as ERC1155PackedBalanceMock
 
     // Deploy Niftyswap factory
-    niftyswapFactoryContract = (await niftyswapFactoryAbstract.deploy(ownerWallet)) as NiftyswapFactory20
+    niftyswapFactoryContract = (await niftyswapFactoryAbstract.deploy(ownerWallet, [ownerAddress])) as NiftyswapFactory20
   })
 
   describe('Getter functions', () => {

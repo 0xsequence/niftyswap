@@ -3,6 +3,8 @@ pragma solidity 0.7.4;
 pragma experimental ABIEncoderV2;
 import "../interfaces/INiftyswapExchange20.sol";
 import "../utils/ReentrancyGuard.sol";
+import "../utils/DelegatedOwnable.sol";
+import "../interfaces/IERC2981.sol";
 import "@0xsequence/erc-1155/contracts/interfaces/IERC20.sol";
 import "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 import "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
@@ -22,7 +24,7 @@ import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
  *      errors when it comes to removing liquidity, possibly preventing them to be withdrawn without
  *      some collaboration between liquidity providers.
  */
-contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchange20 {
+contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchange20, DelegatedOwnable {
   using SafeMath for uint256;
 
   /***********************************|
@@ -30,14 +32,21 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
   |__________________________________*/
 
   // Variables
-  IERC1155 internal immutable token;                        // address of the ERC-1155 token contract
-  address internal immutable currency;                      // address of the ERC-20 currency used for exchange
-  address internal immutable factory;                       // address for the factory that created this contract
-  uint256 internal constant FEE_MULTIPLIER = 995; // Multiplier that calculates the fee (0.5%)
+  IERC1155 internal immutable token;              // address of the ERC-1155 token contract
+  address internal immutable currency;            // address of the ERC-20 currency used for exchange
+  address internal immutable factory;             // address for the factory that created this contract
+  uint256 internal constant FEE_MULTIPLIER = 995; // multiplier that calculates the LP fee (1.0%)
+
+  // Royalty variables
+  bool internal immutable IS_ERC2981; // whether token contract supports ERC-2981
+  uint256 internal royaltyFee;        // global royalty fee multiplier if ERC2981 is not used
+  address internal royaltyRecipient;  // global royalty fee recipient if ERC2981 is not used
 
   // Mapping variables
   mapping(uint256 => uint256) internal totalSupplies;    // Liquidity pool token supply per Token id
   mapping(uint256 => uint256) internal currencyReserves; // currency Token reserve per Token id
+  mapping(address => uint256) internal royalties;        // Mapping tracking how much royalties can be claimed per address
+
 
   /***********************************|
   |            Constructor           |
@@ -45,18 +54,26 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
 
   /**
    * @notice Create instance of exchange contract with respective token and currency token
+   * @dev If token supports ERC-2981, then royalty fee will be queried per token on the 
+   *      token contract. Else royalty fee will need to be manually set by admin.
    * @param _tokenAddr     The address of the ERC-1155 Token
    * @param _currencyAddr  The address of the ERC-20 currency Token
+   * @param _currencyAddr  Address of the admin, which should be the same as the factory owner
    */
-  constructor(address _tokenAddr, address _currencyAddr) public {
+  constructor(address _tokenAddr, address _currencyAddr) DelegatedOwnable(msg.sender) {
     require(
       _tokenAddr != address(0) && _currencyAddr != address(0),
       "NiftyswapExchange20#constructor:INVALID_INPUT"
     );
+
     factory = msg.sender;
     token = IERC1155(_tokenAddr);
     currency = _currencyAddr;
+
+    // If global royalty, lets check for ERC-2981 support
+    IS_ERC2981 = IERC1155(_tokenAddr).supportsInterface(type(IERC2981).interfaceId);
   }
+
 
   /***********************************|
   |        Exchange Functions         |
@@ -116,14 +133,21 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
       // no adjustment to the inputs is needed
       uint256 currencyAmount = getBuyPrice(amountBought, currencyReserve, tokenReserve);
 
+      // If royalty, increase amount buyer will need to pay after LP fees were calculated
+      // Note: Royalty will be a bit higher since LF fees are added first
+      (address royalty_recipient, uint256 royalty_amount) = getRoyaltyInfo(idBought, currencyAmount);
+      if (royalty_amount > 0) {
+        royalties[royalty_recipient] = royalties[royalty_recipient].add(royalty_amount);
+      }
+
       // Calculate currency token amount to refund (if any) where whatever is not used will be returned
       // Will throw if total cost exceeds _maxCurrency
-      totalRefundCurrency = totalRefundCurrency.sub(currencyAmount);
+      totalRefundCurrency = totalRefundCurrency.sub(currencyAmount).sub(royalty_amount);
 
       // Append Token id, Token id amount and currency token amount to tracking arrays
-      currencySold[i] = currencyAmount;
+      currencySold[i] = currencyAmount.add(royalty_amount);
 
-      // Update individual currency reseve amount
+      // Update individual currency reseve amount (royalty is not added to liquidity)
       currencyReserves[idBought] = currencyReserve.add(currencyAmount);
     }
 
@@ -158,6 +182,26 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     uint256 denominator = (_assetBoughtReserve.sub(_assetBoughtAmount)).mul(FEE_MULTIPLIER);
     (price, ) = divRound(numerator, denominator);
     return price; // Will add 1 if rounding error
+  }
+
+  /**
+   * @dev Pricing function used for converting Tokens to currency token (including royalty fee)
+   * @param _tokenId            Id ot token being sold
+   * @param _assetBoughtAmount  Amount of Tokens being bought.
+   * @param _assetSoldReserve   Amount of currency tokens in exchange reserves.
+   * @param _assetBoughtReserve Amount of Tokens (output type) in exchange reserves.
+   * @return price Amount of currency tokens to send to Niftyswap.
+   */
+  function getBuyPriceWithRoyalty(
+    uint256 _tokenId,
+    uint256 _assetBoughtAmount,
+    uint256 _assetSoldReserve,
+    uint256 _assetBoughtReserve)
+    override public view returns (uint256 price)
+  {
+    uint256 cost = getBuyPrice(_assetBoughtAmount, _assetSoldReserve, _assetBoughtReserve);
+    (, uint256 royaltyAmount) = getRoyaltyInfo(_tokenId, cost);
+    return cost.add(royaltyAmount);
   }
 
   /**
@@ -214,14 +258,21 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
       // Don't need to add it for currencyReserve because the amount is added after this calculation
       uint256 currencyAmount = getSellPrice(amountSold, tokenReserve.sub(amountSold), currencyReserve);
 
-      // Increase cost of transaction
-      totalCurrency = totalCurrency.add(currencyAmount);
+      // If royalty, substract amount seller will receive after LP fees were calculated
+      // Note: Royalty will be a bit lower since LF fees are substracted first
+      (address royalty_recipient, uint256 royalty_amount) = getRoyaltyInfo(idSold, currencyAmount);
+      if (royalty_amount > 0) {
+        royalties[royalty_recipient] = royalties[royalty_recipient].add(royalty_amount);
+      }
+
+      // Increase total amount of currency to receive (minus royalty to pay)
+      totalCurrency = totalCurrency.add(currencyAmount.sub(royalty_amount));
 
       // Update individual currency reseve amount
       currencyReserves[idSold] = currencyReserve.sub(currencyAmount);
 
       // Append Token id, Token id amount and currency token amount to tracking arrays
-      currencyBought[i] = currencyAmount;
+      currencyBought[i] = currencyAmount.sub(royalty_amount);
     }
 
     // If minCurrency is not met
@@ -249,11 +300,31 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     //Reserves must not be empty
     require(_assetSoldReserve > 0 && _assetBoughtReserve > 0, "NiftyswapExchange20#getSellPrice: EMPTY_RESERVE");
 
-    // Calculate amount to receive (with fee)
+    // Calculate amount to receive (with fee) before royalty
     uint256 _assetSoldAmount_withFee = _assetSoldAmount.mul(FEE_MULTIPLIER);
     uint256 numerator = _assetSoldAmount_withFee.mul(_assetBoughtReserve);
     uint256 denominator = _assetSoldReserve.mul(1000).add(_assetSoldAmount_withFee);
     return numerator / denominator; //Rounding errors will favor Niftyswap, so nothing to do
+  }
+
+  /**
+   * @dev Pricing function used for converting Tokens to currency token (including royalty fee)
+   * @param _tokenId            Id ot token being sold
+   * @param _assetSoldAmount    Amount of Tokens being sold.
+   * @param _assetSoldReserve   Amount of Tokens in exchange reserves.
+   * @param _assetBoughtReserve Amount of currency tokens in exchange reserves.
+   * @return price Amount of currency tokens to receive from Niftyswap.
+   */
+  function getSellPriceWithRoyalty(
+    uint256 _tokenId,
+    uint256 _assetSoldAmount,
+    uint256 _assetSoldReserve,
+    uint256 _assetBoughtReserve)
+    override public view returns (uint256 price)
+  {
+    uint256 sellAmount = getSellPrice(_assetSoldAmount, _assetSoldReserve, _assetBoughtReserve);
+    (, uint256 royaltyAmount) = getRoyaltyInfo(_tokenId, sellAmount);
+    return sellAmount.sub(royaltyAmount);
   }
 
   /***********************************|
@@ -626,8 +697,53 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
    * @notice Prevents receiving Ether or calls to unsuported methods
    */
   fallback () external {
-    revert("NiftyswapExchange:UNSUPPORTED_METHOD");
+    revert("NiftyswapExchange20:UNSUPPORTED_METHOD");
   }
+
+  /***********************************|
+  |         Royalty Functions         |
+  |__________________________________*/
+
+  /**
+   * @notice Will set the royalties fees and recipient for contracts that don't support ERC-2981
+   * @param _fee       Fee pourcentage with a 1000 basis (e.g. 0.3% is 3 and 1% is 10 and 100% is 1000)
+   * @param _recipient Address where to send the fees to
+   */
+  function setRoyaltyInfo(uint256 _fee, address _recipient) onlyOwner public {
+    require(!IS_ERC2981, "NiftyswapExchange20#setRoyaltyInfo: TOKEN SUPPORTS ERC-2981");
+    require(_fee < FEE_MULTIPLIER, "NiftyswapExchange20#setRoyaltyInfo: ROYALTY_FEE_IS_TOO_HIGH");
+    royaltyFee = _fee;
+    royaltyRecipient = _recipient;
+    emit RoyaltyChanged(royaltyRecipient, royaltyFee);
+  }
+
+  /**
+   * @notice Will send the royalties that _royaltyRecipient can claim, if any 
+   * @dev Anyone can call this function such that payout could be distributed 
+   *      regularly instead of being claimed. 
+   * @param _royaltyRecipient Address that is able to claim royalties
+   */
+  function sendRoyalties(address _royaltyRecipient) override external {
+    uint256 royaltyAmount = royalties[_royaltyRecipient];
+    royalties[_royaltyRecipient] = 0;
+    TransferHelper.safeTransfer(currency, _royaltyRecipient, royaltyAmount);
+  }
+
+  /**
+   * @notice Will return how much of currency need to be paid for the royalty 
+   * @param _tokenId ID of the erc-1155 token being traded
+   * @param _cost    Amount of currency sent/received for the trade
+   * @return recipient Address that will be able to claim the royalty
+   * @return royalty Amount of currency that will be sent to royalty recipient
+   */
+  function getRoyaltyInfo(uint256 _tokenId, uint256 _cost) public view returns (address recipient, uint256 royalty) {
+    if (IS_ERC2981) {
+      return IERC2981(address(token)).royaltyInfo(_tokenId, _cost); 
+    } else {
+      return (royaltyRecipient, (_cost.mul(royaltyFee)).div(1000));
+    }
+  }
+
 
   /***********************************|
   |         Getter Functions          |
@@ -667,8 +783,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     for (uint256 i = 0; i < nIds; i++) {
       // Load Token id reserve
       uint256 tokenReserve = token.balanceOf(address(this), _ids[i]);
-      
-      prices[i] = getBuyPrice(_tokensBought[i], currencyReserves[_ids[i]], tokenReserve);
+      prices[i] = getBuyPriceWithRoyalty(_ids[i], _tokensBought[i], currencyReserves[_ids[i]], tokenReserve);
     }
 
     // Return prices
@@ -692,7 +807,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     for (uint256 i = 0; i < nIds; i++) {
       // Load Token id reserve
       uint256 tokenReserve = token.balanceOf(address(this), _ids[i]);
-      prices[i] = getSellPrice(_tokensSold[i], tokenReserve, currencyReserves[_ids[i]]);
+      prices[i] = getSellPriceWithRoyalty(_ids[i], _tokensSold[i], tokenReserve, currencyReserves[_ids[i]]);
     }
 
     // Return price
@@ -741,6 +856,29 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
   function getFactoryAddress() override external view returns (address) {
     return factory;
   }
+
+  /**
+   * @return Global royalty fee % if not supporting ERC-2981
+   */
+  function getRoyaltyFee() override external view returns (uint256) {
+    return royaltyFee;
+  }
+
+  /**
+   * @return Global royalty recipient if token not supporting ERC-2981
+   */
+  function getRoyaltyRecipient() override external view returns (address) {
+    return royaltyRecipient;
+  }
+
+  /**
+   * @return Get amount of currency in royalty an address can claim
+   * @param _royaltyRecipient Address to check the claimable royalties
+   */
+  function getRoyalties(address _royaltyRecipient) override external view returns (uint256) {
+    return royalties[_royaltyRecipient];
+  }
+
 
   /***********************************|
   |         Utility Functions         |
