@@ -38,13 +38,23 @@ export type ApprovalSignature = {
 }
 
 export type BuyTokensObj = {
+  recipient: string
   tokensBoughtIDs: number[] | string[] | BigNumber[]
   tokensBoughtAmounts: number[] | string[] | BigNumber[]
   deadline: number | string | BigNumber
 }
 
 export type SellTokensObj = {
+  recipient: string
   minBaseTokens: number | string | BigNumber
+  deadline: number | string | BigNumber
+}
+
+export type SellTokensObj20 = {
+  recipient: string
+  minCurrency: number | string | BigNumber
+  extraFeeRecipient: string
+  extraFeeAmount: number | string | BigNumber
   deadline: number | string | BigNumber
 }
 

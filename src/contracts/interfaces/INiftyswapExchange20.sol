@@ -42,18 +42,12 @@ interface INiftyswapExchange20 {
     uint256 royaltyFee
   );
 
-    // OnReceive Objects
-  struct BuyTokensObj {
-    address recipient;             // Who receives the tokens
-    uint256[] tokensBoughtIDs;     // Token IDs to buy
-    uint256[] tokensBoughtAmounts; // Amount of token to buy for each ID
-    uint256 deadline;              // Timestamp after which the tx isn't valid anymore
-  }
-
   struct SellTokensObj {
-    address recipient;   // Who receives the currency
-    uint256 minCurrency; // Total minimum number of currency  expected for all tokens sold
-    uint256 deadline;    // Timestamp after which the tx isn't valid anymore
+    address recipient;         // Who receives the currency
+    uint256 minCurrency;       // Total minimum number of currency  expected for all tokens sold
+    address extraFeeRecipient; // Recipient of the additional fee
+    uint256 extraFeeAmount;    // Additional fee that frontends or referrals can use
+    uint256 deadline;          // Timestamp after which the tx isn't valid anymore
   }
 
   struct AddLiquidityObj {
@@ -68,17 +62,33 @@ interface INiftyswapExchange20 {
   }
 
 
-
   /***********************************|
   |        Purchasing Functions       |
   |__________________________________*/
   
+  /**
+   * @notice Convert currency tokens to Tokens _id and transfers Tokens to recipient.
+   * @dev User specifies MAXIMUM inputs (_maxCurrency) and EXACT outputs.
+   * @dev Assumes that all trades will be successful, or revert the whole tx
+   * @dev Exceeding currency tokens sent will be refunded to recipient
+   * @dev Sorting IDs is mandatory for efficient way of preventing duplicated IDs (which would lead to exploit)
+   * @param _tokenIds            Array of Tokens ID that are bought
+   * @param _tokensBoughtAmounts Amount of Tokens id bought for each corresponding Token id in _tokenIds
+   * @param _maxCurrency         Total maximum amount of currency tokens to spend for all Token ids
+   * @param _deadline            Timestamp after which this transaction will be reverted
+   * @param _recipient           The address that receives output Tokens and refund
+   * @param _extraFeeRecipient   The address that receives the extra fee
+   * @param _extraFeeAmount      The amount of currency that will be sent as extra fee
+   * @return currencySold How much currency was actually sold.
+   */
   function buyTokens(
     uint256[] memory _tokenIds,
     uint256[] memory _tokensBoughtAmounts,
     uint256 _maxCurrency,
     uint256 _deadline,
-    address _recipient
+    address _recipient,
+    address _extraFeeRecipient,
+    uint256 _extraFeeAmount
   ) external returns (uint256[] memory);
 
   /***********************************|
