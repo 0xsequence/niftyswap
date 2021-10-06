@@ -57,8 +57,8 @@ export const SellTokensType = `tuple(
 export const SellTokens20Type = `tuple(
   address recipient,
   uint256 minCurrency,
-  address extraFeeRecipient,
-  uint256 extraFeeAmount,
+  address[] extraFeeRecipients,
+  uint256[] extraFeeAmounts,
   uint256 deadline
 )`
 
@@ -117,14 +117,14 @@ export const getSellTokenData20 = (
   recipient: string,
   cost: BigNumber, 
   deadline: number,
-  extraFeeRecipient?: string,
-  extraFeeAmount?: BigNumber
+  extraFeeRecipients?: string[],
+  extraFeeAmounts?: BigNumber[]
 ) => {
   const sellTokenObj = {
     recipient: recipient,
     minCurrency: cost,
-    extraFeeRecipient: extraFeeRecipient ? extraFeeRecipient : ethers.constants.AddressZero,
-    extraFeeAmount: extraFeeAmount ? extraFeeAmount : BigNumber.from(0),
+    extraFeeRecipients: extraFeeRecipients ? extraFeeRecipients : [],
+    extraFeeAmounts: extraFeeAmounts ? extraFeeAmounts : [],
     deadline: deadline,
   } as SellTokensObj20
 

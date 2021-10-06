@@ -198,14 +198,14 @@ var _abi = [
                 type: "address"
             },
             {
-                internalType: "address",
-                name: "_extraFeeRecipient",
-                type: "address"
+                internalType: "address[]",
+                name: "_extraFeeRecipients",
+                type: "address[]"
             },
             {
-                internalType: "uint256",
-                name: "_extraFeeAmount",
-                type: "uint256"
+                internalType: "uint256[]",
+                name: "_extraFeeAmounts",
+                type: "uint256[]"
             },
         ],
         name: "buyTokens",

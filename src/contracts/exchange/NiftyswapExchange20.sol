@@ -200,13 +200,13 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
    * @dev User specifies EXACT Tokens _id sold and MINIMUM currency tokens received.
    * @dev Assumes that all trades will be valid, or the whole tx will fail
    * @dev Sorting _tokenIds is mandatory for efficient way of preventing duplicated IDs (which would lead to errors)
-   * @param _tokenIds          Array of Token IDs that are sold
-   * @param _tokensSoldAmounts Array of Amount of Tokens sold for each id in _tokenIds.
-   * @param _minCurrency       Minimum amount of currency tokens to receive
-   * @param _deadline          Timestamp after which this transaction will be reverted
-   * @param _recipient         The address that receives output currency tokens.
-   * @param _extraFeeRecipient The address that receives the extra fee
-   * @param _extraFeeAmount    The amount of currency that will be sent as extra fee
+   * @param _tokenIds           Array of Token IDs that are sold
+   * @param _tokensSoldAmounts  Array of Amount of Tokens sold for each id in _tokenIds.
+   * @param _minCurrency        Minimum amount of currency tokens to receive
+   * @param _deadline           Timestamp after which this transaction will be reverted
+   * @param _recipient          The address that receives output currency tokens.
+   * @param _extraFeeRecipients  Array of addresses that will receive extra fee
+   * @param _extraFeeAmounts     Array of amounts of currency that will be sent as extra fee
    * @return currencyBought How much currency was actually purchased.
    */
   function _tokenToCurrency(
@@ -215,8 +215,8 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     uint256 _minCurrency,
     uint256 _deadline,
     address _recipient,
-    address _extraFeeRecipient,
-    uint256 _extraFeeAmount
+    address[] memory _extraFeeRecipients,
+    uint256[] memory _extraFeeAmounts
   )
     internal nonReentrant() returns (uint256[] memory currencyBought)
   {
@@ -271,10 +271,12 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
       currencyBought[i] = currencyAmount.sub(royaltyAmount);
     }
 
-    // Set the extra fee aside to recipient after sale, if any
-    if (_extraFeeAmount > 0) {
-      totalCurrency = totalCurrency.sub(_extraFeeAmount);
-      royalties[_extraFeeRecipient] = royalties[_extraFeeRecipient].add(_extraFeeAmount);
+    // Set the extra fees aside to recipients after sale
+    for (uint256 i = 0; i < _extraFeeAmounts.length; i++) {
+      if (_extraFeeAmounts[i] > 0) {
+        totalCurrency = totalCurrency.sub(_extraFeeAmounts[i]);
+        royalties[_extraFeeRecipients[i]] = royalties[_extraFeeRecipients[i]].add(_extraFeeAmounts[i]);
+      }
     }
 
     // If minCurrency is not met
@@ -282,7 +284,6 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
 
     // Transfer currency here
     TransferHelper.safeTransfer(currency, _recipient, totalCurrency);
-
     return currencyBought;
   }
 
@@ -572,8 +573,8 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
    * @param _maxCurrency         Total maximum amount of currency tokens to spend for all Token ids
    * @param _deadline            Timestamp after which this transaction will be reverted
    * @param _recipient           The address that receives output Tokens and refund
-   * @param _extraFeeRecipient   The address that receives the extra fee
-   * @param _extraFeeAmount      The amount of currency that will be sent as extra fee
+   * @param _extraFeeRecipients  Array of addresses that will receive extra fee
+   * @param _extraFeeAmounts     Array of amounts of currency that will be sent as extra fee
    * @return currencySold How much currency was actually sold.
    */
   function buyTokens(
@@ -582,8 +583,8 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     uint256 _maxCurrency,
     uint256 _deadline,
     address _recipient,
-    address _extraFeeRecipient,
-    uint256 _extraFeeAmount
+    address[] memory _extraFeeRecipients,
+    uint256[] memory _extraFeeAmounts
   )
     override external returns (uint256[] memory)
   {
@@ -595,11 +596,16 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
 
     address recipient = _recipient == address(0x0) ? msg.sender : _recipient;
 
-    // Set the extra fee aside to recipient ahead of purchase, if any.
+    // Set the extra fee aside to recipients ahead of purchase, if any.
     uint256 maxCurrency = _maxCurrency;
-    if (_extraFeeAmount > 0) {
-      maxCurrency = maxCurrency.sub(_extraFeeAmount);
-      royalties[_extraFeeRecipient] = royalties[_extraFeeRecipient].add(_extraFeeAmount);
+    uint256 nExtraFees = _extraFeeRecipients.length;
+    require(nExtraFees == _extraFeeAmounts.length, "NiftyswapExchange20#buyTokens: EXTRA_FEES_ARRAYS_ARE_NOT_SAME_LENGTH");
+    
+    for (uint256 i = 0; i < nExtraFees; i++) {
+      if (_extraFeeAmounts[i] > 0) {
+        maxCurrency = maxCurrency.sub(_extraFeeAmounts[i]);
+        royalties[_extraFeeRecipients[i]] = royalties[_extraFeeRecipients[i]].add(_extraFeeAmounts[i]);
+      }
     }
 
     // Execute trade and retrieve amount of currency spent
@@ -650,8 +656,11 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
       (, obj) = abi.decode(_data, (bytes4, SellTokensObj));
       address recipient = obj.recipient == address(0x0) ? _from : obj.recipient;
 
+      // Validate fee arrays
+      require(obj.extraFeeRecipients.length == obj.extraFeeAmounts.length, "NiftyswapExchange20#buyTokens: EXTRA_FEES_ARRAYS_ARE_NOT_SAME_LENGTH");
+    
       // Execute trade and retrieve amount of currency received
-      uint256[] memory currencyBought = _tokenToCurrency(_ids, _amounts, obj.minCurrency, obj.deadline, recipient, obj.extraFeeRecipient, obj.extraFeeAmount);
+      uint256[] memory currencyBought = _tokenToCurrency(_ids, _amounts, obj.minCurrency, obj.deadline, recipient, obj.extraFeeRecipients, obj.extraFeeAmounts);
       emit CurrencyPurchase(_from, recipient, _ids, _amounts, currencyBought);
 
     /***********************************|

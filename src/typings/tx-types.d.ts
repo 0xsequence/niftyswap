@@ -53,8 +53,8 @@ export type SellTokensObj = {
 export type SellTokensObj20 = {
   recipient: string
   minCurrency: number | string | BigNumber
-  extraFeeRecipient: string
-  extraFeeAmount: number | string | BigNumber
+  extraFeeRecipients: string[]
+  extraFeeAmounts: number[] | string[] | BigNumber[]
   deadline: number | string | BigNumber
 }
 

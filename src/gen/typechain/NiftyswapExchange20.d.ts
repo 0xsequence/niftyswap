@@ -23,7 +23,7 @@ interface NiftyswapExchange20Interface extends ethers.utils.Interface {
   functions: {
     "balanceOf(address,uint256)": FunctionFragment;
     "balanceOfBatch(address[],uint256[])": FunctionFragment;
-    "buyTokens(uint256[],uint256[],uint256,uint256,address,address,uint256)": FunctionFragment;
+    "buyTokens(uint256[],uint256[],uint256,uint256,address,address[],uint256[])": FunctionFragment;
     "changeOwnableParent(address)": FunctionFragment;
     "getBuyPrice(uint256,uint256,uint256)": FunctionFragment;
     "getBuyPriceWithRoyalty(uint256,uint256,uint256,uint256)": FunctionFragment;
@@ -68,8 +68,8 @@ interface NiftyswapExchange20Interface extends ethers.utils.Interface {
       BigNumberish,
       BigNumberish,
       string,
-      string,
-      BigNumberish
+      string[],
+      BigNumberish[]
     ]
   ): string;
   encodeFunctionData(
@@ -379,19 +379,19 @@ export class NiftyswapExchange20 extends Contract {
       _maxCurrency: BigNumberish,
       _deadline: BigNumberish,
       _recipient: string,
-      _extraFeeRecipient: string,
-      _extraFeeAmount: BigNumberish,
+      _extraFeeRecipients: string[],
+      _extraFeeAmounts: BigNumberish[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "buyTokens(uint256[],uint256[],uint256,uint256,address,address,uint256)"(
+    "buyTokens(uint256[],uint256[],uint256,uint256,address,address[],uint256[])"(
       _tokenIds: BigNumberish[],
       _tokensBoughtAmounts: BigNumberish[],
       _maxCurrency: BigNumberish,
       _deadline: BigNumberish,
       _recipient: string,
-      _extraFeeRecipient: string,
-      _extraFeeAmount: BigNumberish,
+      _extraFeeRecipients: string[],
+      _extraFeeAmounts: BigNumberish[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -714,19 +714,19 @@ export class NiftyswapExchange20 extends Contract {
     _maxCurrency: BigNumberish,
     _deadline: BigNumberish,
     _recipient: string,
-    _extraFeeRecipient: string,
-    _extraFeeAmount: BigNumberish,
+    _extraFeeRecipients: string[],
+    _extraFeeAmounts: BigNumberish[],
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "buyTokens(uint256[],uint256[],uint256,uint256,address,address,uint256)"(
+  "buyTokens(uint256[],uint256[],uint256,uint256,address,address[],uint256[])"(
     _tokenIds: BigNumberish[],
     _tokensBoughtAmounts: BigNumberish[],
     _maxCurrency: BigNumberish,
     _deadline: BigNumberish,
     _recipient: string,
-    _extraFeeRecipient: string,
-    _extraFeeAmount: BigNumberish,
+    _extraFeeRecipients: string[],
+    _extraFeeAmounts: BigNumberish[],
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1049,19 +1049,19 @@ export class NiftyswapExchange20 extends Contract {
       _maxCurrency: BigNumberish,
       _deadline: BigNumberish,
       _recipient: string,
-      _extraFeeRecipient: string,
-      _extraFeeAmount: BigNumberish,
+      _extraFeeRecipients: string[],
+      _extraFeeAmounts: BigNumberish[],
       overrides?: CallOverrides
     ): Promise<BigNumber[]>;
 
-    "buyTokens(uint256[],uint256[],uint256,uint256,address,address,uint256)"(
+    "buyTokens(uint256[],uint256[],uint256,uint256,address,address[],uint256[])"(
       _tokenIds: BigNumberish[],
       _tokensBoughtAmounts: BigNumberish[],
       _maxCurrency: BigNumberish,
       _deadline: BigNumberish,
       _recipient: string,
-      _extraFeeRecipient: string,
-      _extraFeeAmount: BigNumberish,
+      _extraFeeRecipients: string[],
+      _extraFeeAmounts: BigNumberish[],
       overrides?: CallOverrides
     ): Promise<BigNumber[]>;
 
@@ -1510,19 +1510,19 @@ export class NiftyswapExchange20 extends Contract {
       _maxCurrency: BigNumberish,
       _deadline: BigNumberish,
       _recipient: string,
-      _extraFeeRecipient: string,
-      _extraFeeAmount: BigNumberish,
+      _extraFeeRecipients: string[],
+      _extraFeeAmounts: BigNumberish[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "buyTokens(uint256[],uint256[],uint256,uint256,address,address,uint256)"(
+    "buyTokens(uint256[],uint256[],uint256,uint256,address,address[],uint256[])"(
       _tokenIds: BigNumberish[],
       _tokensBoughtAmounts: BigNumberish[],
       _maxCurrency: BigNumberish,
       _deadline: BigNumberish,
       _recipient: string,
-      _extraFeeRecipient: string,
-      _extraFeeAmount: BigNumberish,
+      _extraFeeRecipients: string[],
+      _extraFeeAmounts: BigNumberish[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1848,19 +1848,19 @@ export class NiftyswapExchange20 extends Contract {
       _maxCurrency: BigNumberish,
       _deadline: BigNumberish,
       _recipient: string,
-      _extraFeeRecipient: string,
-      _extraFeeAmount: BigNumberish,
+      _extraFeeRecipients: string[],
+      _extraFeeAmounts: BigNumberish[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "buyTokens(uint256[],uint256[],uint256,uint256,address,address,uint256)"(
+    "buyTokens(uint256[],uint256[],uint256,uint256,address,address[],uint256[])"(
       _tokenIds: BigNumberish[],
       _tokensBoughtAmounts: BigNumberish[],
       _maxCurrency: BigNumberish,
       _deadline: BigNumberish,
       _recipient: string,
-      _extraFeeRecipient: string,
-      _extraFeeAmount: BigNumberish,
+      _extraFeeRecipients: string[],
+      _extraFeeAmounts: BigNumberish[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

@@ -43,11 +43,11 @@ interface INiftyswapExchange20 {
   );
 
   struct SellTokensObj {
-    address recipient;         // Who receives the currency
-    uint256 minCurrency;       // Total minimum number of currency  expected for all tokens sold
-    address extraFeeRecipient; // Recipient of the additional fee
-    uint256 extraFeeAmount;    // Additional fee that frontends or referrals can use
-    uint256 deadline;          // Timestamp after which the tx isn't valid anymore
+    address recipient;            // Who receives the currency
+    uint256 minCurrency;          // Total minimum number of currency  expected for all tokens sold
+    address[] extraFeeRecipients; // Array of addresses that will receive extra fee
+    uint256[] extraFeeAmounts;    // Array of amounts of currency that will be sent as extra fee
+    uint256 deadline;             // Timestamp after which the tx isn't valid anymore
   }
 
   struct AddLiquidityObj {
@@ -77,8 +77,8 @@ interface INiftyswapExchange20 {
    * @param _maxCurrency         Total maximum amount of currency tokens to spend for all Token ids
    * @param _deadline            Timestamp after which this transaction will be reverted
    * @param _recipient           The address that receives output Tokens and refund
-   * @param _extraFeeRecipient   The address that receives the extra fee
-   * @param _extraFeeAmount      The amount of currency that will be sent as extra fee
+   * @param _extraFeeRecipients  Array of addresses that will receive extra fee
+   * @param _extraFeeAmounts     Array of amounts of currency that will be sent as extra fee
    * @return currencySold How much currency was actually sold.
    */
   function buyTokens(
@@ -87,8 +87,8 @@ interface INiftyswapExchange20 {
     uint256 _maxCurrency,
     uint256 _deadline,
     address _recipient,
-    address _extraFeeRecipient,
-    uint256 _extraFeeAmount
+    address[] memory _extraFeeRecipients,
+    uint256[] memory _extraFeeAmounts
   ) external returns (uint256[] memory);
 
   /***********************************|
