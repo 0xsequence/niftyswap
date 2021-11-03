@@ -74,7 +74,7 @@ describe('NiftyswapExchange20', () => {
   const currencyAmount = BigNumber.from(10000000).mul(BigNumber.from(10).pow(18))
 
   // Fees param
-  const LP_FEE_MULTIPLIER = 995  // 1%
+  const LP_FEE_MULTIPLIER = 990  // 1%
   const ROYALTY_FEE = 20         // 2%
   const EXTRA_FEE = 66667777     // flat fee
 
@@ -244,20 +244,34 @@ describe('NiftyswapExchange20', () => {
         describe('getBuyPrice() function', () => {
           it('should round UP', async () => {
             let bought_amount = 100
-            let numerator = 1500
-            let denominator = 751
-            const price = await niftyswapExchangeContract.functions.getBuyPrice(bought_amount, numerator, denominator)
-            expect(price[0]).to.be.eql(BigNumber.from(232)) // instead of 231.5726095917375
+            let sellReserve = 1500
+            let buyReserve = 751
+
+            // Calculate the price manually with floats
+            const numerator = bought_amount * sellReserve * 1000
+            const denominator =  (buyReserve - bought_amount) * LP_FEE_MULTIPLIER
+            const floatPrice = numerator / denominator // Price without rounding
+
+            // Get the price from the contract
+            const price = await niftyswapExchangeContract.functions.getBuyPrice(bought_amount, sellReserve, buyReserve)
+            expect(price[0]).to.be.eql(BigNumber.from(Math.ceil(floatPrice))) 
           })
         })
 
         describe('getSellPrice() function', () => {
           it('should round DOWN', async () => {
-            let numerator = 1500
-            let denominator = 751
-            let bought_amount = 100
-            const price = await niftyswapExchangeContract.functions.getSellPrice(bought_amount, denominator, numerator)
-            expect(price.price).to.be.eql(BigNumber.from(175)) // instead of 175.48500881834215
+            let sold_amount = 100
+            let buyReserve = 1500
+            let sellReserve = 751 
+
+            // Calculate price manually with floats
+            const numerator = sold_amount * LP_FEE_MULTIPLIER * buyReserve
+            const denominator =  sellReserve * 1000 + sold_amount * LP_FEE_MULTIPLIER
+            const floatPrice = numerator / denominator // Price without rounding
+
+            // Get the price from the contract directly
+            const price = await niftyswapExchangeContract.functions.getSellPrice(sold_amount, sellReserve, buyReserve)
+            expect(price[0]).to.be.eql(BigNumber.from(Math.floor(floatPrice))) 
           })
         })
 

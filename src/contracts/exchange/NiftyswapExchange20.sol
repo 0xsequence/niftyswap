@@ -35,7 +35,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
   IERC1155 internal immutable token;              // address of the ERC-1155 token contract
   address internal immutable currency;            // address of the ERC-20 currency used for exchange
   address internal immutable factory;             // address for the factory that created this contract
-  uint256 internal constant FEE_MULTIPLIER = 995; // multiplier that calculates the LP fee (1.0%)
+  uint256 internal constant FEE_MULTIPLIER = 990; // multiplier that calculates the LP fee (1.0%)
 
   // Royalty variables
   bool internal immutable IS_ERC2981; // whether token contract supports ERC-2981
