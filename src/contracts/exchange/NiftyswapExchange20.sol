@@ -71,7 +71,9 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     currency = _currencyAddr;
 
     // If global royalty, lets check for ERC-2981 support
-    IS_ERC2981 = IERC1155(_tokenAddr).supportsInterface(type(IERC2981).interfaceId);
+    try IERC1155(_tokenAddr).supportsInterface(type(IERC2981).interfaceId) returns (bool supported) {
+      IS_ERC2981 = supported;
+    } catch {}
   }
 
 
@@ -742,7 +744,9 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
    * @param _recipient Address where to send the fees to
    */
   function setRoyaltyInfo(uint256 _fee, address _recipient) onlyOwner public {
-    require(!IS_ERC2981, "NiftyswapExchange20#setRoyaltyInfo: TOKEN SUPPORTS ERC-2981");
+    // Don't use IS_ERC2981 in case token contract was updated
+    bool isERC2981 = token.supportsInterface(type(IERC2981).interfaceId);
+    require(!isERC2981, "NiftyswapExchange20#setRoyaltyInfo: TOKEN SUPPORTS ERC-2981");
     require(_fee < FEE_MULTIPLIER, "NiftyswapExchange20#setRoyaltyInfo: ROYALTY_FEE_IS_TOO_HIGH");
     globalRoyaltyFee = _fee;
     globalRoyaltyRecipient = _recipient;
@@ -770,7 +774,14 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
    */
   function getRoyaltyInfo(uint256 _tokenId, uint256 _cost) public view returns (address recipient, uint256 royalty) {
     if (IS_ERC2981) {
-      return IERC2981(address(token)).royaltyInfo(_tokenId, _cost); 
+      // Add a try/catch in-case token *removed* ERC-2981 support
+      try IERC2981(address(token)).royaltyInfo(_tokenId, _cost) returns(address _r, uint256 _c) {
+        return (_r, _c);
+      } catch {
+        // Default back to global setting if error occurs
+        return (globalRoyaltyRecipient, (_cost.mul(globalRoyaltyFee)).div(1000));
+      }
+
     } else {
       return (globalRoyaltyRecipient, (_cost.mul(globalRoyaltyFee)).div(1000));
     }
