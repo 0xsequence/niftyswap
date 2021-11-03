@@ -33,6 +33,12 @@ const _abi = [
         type: "address",
       },
       {
+        indexed: true,
+        internalType: "uint256",
+        name: "salt",
+        type: "uint256",
+      },
+      {
         indexed: false,
         internalType: "address",
         name: "exchange",
@@ -54,6 +60,11 @@ const _abi = [
         name: "_currency",
         type: "address",
       },
+      {
+        internalType: "uint256",
+        name: "_instance",
+        type: "uint256",
+      },
     ],
     name: "createExchange",
     outputs: [],
@@ -71,6 +82,35 @@ const _abi = [
         internalType: "address",
         name: "_currency",
         type: "address",
+      },
+    ],
+    name: "getPairExchanges",
+    outputs: [
+      {
+        internalType: "address[]",
+        name: "",
+        type: "address[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_token",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_currency",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "_instance",
+        type: "uint256",
       },
     ],
     name: "tokensToExchange",

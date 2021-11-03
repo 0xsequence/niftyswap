@@ -21,21 +21,30 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface INiftyswapFactory20Interface extends ethers.utils.Interface {
   functions: {
-    "createExchange(address,address)": FunctionFragment;
-    "tokensToExchange(address,address)": FunctionFragment;
+    "createExchange(address,address,uint256)": FunctionFragment;
+    "getPairExchanges(address,address)": FunctionFragment;
+    "tokensToExchange(address,address,uint256)": FunctionFragment;
   };
 
   encodeFunctionData(
     functionFragment: "createExchange",
+    values: [string, string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getPairExchanges",
     values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "tokensToExchange",
-    values: [string, string]
+    values: [string, string, BigNumberish]
   ): string;
 
   decodeFunctionResult(
     functionFragment: "createExchange",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getPairExchanges",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -44,7 +53,7 @@ interface INiftyswapFactory20Interface extends ethers.utils.Interface {
   ): Result;
 
   events: {
-    "NewExchange(address,address,address)": EventFragment;
+    "NewExchange(address,address,uint256,address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "NewExchange"): EventFragment;
@@ -97,24 +106,40 @@ export class INiftyswapFactory20 extends Contract {
     createExchange(
       _token: string,
       _currency: string,
+      _instance: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "createExchange(address,address)"(
+    "createExchange(address,address,uint256)"(
       _token: string,
       _currency: string,
+      _instance: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    getPairExchanges(
+      _token: string,
+      _currency: string,
+      overrides?: CallOverrides
+    ): Promise<[string[]]>;
+
+    "getPairExchanges(address,address)"(
+      _token: string,
+      _currency: string,
+      overrides?: CallOverrides
+    ): Promise<[string[]]>;
 
     tokensToExchange(
       _token: string,
       _currency: string,
+      _instance: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "tokensToExchange(address,address)"(
+    "tokensToExchange(address,address,uint256)"(
       _token: string,
       _currency: string,
+      _instance: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
   };
@@ -122,24 +147,40 @@ export class INiftyswapFactory20 extends Contract {
   createExchange(
     _token: string,
     _currency: string,
+    _instance: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "createExchange(address,address)"(
+  "createExchange(address,address,uint256)"(
     _token: string,
     _currency: string,
+    _instance: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  getPairExchanges(
+    _token: string,
+    _currency: string,
+    overrides?: CallOverrides
+  ): Promise<string[]>;
+
+  "getPairExchanges(address,address)"(
+    _token: string,
+    _currency: string,
+    overrides?: CallOverrides
+  ): Promise<string[]>;
 
   tokensToExchange(
     _token: string,
     _currency: string,
+    _instance: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "tokensToExchange(address,address)"(
+  "tokensToExchange(address,address,uint256)"(
     _token: string,
     _currency: string,
+    _instance: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string>;
 
@@ -147,24 +188,40 @@ export class INiftyswapFactory20 extends Contract {
     createExchange(
       _token: string,
       _currency: string,
+      _instance: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "createExchange(address,address)"(
+    "createExchange(address,address,uint256)"(
+      _token: string,
+      _currency: string,
+      _instance: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    getPairExchanges(
       _token: string,
       _currency: string,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<string[]>;
+
+    "getPairExchanges(address,address)"(
+      _token: string,
+      _currency: string,
+      overrides?: CallOverrides
+    ): Promise<string[]>;
 
     tokensToExchange(
       _token: string,
       _currency: string,
+      _instance: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "tokensToExchange(address,address)"(
+    "tokensToExchange(address,address,uint256)"(
       _token: string,
       _currency: string,
+      _instance: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
   };
@@ -173,10 +230,11 @@ export class INiftyswapFactory20 extends Contract {
     NewExchange(
       token: string | null,
       currency: string | null,
+      salt: BigNumberish | null,
       exchange: null
     ): TypedEventFilter<
-      [string, string, string],
-      { token: string; currency: string; exchange: string }
+      [string, string, BigNumber, string],
+      { token: string; currency: string; salt: BigNumber; exchange: string }
     >;
   };
 
@@ -184,24 +242,40 @@ export class INiftyswapFactory20 extends Contract {
     createExchange(
       _token: string,
       _currency: string,
+      _instance: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "createExchange(address,address)"(
+    "createExchange(address,address,uint256)"(
       _token: string,
       _currency: string,
+      _instance: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    tokensToExchange(
+    getPairExchanges(
       _token: string,
       _currency: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "tokensToExchange(address,address)"(
+    "getPairExchanges(address,address)"(
       _token: string,
       _currency: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    tokensToExchange(
+      _token: string,
+      _currency: string,
+      _instance: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "tokensToExchange(address,address,uint256)"(
+      _token: string,
+      _currency: string,
+      _instance: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
@@ -210,24 +284,40 @@ export class INiftyswapFactory20 extends Contract {
     createExchange(
       _token: string,
       _currency: string,
+      _instance: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "createExchange(address,address)"(
+    "createExchange(address,address,uint256)"(
       _token: string,
       _currency: string,
+      _instance: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    tokensToExchange(
+    getPairExchanges(
       _token: string,
       _currency: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "tokensToExchange(address,address)"(
+    "getPairExchanges(address,address)"(
       _token: string,
       _currency: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    tokensToExchange(
+      _token: string,
+      _currency: string,
+      _instance: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "tokensToExchange(address,address,uint256)"(
+      _token: string,
+      _currency: string,
+      _instance: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
