@@ -177,6 +177,7 @@ describe('NiftyswapExchange20', () => {
         await niftyswapFactoryContract.functions.createExchange(
           ownerERC1155Contract.address,
           ownerCurrencyContract.address,
+          0
         )
 
         // Retrieve exchange address
@@ -184,6 +185,7 @@ describe('NiftyswapExchange20', () => {
           await niftyswapFactoryContract.functions.tokensToExchange(
             ownerERC1155Contract.address,
             ownerCurrencyContract.address,
+            0
           )
         )[0]
 
