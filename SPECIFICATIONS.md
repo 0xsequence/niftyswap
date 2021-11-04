@@ -445,7 +445,7 @@ struct BuyTokensObj {
 
 ###  _tokenToCurrency()
 
-The `bytes4` signature to call this method is `0xdb08ec97`
+The `bytes4` signature to call this method is `0xade79c7a`
 
 ```solidity
 // bytes4(keccak256(

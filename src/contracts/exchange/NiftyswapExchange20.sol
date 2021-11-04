@@ -541,9 +541,9 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
   // Method signatures for onReceive control logic
 
   // bytes4(keccak256(
-  //   "_tokenToCurrency(uint256[],uint256[],uint256,uint256,address)"
+  //   "_tokenToCurrency(uint256[],uint256[],uint256,uint256,address,address[],uint256[])"
   // ));
-  bytes4 internal constant SELLTOKENS_SIG = 0xdb08ec97;
+  bytes4 internal constant SELLTOKENS_SIG = 0xade79c7a;
 
   //  bytes4(keccak256(
   //   "_addLiquidity(address,uint256[],uint256[],uint256[],uint256)"
