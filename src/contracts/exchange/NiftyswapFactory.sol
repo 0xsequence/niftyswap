@@ -14,7 +14,7 @@ contract NiftyswapFactory is INiftyswapFactory {
   mapping(address => mapping(address => mapping(uint256 => address))) public override tokensToExchange;
 
   /***********************************|
-  |            Constructor            |
+  |             Functions             |
   |__________________________________*/
 
   /**

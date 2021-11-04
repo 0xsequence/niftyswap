@@ -8,7 +8,8 @@ import {
   BuyTokensObj, 
   SellTokensObj, 
   AddLiquidityObj, 
-  RemoveLiquidityObj 
+  RemoveLiquidityObj, 
+  SellTokensObj20,
 } from 'src/typings/tx-types'
 import { BigNumber } from 'ethers';
 
@@ -50,6 +51,14 @@ export const BuyTokensType = `tuple(
 export const SellTokensType = `tuple(
   address recipient,
   uint256 minBaseTokens,
+  uint256 deadline
+)`
+
+export const SellTokens20Type = `tuple(
+  address recipient,
+  uint256 minCurrency,
+  address[] extraFeeRecipients,
+  uint256[] extraFeeAmounts,
   uint256 deadline
 )`
 
@@ -101,6 +110,26 @@ export const getSellTokenData = (
 
   return ethers.utils.defaultAbiCoder.encode(
     ['bytes4', SellTokensType], [methodsSignature.SELLTOKENS, sellTokenObj])
+}
+
+// Buy and sell data for ERC-20 exchange
+export const getSellTokenData20 = (
+  recipient: string,
+  cost: BigNumber, 
+  deadline: number,
+  extraFeeRecipients?: string[],
+  extraFeeAmounts?: BigNumber[]
+) => {
+  const sellTokenObj = {
+    recipient: recipient,
+    minCurrency: cost,
+    extraFeeRecipients: extraFeeRecipients ? extraFeeRecipients : [],
+    extraFeeAmounts: extraFeeAmounts ? extraFeeAmounts : [],
+    deadline: deadline,
+  } as SellTokensObj20
+
+  return ethers.utils.defaultAbiCoder.encode(
+    ['bytes4', SellTokens20Type], [methodsSignature.SELLTOKENS, sellTokenObj])
 }
 
 export const getAddLiquidityData = (baseAmountsToAdd: BigNumber[], deadline: number) => {

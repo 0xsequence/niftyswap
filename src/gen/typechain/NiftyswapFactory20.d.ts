@@ -21,33 +21,56 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface NiftyswapFactory20Interface extends ethers.utils.Interface {
   functions: {
-    "createExchange(address,address)": FunctionFragment;
-    "tokensToExchange(address,address)": FunctionFragment;
+    "createExchange(address,address,uint256)": FunctionFragment;
+    "getOwner()": FunctionFragment;
+    "getPairExchanges(address,address)": FunctionFragment;
+    "tokensToExchange(address,address,uint256)": FunctionFragment;
+    "transferOwnership(address)": FunctionFragment;
   };
 
   encodeFunctionData(
     functionFragment: "createExchange",
+    values: [string, string, BigNumberish]
+  ): string;
+  encodeFunctionData(functionFragment: "getOwner", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "getPairExchanges",
     values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "tokensToExchange",
-    values: [string, string]
+    values: [string, string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "transferOwnership",
+    values: [string]
   ): string;
 
   decodeFunctionResult(
     functionFragment: "createExchange",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getOwner", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getPairExchanges",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "tokensToExchange",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "transferOwnership",
     data: BytesLike
   ): Result;
 
   events: {
-    "NewExchange(address,address,address)": EventFragment;
+    "NewExchange(address,address,uint256,address)": EventFragment;
+    "OwnershipTransferred(address,address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "NewExchange"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 }
 
 export class NiftyswapFactory20 extends Contract {
@@ -97,86 +120,185 @@ export class NiftyswapFactory20 extends Contract {
     createExchange(
       _token: string,
       _currency: string,
+      _instance: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "createExchange(address,address)"(
+    "createExchange(address,address,uint256)"(
       _token: string,
       _currency: string,
+      _instance: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    getOwner(overrides?: CallOverrides): Promise<[string]>;
+
+    "getOwner()"(overrides?: CallOverrides): Promise<[string]>;
+
+    getPairExchanges(
+      _token: string,
+      _currency: string,
+      overrides?: CallOverrides
+    ): Promise<[string[]]>;
+
+    "getPairExchanges(address,address)"(
+      _token: string,
+      _currency: string,
+      overrides?: CallOverrides
+    ): Promise<[string[]]>;
 
     tokensToExchange(
       arg0: string,
       arg1: string,
+      arg2: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "tokensToExchange(address,address)"(
+    "tokensToExchange(address,address,uint256)"(
       arg0: string,
       arg1: string,
+      arg2: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
+
+    transferOwnership(
+      _newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "transferOwnership(address)"(
+      _newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
   };
 
   createExchange(
     _token: string,
     _currency: string,
+    _instance: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "createExchange(address,address)"(
+  "createExchange(address,address,uint256)"(
     _token: string,
     _currency: string,
+    _instance: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  getOwner(overrides?: CallOverrides): Promise<string>;
+
+  "getOwner()"(overrides?: CallOverrides): Promise<string>;
+
+  getPairExchanges(
+    _token: string,
+    _currency: string,
+    overrides?: CallOverrides
+  ): Promise<string[]>;
+
+  "getPairExchanges(address,address)"(
+    _token: string,
+    _currency: string,
+    overrides?: CallOverrides
+  ): Promise<string[]>;
 
   tokensToExchange(
     arg0: string,
     arg1: string,
+    arg2: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "tokensToExchange(address,address)"(
+  "tokensToExchange(address,address,uint256)"(
     arg0: string,
     arg1: string,
+    arg2: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string>;
+
+  transferOwnership(
+    _newOwner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "transferOwnership(address)"(
+    _newOwner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   callStatic: {
     createExchange(
       _token: string,
       _currency: string,
+      _instance: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "createExchange(address,address)"(
+    "createExchange(address,address,uint256)"(
+      _token: string,
+      _currency: string,
+      _instance: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    getOwner(overrides?: CallOverrides): Promise<string>;
+
+    "getOwner()"(overrides?: CallOverrides): Promise<string>;
+
+    getPairExchanges(
       _token: string,
       _currency: string,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<string[]>;
+
+    "getPairExchanges(address,address)"(
+      _token: string,
+      _currency: string,
+      overrides?: CallOverrides
+    ): Promise<string[]>;
 
     tokensToExchange(
       arg0: string,
       arg1: string,
+      arg2: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "tokensToExchange(address,address)"(
+    "tokensToExchange(address,address,uint256)"(
       arg0: string,
       arg1: string,
+      arg2: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
+
+    transferOwnership(
+      _newOwner: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "transferOwnership(address)"(
+      _newOwner: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
   };
 
   filters: {
     NewExchange(
       token: string | null,
       currency: string | null,
+      salt: BigNumberish | null,
       exchange: null
     ): TypedEventFilter<
-      [string, string, string],
-      { token: string; currency: string; exchange: string }
+      [string, string, BigNumber, string],
+      { token: string; currency: string; salt: BigNumber; exchange: string }
+    >;
+
+    OwnershipTransferred(
+      previousOwner: string | null,
+      newOwner: string | null
+    ): TypedEventFilter<
+      [string, string],
+      { previousOwner: string; newOwner: string }
     >;
   };
 
@@ -184,25 +306,55 @@ export class NiftyswapFactory20 extends Contract {
     createExchange(
       _token: string,
       _currency: string,
+      _instance: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "createExchange(address,address)"(
+    "createExchange(address,address,uint256)"(
       _token: string,
       _currency: string,
+      _instance: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    getOwner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "getOwner()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getPairExchanges(
+      _token: string,
+      _currency: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getPairExchanges(address,address)"(
+      _token: string,
+      _currency: string,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     tokensToExchange(
       arg0: string,
       arg1: string,
+      arg2: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "tokensToExchange(address,address)"(
+    "tokensToExchange(address,address,uint256)"(
       arg0: string,
       arg1: string,
+      arg2: BigNumberish,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    transferOwnership(
+      _newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "transferOwnership(address)"(
+      _newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
@@ -210,25 +362,55 @@ export class NiftyswapFactory20 extends Contract {
     createExchange(
       _token: string,
       _currency: string,
+      _instance: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "createExchange(address,address)"(
+    "createExchange(address,address,uint256)"(
       _token: string,
       _currency: string,
+      _instance: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "getOwner()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getPairExchanges(
+      _token: string,
+      _currency: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getPairExchanges(address,address)"(
+      _token: string,
+      _currency: string,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     tokensToExchange(
       arg0: string,
       arg1: string,
+      arg2: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "tokensToExchange(address,address)"(
+    "tokensToExchange(address,address,uint256)"(
       arg0: string,
       arg1: string,
+      arg2: BigNumberish,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    transferOwnership(
+      _newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "transferOwnership(address)"(
+      _newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
 }

@@ -81,35 +81,72 @@ describe('NiftyswapFactory20', () => {
     userERC1155Contract = (await ownerERC1155Contract.connect(userSigner)) as ERC1155PackedBalanceMock
 
     // Deploy Niftyswap factory
-    niftyswapFactoryContract = (await niftyswapFactoryAbstract.deploy(ownerWallet)) as NiftyswapFactory20
+    niftyswapFactoryContract = (await niftyswapFactoryAbstract.deploy(ownerWallet, [ownerAddress])) as NiftyswapFactory20
   })
 
   describe('Getter functions', () => {
-    describe('getExchange() function', () => {
-      let exchangeAddress: string
+    beforeEach(async () => {
+      // Create exchange contract for the ERC-20/1155 token
+      await niftyswapFactoryContract.functions.createExchange(
+        ownerERC1155Contract.address,
+        ownerBaseTokenContract.address,
+        0
+      )
+    })
 
-      beforeEach(async () => {
-        // Create exchange contract for the ERC-20/1155 token
-        await niftyswapFactoryContract.functions.createExchange(
-          ownerERC1155Contract.address,
-          ownerBaseTokenContract.address,
-        )
-
-        // Retrieve exchange address
-        exchangeAddress = (
-          await niftyswapFactoryContract.functions.tokensToExchange(
-            ownerERC1155Contract.address,
-            ownerBaseTokenContract.address,
-          )
-        )[0]
-      })
-
+    describe('tokensToExchange() function', () => {
       it('should return exchange address', async () => {
         const exchange_address = await niftyswapFactoryContract.functions.tokensToExchange(
           ownerERC1155Contract.address,
           ownerBaseTokenContract.address,
+          0
         )
-        await expect(exchange_address[0]).to.be.eql(exchangeAddress)
+        await expect(exchange_address[0]).not.to.be.eql(ZERO_ADDRESS)
+      })
+    })
+
+    describe('getPairExchanges() function', () => {
+      it('should return array with a pair exchange instances', async () => {
+        // Create another exchange instance
+        await niftyswapFactoryContract.functions.createExchange(
+          ownerERC1155Contract.address,
+          ownerBaseTokenContract.address,
+          1
+        )
+
+        // Create another exchange instance
+        await niftyswapFactoryContract.functions.createExchange(
+          ownerERC1155Contract.address,
+          ownerBaseTokenContract.address,
+          99
+        )
+
+        const exchange_address0 = await niftyswapFactoryContract.functions.tokensToExchange(
+          ownerERC1155Contract.address,
+          ownerBaseTokenContract.address,
+          0
+        )
+
+        const exchange_address1 = await niftyswapFactoryContract.functions.tokensToExchange(
+          ownerERC1155Contract.address,
+          ownerBaseTokenContract.address,
+          1
+        )
+
+        const exchange_address99 = await niftyswapFactoryContract.functions.tokensToExchange(
+          ownerERC1155Contract.address,
+          ownerBaseTokenContract.address,
+          99
+        )
+
+        const pair_exchanges = (await niftyswapFactoryContract.functions.getPairExchanges(
+          ownerERC1155Contract.address,
+          ownerBaseTokenContract.address
+        ))[0]
+
+        await expect(pair_exchanges[0]).to.be.eql(exchange_address0[0])
+        await expect(pair_exchanges[1]).to.be.eql(exchange_address1[0])
+        await expect(pair_exchanges[2]).to.be.eql(exchange_address99[0])
       })
     })
   })
@@ -118,14 +155,14 @@ describe('NiftyswapFactory20', () => {
     beforeEach(async () => {})
 
     it('should REVERT if Token is 0x0', async () => {
-      const tx = niftyswapFactoryContract.functions.createExchange(ZERO_ADDRESS, ownerBaseTokenContract.address, {
+      const tx = niftyswapFactoryContract.functions.createExchange(ZERO_ADDRESS, ownerBaseTokenContract.address, 0, {
         gasLimit: 1000000
       })
       await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange20#constructor:INVALID_INPUT'))
     })
 
     it('should REVERT if Base Token is 0x0', async () => {
-      const tx = niftyswapFactoryContract.functions.createExchange(ownerERC1155Contract.address, ZERO_ADDRESS, {
+      const tx = niftyswapFactoryContract.functions.createExchange(ownerERC1155Contract.address, ZERO_ADDRESS, 0, {
         gasLimit: 1000000
       })
       await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange20#constructor:INVALID_INPUT'))
@@ -135,12 +172,13 @@ describe('NiftyswapFactory20', () => {
       const tx = niftyswapFactoryContract.functions.createExchange(
         ownerERC1155Contract.address,
         ownerBaseTokenContract.address,
+        0
       )
       await expect(tx).to.be.fulfilled
     })
 
     it('should PASS if creating an exchange with a new base currency contract', async () => {
-      const tx = niftyswapFactoryContract.functions.createExchange(ownerERC1155Contract.address, userAddress)
+      const tx = niftyswapFactoryContract.functions.createExchange(ownerERC1155Contract.address, userAddress, 0)
       await expect(tx).to.be.fulfilled
     })
 
@@ -152,6 +190,7 @@ describe('NiftyswapFactory20', () => {
         tx = await niftyswapFactoryContract.functions.createExchange(
           ownerERC1155Contract.address,
           ownerBaseTokenContract.address,
+          0
         )
 
         // Retrieve exchange address
@@ -159,6 +198,7 @@ describe('NiftyswapFactory20', () => {
           await niftyswapFactoryContract.functions.tokensToExchange(
             ownerERC1155Contract.address,
             ownerBaseTokenContract.address,
+            0
           )
         )[0]
       })
@@ -167,6 +207,7 @@ describe('NiftyswapFactory20', () => {
         const tx = niftyswapFactoryContract.functions.createExchange(
           ownerERC1155Contract.address,
           ownerBaseTokenContract.address,
+          0,
           {
             gasLimit: 1000000
           }
