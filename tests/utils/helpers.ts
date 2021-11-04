@@ -41,6 +41,13 @@ export const methodsSignature = {
   REMOVELIQUIDITY: "0x5c0bf259"
 }
 
+export const methodsSignature20 = {
+  BUYTOKENS: "0xb2d81047",
+  SELLTOKENS: "0xade79c7a",
+  ADDLIQUIDITY: "0x82da2b73",
+  REMOVELIQUIDITY: "0x5c0bf259"
+}
+
 export const BuyTokensType = `tuple(
   address recipient,
   uint256[] tokensBoughtIDs,
@@ -129,7 +136,7 @@ export const getSellTokenData20 = (
   } as SellTokensObj20
 
   return ethers.utils.defaultAbiCoder.encode(
-    ['bytes4', SellTokens20Type], [methodsSignature.SELLTOKENS, sellTokenObj])
+    ['bytes4', SellTokens20Type], [methodsSignature20.SELLTOKENS, sellTokenObj])
 }
 
 export const getAddLiquidityData = (baseAmountsToAdd: BigNumber[], deadline: number) => {
@@ -139,7 +146,7 @@ export const getAddLiquidityData = (baseAmountsToAdd: BigNumber[], deadline: num
   } as AddLiquidityObj
 
   return ethers.utils.defaultAbiCoder.encode(
-    ['bytes4', AddLiquidityType], [methodsSignature.ADDLIQUIDITY, addLiquidityObj])
+    ['bytes4', AddLiquidityType], [methodsSignature20.ADDLIQUIDITY, addLiquidityObj])
 }
 
 export const getRemoveLiquidityData = (minBaseTokens: BigNumber[], minTokens: BigNumber[], deadline: number) => {
@@ -150,7 +157,7 @@ export const getRemoveLiquidityData = (minBaseTokens: BigNumber[], minTokens: Bi
   } as RemoveLiquidityObj
 
   return ethers.utils.defaultAbiCoder.encode(
-    ['bytes4', RemoveLiquidityType], [methodsSignature.REMOVELIQUIDITY, removeLiquidityObj])
+    ['bytes4', RemoveLiquidityType], [methodsSignature20.REMOVELIQUIDITY, removeLiquidityObj])
 }
 
 export class Web3DebugProvider extends ethers.providers.JsonRpcProvider {
