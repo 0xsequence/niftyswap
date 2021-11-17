@@ -5,5 +5,5 @@ import "@0xsequence/erc-1155/contracts/mocks/ERC1155MintBurnPackedBalanceMock.so
 
 
 contract ERC1155PackedBalanceMock is ERC1155MintBurnPackedBalanceMock {
-
+  constructor() ERC1155MintBurnPackedBalanceMock("TestERC1155", "") {}
 }

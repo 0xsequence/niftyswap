@@ -6,6 +6,8 @@ import "../interfaces/IERC2981.sol";
 
 
 contract ERC1155RoyaltyMock is ERC1155MintBurnMock {
+  constructor() ERC1155MintBurnMock("TestERC1155", "") {}
+
   using SafeMath for uint256;
   uint256 public royaltyFee;
   address public royaltyRecipient;
