@@ -427,7 +427,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
         uint256 maxCurrency = _maxCurrency[i];
 
         // Otherwise rounding error could end up being significant on second deposit
-        require(maxCurrency >= 1000000000, "NiftyswapExchange20#_addLiquidity: INVALID_CURRENCY_AMOUNT");
+        require(maxCurrency >= 1000, "NiftyswapExchange20#_addLiquidity: INVALID_CURRENCY_AMOUNT");
 
         // Update currency  reserve size for Token id before transfer
         currencyReserves[tokenId] = maxCurrency;

@@ -2221,12 +2221,12 @@ describe('NiftyswapExchange20', () => {
 
       describe('Edge cases', () => {
         it('Pool can not go to zero token in reserve', async () => {
-          const minBaseCurrency = BigNumber.from(1000000000)
+          const minBaseCurrency = BigNumber.from(10**3)
           const currencyAmountsToAdd: BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => minBaseCurrency)
           const tokenAmountsToAdd: BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => BigNumber.from(1))
           const addLiquidityData: string = getAddLiquidityData(currencyAmountsToAdd, deadline)
 
-          // Add 1000000000:1 for all pools
+          // Add 1000:1 for all pools
           await operatorERC1155Contract.functions.safeBatchTransferFrom(
             operatorAddress,
             niftyswapExchangeContract.address,
@@ -2247,7 +2247,7 @@ describe('NiftyswapExchange20', () => {
           const tokenAmountsToAdd: BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => BigNumber.from(1))
           const addLiquidityData: string = getAddLiquidityData(currencyAmountsToAdd, deadline)
 
-          // Add 1000000000:1 for all pools
+          // Add 1000:1 for all pools
           let tx = operatorERC1155Contract.functions.safeBatchTransferFrom(
             operatorAddress,
             niftyswapExchangeContract.address,
