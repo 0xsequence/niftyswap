@@ -2,19 +2,12 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer } from "ethers";
+import { Contract, Signer, utils } from "ethers";
 import { Provider } from "@ethersproject/providers";
-
-import type { INiftyswapExchange } from "../INiftyswapExchange";
-
-export class INiftyswapExchange__factory {
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): INiftyswapExchange {
-    return new Contract(address, _abi, signerOrProvider) as INiftyswapExchange;
-  }
-}
+import type {
+  INiftyswapExchange,
+  INiftyswapExchangeInterface,
+} from "../INiftyswapExchange";
 
 const _abi = [
   {
@@ -420,3 +413,16 @@ const _abi = [
     type: "function",
   },
 ];
+
+export class INiftyswapExchange__factory {
+  static readonly abi = _abi;
+  static createInterface(): INiftyswapExchangeInterface {
+    return new utils.Interface(_abi) as INiftyswapExchangeInterface;
+  }
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): INiftyswapExchange {
+    return new Contract(address, _abi, signerOrProvider) as INiftyswapExchange;
+  }
+}

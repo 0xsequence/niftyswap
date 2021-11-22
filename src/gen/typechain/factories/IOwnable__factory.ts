@@ -2,19 +2,9 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer } from "ethers";
+import { Contract, Signer, utils } from "ethers";
 import { Provider } from "@ethersproject/providers";
-
-import type { IOwnable } from "../IOwnable";
-
-export class IOwnable__factory {
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): IOwnable {
-    return new Contract(address, _abi, signerOrProvider) as IOwnable;
-  }
-}
+import type { IOwnable, IOwnableInterface } from "../IOwnable";
 
 const _abi = [
   {
@@ -44,3 +34,16 @@ const _abi = [
     type: "function",
   },
 ];
+
+export class IOwnable__factory {
+  static readonly abi = _abi;
+  static createInterface(): IOwnableInterface {
+    return new utils.Interface(_abi) as IOwnableInterface;
+  }
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): IOwnable {
+    return new Contract(address, _abi, signerOrProvider) as IOwnable;
+  }
+}

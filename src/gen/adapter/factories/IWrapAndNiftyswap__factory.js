@@ -5,15 +5,6 @@
 exports.__esModule = true;
 exports.IWrapAndNiftyswap__factory = void 0;
 var ethers_1 = require("ethers");
-var IWrapAndNiftyswap__factory = /** @class */ (function () {
-    function IWrapAndNiftyswap__factory() {
-    }
-    IWrapAndNiftyswap__factory.connect = function (address, signerOrProvider) {
-        return new ethers_1.Contract(address, _abi, signerOrProvider);
-    };
-    return IWrapAndNiftyswap__factory;
-}());
-exports.IWrapAndNiftyswap__factory = IWrapAndNiftyswap__factory;
 var _abi = [
     {
         inputs: [
@@ -117,3 +108,16 @@ var _abi = [
         type: "function"
     },
 ];
+var IWrapAndNiftyswap__factory = /** @class */ (function () {
+    function IWrapAndNiftyswap__factory() {
+    }
+    IWrapAndNiftyswap__factory.createInterface = function () {
+        return new ethers_1.utils.Interface(_abi);
+    };
+    IWrapAndNiftyswap__factory.connect = function (address, signerOrProvider) {
+        return new ethers_1.Contract(address, _abi, signerOrProvider);
+    };
+    IWrapAndNiftyswap__factory.abi = _abi;
+    return IWrapAndNiftyswap__factory;
+}());
+exports.IWrapAndNiftyswap__factory = IWrapAndNiftyswap__factory;

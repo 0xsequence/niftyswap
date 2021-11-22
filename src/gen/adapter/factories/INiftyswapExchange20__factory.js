@@ -5,15 +5,6 @@
 exports.__esModule = true;
 exports.INiftyswapExchange20__factory = void 0;
 var ethers_1 = require("ethers");
-var INiftyswapExchange20__factory = /** @class */ (function () {
-    function INiftyswapExchange20__factory() {
-    }
-    INiftyswapExchange20__factory.connect = function (address, signerOrProvider) {
-        return new ethers_1.Contract(address, _abi, signerOrProvider);
-    };
-    return INiftyswapExchange20__factory;
-}());
-exports.INiftyswapExchange20__factory = INiftyswapExchange20__factory;
 var _abi = [
     {
         anonymous: false,
@@ -607,3 +598,16 @@ var _abi = [
         type: "function"
     },
 ];
+var INiftyswapExchange20__factory = /** @class */ (function () {
+    function INiftyswapExchange20__factory() {
+    }
+    INiftyswapExchange20__factory.createInterface = function () {
+        return new ethers_1.utils.Interface(_abi);
+    };
+    INiftyswapExchange20__factory.connect = function (address, signerOrProvider) {
+        return new ethers_1.Contract(address, _abi, signerOrProvider);
+    };
+    INiftyswapExchange20__factory.abi = _abi;
+    return INiftyswapExchange20__factory;
+}());
+exports.INiftyswapExchange20__factory = INiftyswapExchange20__factory;
