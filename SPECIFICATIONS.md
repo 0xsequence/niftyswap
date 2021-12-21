@@ -8,11 +8,14 @@ This document is specifically for the ERC20-ERC1155 Niftyswap contracts (i.e. Ni
 - [Overview](#overview)
 - [Contracts](#contracts)
     + [NiftyswapExchange20.sol](#niftyswapexchange20sol)
-    + [NiftyswapFactory20sol](#niftyswapfactory20sol)
+    + [NiftyswapFactory20.sol](#niftyswapfactory20sol)
 - [Contract Interactions](#contract-interactions)
   * [Exchanging Tokens](#exchanging-tokens)
   * [Managing Reserves Liquidity](#managing-reserves-liquidity)
 - [Price Calculations](#price-calculations)
+- [Liquidity Fee](#liquidity-fee)
+- [Royalty Fee](#royalty-fee)
+- [Frontend Fee](#frontend-fee)
 - [Assets](#assets)
   * [Currency](#currency)
   * [Tokens](#tokens)
@@ -23,18 +26,16 @@ This document is specifically for the ERC20-ERC1155 Niftyswap contracts (i.e. Ni
     + [Adding Liquidity](#adding-liquidity)
     + [Removing Liquidity](#removing-liquidity)
 - [Data Encoding](#data-encoding)
-    + [_currencyToToken()](#-currencytotoken--)
-    + [_tokenToCurrency()](#-tokentocurrency--)
-    + [_addLiquidity()](#-addliquidity--)
-    + [_removeLiquidity()](#-removeliquidity--)
-  * [Relevant Methods](#relevant-methods)
-    + [getCurrencyReserves()](#getcurrencyreserves--)
-    + [getPrice_currencyToToken()](#getprice-currencytotoken--)
-    + [getPrice_tokenToCurrency()](#getprice-tokentocurrency--)
-    + [getTokenAddress()](#gettokenaddress--)
-    + [getCurrencyInfo()](#getcurrencyinfo--)
+    + [_tokenToCurrency()](#tokentocurrency)
+    + [_addLiquidity()](#addliquidity)
+    + [_removeLiquidity()](#removeliquidity)
+- [Relevant Methods](#relevant-methods)
+    + [getCurrencyReserves()](#getcurrencyreserves)
+    + [getPrice_currencyToToken()](#getpricecurrencytotoken)
+    + [getPrice_tokenToCurrency()](#getpricetokentocurrency)
+    + [getTokenAddress()](#gettokenaddress)
+    + [getCurrencyInfo()](#getcurrencyinfo)
 - [Miscellaneous](#miscellaneous)
-  
   * [Rounding Errors](#rounding-errors)
 
 # Overview
@@ -49,11 +50,11 @@ This document outlines the core mechanics and technical details for Niftyswap.
 
 # Contracts
 
-### NiftyswapExchange20.sol
+## NiftyswapExchange20.sol
 
 This contract is responsible for permitting the exchange between a an ERC-20 currency and all tokens in a given ERC-1155 token contract. For each token id $i$, the NiftyswapExchance contract holds a reserve of currency and a reserve of token id $i$, which are used to calculate the price of that token id $i$ denominated in the  currency. 
 
-### NiftyswapFactory20.sol
+## NiftyswapFactory20.sol
 
 This contract is used to deploy a new NiftyswapExchange20.sol contract for ERC-20 : ERC-1155 pairs. It will keep a mapping of each ERC-1155 token contract address with their corresponding NiftyswapExchange.sol contract address.
 
@@ -87,7 +88,7 @@ function onERC1155BatchReceived(
 
 The first 4 bytes of the `_data` argument indicate which of the three main [NiftyswapExchange20.sol](https://github.com/0xsequence/niftyswap/blob/30becd724f81f26cc4ce27b3342688490dfb62d9/src/contracts/exchange/NiftyswapExchange20.sol#L538) methods to call. How to build and encode the `_data` payload for the respective methods is explained in the [Data Encoding](#data-encoding) section. 
 
-## Exchanging Tokens
+# Exchanging Tokens
 
 In `NiftyswapExchange20.sol`, there are two methods for exchanging tokens:
 
@@ -144,7 +145,7 @@ function _tokenToCurrency(
 
 `_tokenToCurrency()` is called internally when ERC-1155 tokens are transferred to the corresponding exchange contract and the data passed in transfer call is encoded for the selling of tokens. See [XXX]() on how to encode the data.
 
-## Managing Reserves Liquidity
+# Managing Reserves Liquidity
 
 In `NiftyswapExchange20.sol`, there are two methods for managing token reserves supplies:
 
@@ -159,7 +160,7 @@ In `NiftyswapExchange20.sol`, there are two methods for managing token reserves 
  * @param _tokenAmounts  Array of amount of Tokens deposited for each ID in _tokenIds
  * @param _maxCurrency   Array of maximum number of tokens deposited for ids in _tokenIds.
  *                       Deposits max amount if total liquidity pool token supply is 0.
- * @param _deadline      Block number after which this transaction will be reverted
+ * @param _deadline      Unix timestamp after which this transaction will be reverted
  */
 function _addLiquidity(
   address _provider,
@@ -177,7 +178,7 @@ function _addLiquidity(
  * @param _poolTokenAmounts Array of Amount of liquidity tokens burned for ids in _tokenIds.
  * @param _minCurrency      Minimum currency withdrawn for each Token id in _tokenIds.
  * @param _minTokens        Minimum Tokens id withdrawn for each Token id in _tokenIds.
- * @param _deadline         Block number after which this transaction will be reverted
+ * @param _deadline         Unix timestamp after which this transaction will be reverted
  */
 function _removeLiquidity(
   address _provider,
@@ -197,7 +198,7 @@ In Niftyswap, like Uniswap, the price of an asset is a function of a currency re
 
 where $CurrencyReserve_i$ is the currency reserve size for the corresponding token id $i$, $TokenReserve_i$ is the reserve size of the ERC-1155 token id $i$ and $K$ is an arbitrary constant. 
 
-**Ignoring the [Liquidity Fee](#liquidity-fee)**, the [Royalty Fee](#royalty-fees) and the [Frontend Fee](#frontend-fee), purchasing some tokens $i$ with the currency (or vice versa) should increase the $CurrencyReserve_i$ and decrease the $TokenReserve_i$ (or vice versa) such that
+**Ignoring the [Liquidity Fee](#liquidity-fee)**, the [Royalty Fee](#royalty-fee) and the [Frontend Fee](#frontend-fee), purchasing some tokens $i$ with the currency (or vice versa) should increase the $CurrencyReserve_i$ and decrease the $TokenReserve_i$ (or vice versa) such that
 
 ​												$CurrencyReserve_i * TokenReserve_i == K$. 
 
@@ -243,13 +244,13 @@ When buying or selling ERC-1155 tokens via Niftyswap, extra information can be a
 
 Within Niftyswap, there are two main types of assets: the **currency** and the **tokens**.
 
-## Currency
+# Currency
 
 The currency is an ERC-20 token that is fungible (>0 decimals) and is used to price each token $i$ in a given ERC-1155 token contract. For instance, this currency could be USDC or wETH.
 
-The address of the currency can be retrieved by calling [getCurrencyInfo()](#getcurrencyinfo()). 
+The address of the currency can be retrieved by calling [getCurrencyInfo()](#getcurrencyinfo). 
 
-## Tokens
+# Tokens
 
 The tokens contract is an ERC-1155 compliant contract where each of its token id is priced with respect to the [currency](#currency). These tokens *can* have 0 decimals, meaning that some token ids are not divisible. The liquidity provider fee accounts for this possibly as detailed in the [Liquidity Fee](#liquidity-fee) section. **Note that 0 decimal tokens can face issues if highly illiquid when it comes to removing liquidity.**
 
@@ -261,7 +262,7 @@ All trades are done by specifying exactly how many tokens $i$ a user wants to bu
 
 It is possible to buy/sell multiple tokens at once, but if any one fails, the entire trade will fail as well. This could change for Niftyswap V2.
 
-### Currency to Token $i$
+## Currency to Token $i$
 
 To trade currency => token $i$, a user would call 
 
@@ -273,7 +274,7 @@ as defined in the [Exchaging Tokens](#exchanging-tokens) section and specify *ex
 
 Since users can't know exactly how much currency will be required when the transaction is created, they must provide a `_maxCurrency` value which contain the maximum amount of currency they are willing to spend for the entire trade. It would've been possible for Niftyswap to support a maximum amount per token $i$, however this would increase the gas cost significantly. If proven to be desired, this could be incorporated in Niftyswap V2.
 
-Additionally, to protect users against miners or third party relayers withholding their Niftyswap trade transactions, a `_deadline` parameter must be provided by the user. This `_deadline`is a block number after which a given transaction will revert.
+Additionally, to protect users against miners or third party relayers withholding their Niftyswap trade transactions, a `_deadline` parameter must be provided by the user. This `_deadline`is a Unix timestamp after which a given transaction will revert.
 
 It's also possible for users to pass additional fee recipients via the `_extraFeeRecipients` array. Each value in `_extraFeeAmounts` would be deducted from the amount of currency sent by user and would be sent to the corresponding recipients specified in `_extraFeeRecipients`. This allows front ends to easily charge a frontend fee, add referal program, etc.
 
@@ -281,18 +282,30 @@ Finally, users can specify who should receive the tokens with the `_recipient` a
 
 The `_maxCurrency` argument is specified as the amount of currency sent to the NiftyswapExchange.sol contract via the `onERC1155BatchReceived()` method :
 
-### Token $i$ to Currency
+## Token $i$ to Currency
 
 To trade token $i$ => currency, a user would call 
 
 ```solidity
 _tokenToCurrency(_tokenIds, _tokensSoldAmounts, _minCurrency, _deadline, _recipient);
 ```
-as defined [Exchanging Tokens](#exchanging-tokens) and specify *exactly* how many tokens $i$ they sell. This is done by specifying the token ids to sell in the `_tokenIds` array and the amount for each token id in the `_tokensSoldAmounts` array. 
+as defined [Exchanging Tokens](#exchanging-tokens).
+
+
+To call this method, users must transfer the tokens to sell to the NiftyswapExchange.sol contract, as follow:
+
+```solidity
+// Call _tokenToCurrency() on NiftyswapExchange.sol contract
+IERC1155(TokenContract).safeBatchTranferFrom(_from, niftyswap_address, _ids, _amounts, _data);
+```
+
+where `_data` is defined in the [Data Encoding: _tokenToCurrency()](#tokentocurrency) section.
+
+User must pecify *exactly* how many tokens $i$ they sell. This is done by specifying the token ids to sell in the `_tokenIds` array and the amount for each token id in the `_tokensSoldAmounts` array. 
 
 Since users can't know exactly how much currency they would receive when the transaction is created, they must provide a `_minCurrency` value which contain the minimum amount of currency they are willing to accept for the entire trade.  It would've been possible for Niftyswap to support a minimum amount per token $i$, however this would increase the gas cost significantly. If proven to be desired, this could be incorporated in Niftyswap V2.
 
-Additionally, to protect users against miners or third party relayers withholding their Niftyswap trade transactions, a `_deadline` parameter must be provided by the user. This `_deadline`is a block number after which a given transaction will revert.
+Additionally, to protect users against miners or third party relayers withholding their Niftyswap trade transactions, a `_deadline` parameter must be provided by the user. This `_deadline`is a Unix timestamp after which a given transaction will revert.
 
 It's also possible for users to pass additional fee recipients via the `_extraFeeRecipients` array. Each value in `_extraFeeAmounts` would be deducted from the amount of currency sent by user and would be sent to the corresponding recipients specified in `_extraFeeRecipients`. This allows front ends to easily charge a frontend fee, add referal program, etc.
 
@@ -313,20 +326,11 @@ address recipient = obj.recipient == address(0x0) ? _from : obj.recipient;
 _tokenToCurrency(_ids, _amounts, obj.minCurrency, obj.deadline, recipient);
 ```
 
-To call this method, users must transfer the tokens to sell to the NiftyswapExchange.sol contract, as follow:
-
-```solidity
-// Call _tokenToCurrency() on NiftyswapExchange.sol contract
-IERC1155(TokenContract).safeBatchTranferFrom(_from, niftyswap_address, _ids, _amounts, _data);
-```
-
-where `_data` is defined in the [Data Encoding: _tokenToCurrency()](#_tokenToCurrency()) section.
-
 # Liquidity Reserves Management
 
-Anyone can provide liquidity for a given token $i$, so long as they also provide liquidity for the corresponding currency reserve. When adding liquidity to a reserve, liquidity providers should not influence the price, hence the contract ensures that calling `_addLiquidity()` or `_removeLiquidity()` does not change the $ CurrencyReserve_i / TokenReserve_i $ ratio. 
+Anyone can provide liquidity for a given token $i$, so long as they also provide liquidity for the corresponding currency. When adding liquidity to a reserve, liquidity providers will not influence the price, hence the contract ensures that calling `_addLiquidity()` or `_removeLiquidity()` does not change the $ CurrencyReserve_i / TokenReserve_i $ ratio. 
 
-### Adding Liquidity
+## Adding Liquidity
 
 To add liquidity for a given token $i$, a user would call
 
@@ -334,11 +338,22 @@ To add liquidity for a given token $i$, a user would call
 _addLiquidity(_provider, _tokenIds, _tokenAmounts, _maxCurrency, _deadline);
 ```
 
-as defined in [Managing Reserves Liquidity](#managing-reserves-liquidity) section. Similarly to trading, when adding liquidity, users specify the exact amount of token $i$ without knowing the exact amount of currency to send. This is done by specifying the token ids to sell in the `_tokenIds` array and the amount for each token id in the `_tokenAmounts` array. 
+as defined in [Managing Reserves Liquidity](#managing-reserves-liquidity) section.
+
+To call this method, users must transfer the tokens to add to the NiftyswapExchange.sol liquidity pools, as follow:
+
+```solidity
+// Call _addLiquidity() on NiftyswapExchange.sol contract
+IERC1155(TokenContract).safeBatchTranferFrom(_provider, niftyswap_address, _ids, _amounts, _data);
+```
+
+where `_data` is defined in the [Data Encoding: _addLiquidity()](#addliquidity) section.
+
+Similarly to trading, when adding liquidity, users specify the exact amount of token $i$ without knowing the exact amount of currency to send. This is done by specifying the token ids to sell in the `_tokenIds` array and the amount for each token id in the `_tokenAmounts` array. 
 
 Since users can't know exactly how much currency will be required when the transaction is created, they must provide a `_maxCurrency` array which contains the maximum amount of currency they are willing to add as liquidity for each token $i$. 
 
-Additionally, to protect users against miners or third party relayers withholding their Niftyswap trade transactions, a `_deadline` parameter must be provided by the user. This `_deadline`is a block number after which a given transaction will revert.
+Additionally, to protect users against miners or third party relayers withholding their Niftyswap trade transactions, a `_deadline` parameter must be provided by the user. This `_deadline`is a tim number after which a given transaction will revert.
 
 The `_provider` argument is the address of who sent the tokens and the `_tokenIds` and  `_tokenAmounts` arguments are specified as the token ids and token amounts sent to the NiftyswapExchange.sol contract via the `onERC1155BatchReceived()` method:
 
@@ -354,16 +369,7 @@ AddLiquidityObj memory obj;
 _addLiquidity(_from, _ids, _amounts, obj.maxCurrency, obj.deadline);
 ```
 
-To call this method, users must transfer the tokens to add to the NiftyswapExchange.sol liquidity pools, as follow:
-
-```solidity
-// Call _addLiquidity() on NiftyswapExchange.sol contract
-IERC1155(TokenContract).safeBatchTranferFrom(_provider, niftyswap_address, _ids, _amounts, _data);
-```
-
-where `_data` is defined in the [Data Encoding: _addLiquidity()](#_addliquidity()) section.
-
-### Removing Liquidity
+## Removing Liquidity
 
 To remove liquidity for a given token $i$, a user would call
 
@@ -371,11 +377,22 @@ To remove liquidity for a given token $i$, a user would call
 _removeLiquidity(_provider, _tokenIds, _poolTokenAmounts, _minCurrency, _minTokens, _deadline);
 ```
 
-as defined in [Managing Reserves Liquidity](#managing-reserves-liquidity) section. Users must specify *exactly* how many liquidity pool tokens they want to burn. This is done by specifying the token ids to sell in the `_tokenIds` array and the amount for each token id in the `_poolTokenAmounts` array. 
+as defined in [Managing Reserves Liquidity](#managing-reserves-liquidity) section. 
+
+To call this method, users must transfer the liquidity pool tokens to burn to the NiftyswapExchange.sol contract, as follow:
+
+```solidity
+// Call _removeLiquidity() on NiftyswapExchange.sol contract
+IERC1155(NiftyswapExchange).safeBatchTranferFrom(_provider, niftyswap_address, _ids, _amounts, _data);
+```
+
+where `_data` is defined in the [Data Encoding: _removeLiquidity()](#removeliquidity) section.
+
+Users must specify *exactly* how many liquidity pool tokens they want to burn. This is done by specifying the token ids to sell in the `_tokenIds` array and the amount for each token id in the `_poolTokenAmounts` array. 
 
 Since users can't know exactly how much currency and tokens they will receive back when the transaction is created, they must provide a `_minCurrency` and `_minTokens` arrays, which contain the minimum amount of currency and tokens $i$ they are willing to receive when removing liquidity.
 
-Additionally, to protect users against miners or third party relayers withholding their Niftyswap trade transactions, a `_deadline` parameter must be provided by the user. This `_deadline`is a block number after which a given transaction will revert.
+Additionally, to protect users against miners or third party relayers withholding their Niftyswap trade transactions, a `_deadline` parameter must be provided by the user. This `_deadline`is a un number after which a given transaction will revert.
 
 The `_provider` argument is the address of who sent the liquidity pool tokens, the `_tokenIds` and `_poolTokenAmounts` arguments are specified as the token ids and liquidity pool token amounts sent to the NiftyswapExchange.sol contract via the `onERC1155BatchReceived()` method:
 
@@ -391,15 +408,6 @@ RemoveLiquidityObj memory obj;
 _removeLiquidity(_from, _ids, _amounts, obj.minCurrency, obj.minTokens, obj.deadline);
 ```
 
-To call this method, users must transfer the liquidity pool tokens to burn to the NiftyswapExchange.sol contract, as follow:
-
-```solidity
-// Call _removeLiquidity() on NiftyswapExchange.sol contract
-IERC1155(NiftyswapExchange).safeBatchTranferFrom(_provider, niftyswap_address, _ids, _amounts, _data);
-```
-
-where `_data` is defined in the [Data Encoding: _removeLiquidity()](#_removeliquidity()) section.
-
 # Data Encoding
 
 In order to call the correct NiftySwap method, users must encode a data payload containing the function signature to call and the method's respective arguments. All method calls must be encoded as follow:
@@ -412,7 +420,7 @@ _data = abi.encode(method_signature, method_struct);
 
 where the `method_signature` and `method_struct` are specific to each method. The `_data` argument is then passed as the last arguemnt in the `safeBatchTransferFrom(..., _data)` call.
 
-###  _tokenToCurrency()
+##  _tokenToCurrency()
 
 The `bytes4` signature to call this method is `0xade79c7a`
 
@@ -468,7 +476,7 @@ export const getSellTokenData20 = (
 }
 ```
 
-###  _addLiquidity()  
+##  _addLiquidity()  
 
 The `bytes4` signature to call this method is `0x82da2b73`
 
@@ -495,7 +503,21 @@ struct AddLiquidityObj {
 }
 ```
 
-### _removeLiquidity()
+You can see how to encode this data using ether.js with [getAddLiquidityData()](https://github.com/0xsequence/niftyswap/blob/30becd724f81f26cc4ce27b3342688490dfb62d9/tests/utils/helpers.ts#L142).
+
+```ts
+export const getAddLiquidityData = (baseAmountsToAdd: BigNumber[], deadline: number) => {
+  const addLiquidityObj = {
+    maxBaseTokens: baseAmountsToAdd,
+    deadline: deadline
+  } as AddLiquidityObj
+
+  return ethers.utils.defaultAbiCoder.encode(
+    ['bytes4', AddLiquidityType], [methodsSignature20.ADDLIQUIDITY, addLiquidityObj])
+}
+```
+
+## _removeLiquidity()
 
 The `bytes4` signature to call this method is `0x5c0bf259`
 
@@ -524,11 +546,25 @@ struct RemoveLiquidityObj {
 }
 ```
 
-## Relevant Methods
+You can see how to encode this data using ether.js with [getRemoveLiquidityData()](https://github.com/0xsequence/niftyswap/blob/30becd724f81f26cc4ce27b3342688490dfb62d9/tests/utils/helpers.ts#L152).
+
+```ts
+export const getAddLiquidityData = (baseAmountsToAdd: BigNumber[], deadline: number) => {
+  const addLiquidityObj = {
+    maxBaseTokens: baseAmountsToAdd,
+    deadline: deadline
+  } as AddLiquidityObj
+
+  return ethers.utils.defaultAbiCoder.encode(
+    ['bytes4', AddLiquidityType], [methodsSignature20.ADDLIQUIDITY, addLiquidityObj])
+}
+```
+
+# Relevant Methods
 
 There methods are useful for clients and third parties to query the current state of a NiftyswapExchange.sol contract.
 
-### getCurrencyReserves()
+## getCurrencyReserves()
 
 ```solidity
 function getCurrencyReserves(
@@ -538,7 +574,7 @@ function getCurrencyReserves(
 
 This method returns the amount of currency in reserve for each Token $i$ in `_ids`.
 
-### getPrice_currencyToToken()
+## getPrice_currencyToToken()
 
 ```solidity
 function getPrice_currencyToToken(
@@ -549,7 +585,7 @@ function getPrice_currencyToToken(
 
 This method will return the current cost for the token _ids provided and their respective amount.
 
-### getPrice_tokenToCurrency()
+## getPrice_tokenToCurrency()
 
 ```solidity
 function getPrice_tokenToCurrency(
@@ -560,7 +596,7 @@ function getPrice_tokenToCurrency(
 
 This method will return the current amount of currency to be received for the token _ids and their respective amount in `tokensSold`.
 
-### getTokenAddress()
+## getTokenAddress()
 
 ```solidity
 function tokenAddress() external view returns (address);
@@ -568,7 +604,7 @@ function tokenAddress() external view returns (address);
 
 Will return the address of the corresponding ERC-1155 token contract.
 
-### getCurrencyInfo()
+## getCurrencyInfo()
 
 ```solidity
 function getCurrencyInfo() external view returns (address, uint256);
@@ -582,7 +618,7 @@ Will return the address of the currency contract that is used as currency and it
 
 Some rounding errors are possible due to the nature of finite precision arithmetic the Ethereum Virtual Machine (EVM) inherits from. To account for this, some corrections needed to be implemented to make sure these rounding errors can't be exploited. 
 
-Three main functions in NiftyswapExchange.sol are subjected to rounding errors: `_addLiquidity()`, `_currencyToToken()` and `_tokenToCurrency()`. 
+Three main functions in NiftyswapExchange.sol are subjected to rounding errors: `_addLiquidity()`, `buyTokens()` and `_tokenToCurrency()`. 
 
 For `_addLiquidity()`, the rounding error can occur at
 
@@ -598,7 +634,7 @@ Inversely, if a rounding error occurred when calculating the `currencyAmount`, t
 liquiditiesToMint[i] = (currencyAmount.sub(rounded ? 1 : 0)).mul(totalLiquidity) / currencyReserve
 ```
 
-For `_currencyToToken()`, the rounding error can occur at
+For `buyTokens()`, the rounding error can occur at
 
 ```solidity
 // Calculate buy price of card
