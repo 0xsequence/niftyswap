@@ -26,9 +26,9 @@ This document is specifically for the ERC20-ERC1155 Niftyswap contracts (i.e. Ni
     + [Adding Liquidity](#adding-liquidity)
     + [Removing Liquidity](#removing-liquidity)
 - [Data Encoding](#data-encoding)
-    + [_tokenToCurrency()](#tokentocurrency)
-    + [_addLiquidity()](#addliquidity)
-    + [_removeLiquidity()](#removeliquidity)
+    + [_tokenToCurrency()](#_tokentocurrency)
+    + [_addLiquidity()](#_addliquidity)
+    + [_removeLiquidity()](#_removeliquidity)
 - [Relevant Methods](#relevant-methods)
     + [getCurrencyReserves()](#getcurrencyreserves)
     + [getPrice_currencyToToken()](#getpricecurrencytotoken)
@@ -40,9 +40,9 @@ This document is specifically for the ERC20-ERC1155 Niftyswap contracts (i.e. Ni
 
 # Overview
 
-Niftyswap is a fork of [Uniswap](<https://hackmd.io/@477aQ9OrQTCbVR3fq1Qzxg/HJ9jLsfTz?type=view>), a protocol for automated token exchange on Ethereum. While Uniswap is for trading [ERC-20](<https://eips.ethereum.org/EIPS/eip-20>) tokens, Niftyswap is a protocol for [ERC-1155](<https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1155.md>) tokens. Both are designed to favor ease of use and provide guaranteed access to liquidity on-chain. 
+Niftyswap is a fork of [Uniswap](<https://hackmd.io/@477aQ9OrQTCbVR3fq1Qzxg/HJ9jLsfTz?type=view>), a protocol for automated token exchange on Ethereum. While Uniswap is for trading [ERC-20](<https://eips.ethereum.org/EIPS/eip-20>) tokens, Niftyswap is a protocol for [ERC-1155](<https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1155.md>) tokens. Both are designed to favor ease of use and provide guaranteed access to liquidity on-chain.
 
-Most exchanges maintain an order book and facilitate matches between buyers and sellers. Niftyswap smart contracts hold liquidity reserves of various tokens, and trades are executed directly against these reserves. Prices are set automatically using the [constant product](https://ethresear.ch/t/improving-front-running-resistance-of-x-y-k-market-makers/1281)  $x*y = K$ market maker mechanism, which keeps overall reserves in relative equilibrium. Reserves are pooled between a network of liquidity providers who supply the system with tokens in exchange for a proportional share of transaction fees. 
+Most exchanges maintain an order book and facilitate matches between buyers and sellers. Niftyswap smart contracts hold liquidity reserves of various tokens, and trades are executed directly against these reserves. Prices are set automatically using the [constant product](https://ethresear.ch/t/improving-front-running-resistance-of-x-y-k-market-makers/1281) $x*y = K$ market maker mechanism, which keeps overall reserves in relative equilibrium. Reserves are pooled between a network of liquidity providers who supply the system with tokens in exchange for a proportional share of transaction fees. 
 
 An important feature of Niftyswap is the utilization of a factory/registry contract that deploys a separate exchange contract for each ERC-20 token contract. These exchange contracts each hold independent reserves of a ERC-20 currency and their associated ERC-1155 token id. This allows trades between the [Currency](#currency) and the ERC-1155 tokens based on the relative supplies. 
 
@@ -299,7 +299,7 @@ To call this method, users must transfer the tokens to sell to the NiftyswapExch
 IERC1155(TokenContract).safeBatchTranferFrom(_from, niftyswap_address, _ids, _amounts, _data);
 ```
 
-where `_data` is defined in the [Data Encoding: _tokenToCurrency()](#tokentocurrency) section.
+where `_data` is defined in the [Data Encoding: _tokenToCurrency()](#_tokentocurrency) section.
 
 User must pecify *exactly* how many tokens $i$ they sell. This is done by specifying the token ids to sell in the `_tokenIds` array and the amount for each token id in the `_tokensSoldAmounts` array. 
 
@@ -347,7 +347,7 @@ To call this method, users must transfer the tokens to add to the NiftyswapExcha
 IERC1155(TokenContract).safeBatchTranferFrom(_provider, niftyswap_address, _ids, _amounts, _data);
 ```
 
-where `_data` is defined in the [Data Encoding: _addLiquidity()](#addliquidity) section.
+where `_data` is defined in the [Data Encoding: _addLiquidity()](#_addliquidity) section.
 
 Similarly to trading, when adding liquidity, users specify the exact amount of token $i$ without knowing the exact amount of currency to send. This is done by specifying the token ids to sell in the `_tokenIds` array and the amount for each token id in the `_tokenAmounts` array. 
 
@@ -386,7 +386,7 @@ To call this method, users must transfer the liquidity pool tokens to burn to th
 IERC1155(NiftyswapExchange).safeBatchTranferFrom(_provider, niftyswap_address, _ids, _amounts, _data);
 ```
 
-where `_data` is defined in the [Data Encoding: _removeLiquidity()](#removeliquidity) section.
+where `_data` is defined in the [Data Encoding: _removeLiquidity()](#_removeliquidity) section.
 
 Users must specify *exactly* how many liquidity pool tokens they want to burn. This is done by specifying the token ids to sell in the `_tokenIds` array and the amount for each token id in the `_poolTokenAmounts` array. 
 
