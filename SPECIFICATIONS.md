@@ -26,9 +26,9 @@ This document is specifically for the ERC20-ERC1155 Niftyswap contracts (i.e. Ni
     + [Adding Liquidity](#adding-liquidity)
     + [Removing Liquidity](#removing-liquidity)
 - [Data Encoding](#data-encoding)
-    + [_tokenToCurrency()](#tokentocurrency)
-    + [_addLiquidity()](#addliquidity)
-    + [_removeLiquidity()](#removeliquidity)
+    + [_tokenToCurrency()](#_tokentocurrency)
+    + [_addLiquidity()](#_addliquidity)
+    + [_removeLiquidity()](#_removeliquidity)
 - [Relevant Methods](#relevant-methods)
     + [getCurrencyReserves()](#getcurrencyreserves)
     + [getPrice_currencyToToken()](#getpricecurrencytotoken)
@@ -299,7 +299,7 @@ To call this method, users must transfer the tokens to sell to the NiftyswapExch
 IERC1155(TokenContract).safeBatchTranferFrom(_from, niftyswap_address, _ids, _amounts, _data);
 ```
 
-where `_data` is defined in the [Data Encoding: _tokenToCurrency()](#tokentocurrency) section.
+where `_data` is defined in the [Data Encoding: _tokenToCurrency()](#_tokentocurrency) section.
 
 User must pecify *exactly* how many tokens $i$ they sell. This is done by specifying the token ids to sell in the `_tokenIds` array and the amount for each token id in the `_tokensSoldAmounts` array. 
 
@@ -347,7 +347,7 @@ To call this method, users must transfer the tokens to add to the NiftyswapExcha
 IERC1155(TokenContract).safeBatchTranferFrom(_provider, niftyswap_address, _ids, _amounts, _data);
 ```
 
-where `_data` is defined in the [Data Encoding: _addLiquidity()](#addliquidity) section.
+where `_data` is defined in the [Data Encoding: _addLiquidity()](#_addliquidity) section.
 
 Similarly to trading, when adding liquidity, users specify the exact amount of token $i$ without knowing the exact amount of currency to send. This is done by specifying the token ids to sell in the `_tokenIds` array and the amount for each token id in the `_tokenAmounts` array. 
 
@@ -386,7 +386,7 @@ To call this method, users must transfer the liquidity pool tokens to burn to th
 IERC1155(NiftyswapExchange).safeBatchTranferFrom(_provider, niftyswap_address, _ids, _amounts, _data);
 ```
 
-where `_data` is defined in the [Data Encoding: _removeLiquidity()](#removeliquidity) section.
+where `_data` is defined in the [Data Encoding: _removeLiquidity()](#_removeliquidity) section.
 
 Users must specify *exactly* how many liquidity pool tokens they want to burn. This is done by specifying the token ids to sell in the `_tokenIds` array and the amount for each token id in the `_poolTokenAmounts` array. 
 
