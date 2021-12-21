@@ -4,6 +4,8 @@ Niftyswap
 Niftyswap is a decentralized token swap protocol for ERC-1155 tokens on Ethereum. In other words,
 Niftyswap is Uniswap for ERC-1155 tokens.
 
+[For detailed documentation on the Niftyswap Protocol and how to use it, please read the SPECIFICATION.](./SPECIFICATIONS.md)
+
 *We are incredibly thankful for the work done by the Uniswap team, without which Niftyswap wouldn't exists.*
 
 ## Description
