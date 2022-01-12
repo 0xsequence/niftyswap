@@ -70,12 +70,12 @@ export const SellTokens20Type = `tuple(
 )`
 
 export const AddLiquidityType = `tuple(
-  uint256[] maxBaseTokens,
+  uint256[] maxCurrency,
   uint256 deadline
 )`
 
 export const RemoveLiquidityType = `tuple(
-  uint256[] minBaseTokens,
+  uint256[] minCurrency,
   uint256[] minTokens,
   uint256 deadline
 )`
@@ -139,22 +139,15 @@ export const getSellTokenData20 = (
     ['bytes4', SellTokens20Type], [methodsSignature20.SELLTOKENS, sellTokenObj])
 }
 
-export const getAddLiquidityData = (baseAmountsToAdd: BigNumber[], deadline: number) => {
-  const addLiquidityObj = {
-    maxBaseTokens: baseAmountsToAdd,
-    deadline: deadline
-  } as AddLiquidityObj
+export const getAddLiquidityData = (maxCurrency: BigNumber[], deadline: number) => {
+  const addLiquidityObj = {maxCurrency, deadline} as AddLiquidityObj
 
   return ethers.utils.defaultAbiCoder.encode(
     ['bytes4', AddLiquidityType], [methodsSignature20.ADDLIQUIDITY, addLiquidityObj])
 }
 
-export const getRemoveLiquidityData = (minBaseTokens: BigNumber[], minTokens: BigNumber[], deadline: number) => {
-  const removeLiquidityObj = {
-    minBaseTokens: minBaseTokens,
-    minTokens: minTokens,
-    deadline: deadline
-  } as RemoveLiquidityObj
+export const getRemoveLiquidityData = (minCurrency: BigNumber[], minTokens: BigNumber[], deadline: number) => {
+  const removeLiquidityObj = { minCurrency, minTokens, deadline} as RemoveLiquidityObj
 
   return ethers.utils.defaultAbiCoder.encode(
     ['bytes4', RemoveLiquidityType], [methodsSignature20.REMOVELIQUIDITY, removeLiquidityObj])

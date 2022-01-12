@@ -498,7 +498,7 @@ or
 
 ```solidity
 struct AddLiquidityObj {
-    uint256[] maxCurrency; // Maximum number of currency to deposit with tokens
+    uint256[] maxCurrency; // Maximum number of currency to deposit for each token
     uint256 deadline;      // Block # after which the tx isn't valid anymore
 }
 ```
@@ -506,14 +506,11 @@ struct AddLiquidityObj {
 You can see how to encode this data using ether.js with [getAddLiquidityData()](https://github.com/0xsequence/niftyswap/blob/30becd724f81f26cc4ce27b3342688490dfb62d9/tests/utils/helpers.ts#L142).
 
 ```ts
-export const getAddLiquidityData = (baseAmountsToAdd: BigNumber[], deadline: number) => {
-  const addLiquidityObj = {
-    maxBaseTokens: baseAmountsToAdd,
-    deadline: deadline
-  } as AddLiquidityObj
+export const getAddLiquidityData = (maxCurrency: BigNumber[], deadline: number) => {
+  const addLiquidityObj = {maxCurrency, deadline} as AddLiquidityObj
 
   return ethers.utils.defaultAbiCoder.encode(
-    ['bytes4', AddLiquidityType], [methodsSignature20.ADDLIQUIDITY, addLiquidityObj])
+    ['bytes4', AddLiquidityType], ['0x82da2b73', addLiquidityObj])
 }
 ```
 
@@ -549,14 +546,11 @@ struct RemoveLiquidityObj {
 You can see how to encode this data using ether.js with [getRemoveLiquidityData()](https://github.com/0xsequence/niftyswap/blob/30becd724f81f26cc4ce27b3342688490dfb62d9/tests/utils/helpers.ts#L152).
 
 ```ts
-export const getAddLiquidityData = (baseAmountsToAdd: BigNumber[], deadline: number) => {
-  const addLiquidityObj = {
-    maxBaseTokens: baseAmountsToAdd,
-    deadline: deadline
-  } as AddLiquidityObj
+export const getRemoveLiquidityData = (minCurrency: BigNumber[], minTokens: BigNumber[], deadline: number) => {
+  const removeLiquidityObj = { minCurrency, minTokens, deadline } as RemoveLiquidityObj
 
   return ethers.utils.defaultAbiCoder.encode(
-    ['bytes4', AddLiquidityType], [methodsSignature20.ADDLIQUIDITY, addLiquidityObj])
+    ['bytes4', RemoveLiquidityType], ["0x5c0bf259", removeLiquidityObj])
 }
 ```
 

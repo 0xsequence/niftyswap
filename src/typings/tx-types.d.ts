@@ -59,12 +59,12 @@ export type SellTokensObj20 = {
 }
 
 export type AddLiquidityObj = {
-  maxBaseTokens: number[] | string[] | BigNumber[]
+  maxCurrency: number[] | string[] | BigNumber[]
   deadline: number | string | BigNumber
 }
 
 export type RemoveLiquidityObj = {
-  minBaseTokens: number[] | string[] | BigNumber[]
+  minCurrency: number[] | string[] | BigNumber[]
   minTokens: number[] | string[] | BigNumber[]
   deadline: number | string | BigNumber
 }
