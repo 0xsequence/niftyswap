@@ -400,6 +400,60 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
   }
 
   /**
+   * @dev Convert pool participation into amounts of token and currency.
+   * @dev Rounding error of the asset with lower resolution is traded for the other asset.
+   * @param _amountPool       Participation to be converted to tokens and currency.
+   * @param _tokenReserve     Amount of tokens on the AMM reserve.
+   * @param _currencyReserve  Amount of currency on the AMM reserve.
+   * @param _totalLiquidity   Total liquidity on the pool.
+   *
+   * @return currencyAmount Currency corresponding to pool amount plus rounded tokens.
+   * @return tokenAmount    Token corresponding to pool amount plus rounded currency.
+   */
+  function _toRoundedLiquidity(
+    uint256 _amountPool,
+    uint256 _tokenReserve,
+    uint256 _currencyReserve,
+    uint256 _totalLiquidity
+  ) internal pure returns (
+    uint256 currencyAmount,
+    uint256 tokenAmount,
+    int256  tradedCurrency,
+    int256  tradedToken
+  ) {
+    uint256 currencyProduct = _amountPool.mul(_currencyReserve);
+    uint256 tokenProduct = _amountPool.mul(_tokenReserve);
+
+    if (tokenProduct > currencyProduct) {
+      // Convert all currencyProduct rest to token
+      uint256 currencyRest = currencyProduct % _totalLiquidity;
+      uint256 boughtToken = getSellPrice(currencyRest, _currencyReserve, _tokenReserve);
+
+      // This is not needed, the division removes the rest
+      // currencyProduct -= currencyRest;
+      tokenProduct += boughtToken;
+
+      tradedCurrency = -int256(currencyRest);
+      tradedToken = int256(boughtToken);
+    } else {
+      // Convert all tokenProduct rest to currency
+      uint256 tokenRest = tokenProduct % _totalLiquidity;
+      uint256 boughtCurrency = getSellPrice(tokenRest, _tokenReserve, _currencyReserve);
+
+      // This is not needed, the division removes the rest
+      // tokenProduct -= tokenRest;
+      currencyProduct += boughtCurrency;
+
+      tradedCurrency = int256(boughtCurrency);
+      tradedToken = -int256(tokenRest);
+    }
+
+    // Calculate amounts
+    currencyAmount = currencyProduct / _totalLiquidity;
+    tokenAmount = tokenProduct / _totalLiquidity;
+  }
+
+  /**
    * @dev Burn liquidity pool tokens to withdraw currency  && Tokens at current ratio.
    * @dev Sorting _tokenIds is mandatory for efficient way of preventing duplicated IDs (which would lead to errors)
    * @param _provider         Address that removes liquidity to the reserve
@@ -422,14 +476,18 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
     require(_deadline > block.timestamp, "NiftyswapExchange#_removeLiquidity: DEADLINE_EXCEEDED");
 
     // Initialize variables
-    uint256 nTokens = _tokenIds.length;                        // Number of Token IDs to deposit
+    uint256 nTokens = _tokenIds.length;                       // Number of Token IDs to deposit
     uint256 totalCurrency = 0;                                 // Total amount of currency  to transfer
+
     uint256[] memory tokenAmounts = new uint256[](nTokens);    // Amount of Tokens to transfer for each id
-    uint256[] memory currencyAmounts = new uint256[](nTokens); // Amount of currency to transfer for each id
-    uint256[] memory tokenReserves = new uint256[](nTokens);
+
+    // Structs contain most information for the event
+    // notice: tokenAmounts and tokenIds are absent because we already
+    // either have those arrays constructed or we need to construct them for other reasons
+    LiquidityRemovedEventObj[] memory eventObjs = new LiquidityRemovedEventObj[](nTokens);
 
     // Get token reserves
-    tokenReserves = _getTokenReserves(_tokenIds);
+    uint256[] memory tokenReserves = _getTokenReserves(_tokenIds);
 
     // Assumes NIFTY liquidity tokens are already received by contract, but not
     // the currency  nor the Tokens Ids
@@ -439,7 +497,6 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
       // Store current id and amount from argument arrays
       uint256 id = _tokenIds[i];
       uint256 amountPool = _poolTokenAmounts[i];
-      uint256 tokenReserve = tokenReserves[i];
 
       // Load total liquidity pool token supply for Token _id
       uint256 totalLiquidity = totalSupplies[id];
@@ -449,8 +506,26 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
       uint256 currencyReserve = currencyReserves[id];
 
       // Calculate amount to withdraw for currency  and Token _id
-      uint256 currencyAmount = amountPool.mul(currencyReserve) / totalLiquidity;
-      uint256 tokenAmount = amountPool.mul(tokenReserve) / totalLiquidity;
+      uint256 currencyAmount;
+      uint256 tokenAmount;
+
+      {
+        uint256 tokenReserve = tokenReserves[i];
+        int256 tradedCurrency;
+        int256 tradedToken;
+
+        (
+          currencyAmount,
+          tokenAmount,
+          tradedCurrency,
+          tradedToken
+        ) = _toRoundedLiquidity(amountPool, tokenReserve, currencyReserve, totalLiquidity);
+
+        // Add trade info to event
+        eventObjs[i].currencyTraded = tradedCurrency;
+        eventObjs[i].tokenTraded = tradedToken;
+        eventObjs[i].totalSupply = totalLiquidity;
+      }
 
       // Verify if amounts to withdraw respect minimums specified
       require(currencyAmount >= _minCurrency[i], "NiftyswapExchange#_removeLiquidity: INSUFFICIENT_CURRENCY_AMOUNT");
@@ -465,7 +540,8 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
       // Update totalCurrency and tokenAmounts
       totalCurrency = totalCurrency.add(currencyAmount);
       tokenAmounts[i] = tokenAmount;
-      currencyAmounts[i] = currencyAmount;
+
+      eventObjs[i].currencyAmount = currencyAmount;
     }
 
     // Burn liquidity pool tokens for offchain supplies
@@ -476,7 +552,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
     token.safeBatchTransferFrom(address(this), _provider, _tokenIds, tokenAmounts, "");
 
     // Emit event
-    emit LiquidityRemoved(_provider, _tokenIds, tokenAmounts, currencyAmounts);
+    emit LiquidityRemoved(_provider, _tokenIds, tokenAmounts, eventObjs);
   }
 
   /***********************************|
