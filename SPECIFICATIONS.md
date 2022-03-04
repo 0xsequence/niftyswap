@@ -2,7 +2,7 @@
 
 \* *Certain sections of this document were taken directly from the [Uniswap](<https://hackmd.io/@477aQ9OrQTCbVR3fq1Qzxg/HJ9jLsfTz?type=view>) documentation.*
 
-This document is specifically for the ERC20-ERC1155 Niftyswap contracts (i.e. NiftyswapExchange20.sol and NiftyswapFactory20.sol). The ERC1155-ERC20 contracts is similar but is not being maintained at the moment for lack of demand.
+This document is specifically for the ERC20-ERC1155 Niftyswap contracts (i.e. NiftyswapExchange20.sol and NiftyswapFactory20.sol). The ERC1155-ERC1155 contracts is similar but is not being maintained at the moment for lack of demand.
 
 # Table of Content
 - [Overview](#overview)
