@@ -6,6 +6,7 @@
   ],
   "license": "Apache-2.0",
   "scripts": {
+    "size": "node below_size_limit.js",
     "build": "yarn clean && yarn compile && yarn adapter",
     "clean": "rimraf src/artifacts && rimraf src/gen && rimraf cache",
     "compile": "hardhat --max-memory 4096 compile",
