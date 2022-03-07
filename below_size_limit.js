@@ -19,7 +19,7 @@ async function main() {
           const artifact = JSON.parse(await readFile(`./src/artifacts/contracts/${package.name}/${contract.name}/${contract.name.replace('.sol', '.json')}`))
 
           // If bytecode is undefined or empty, skip
-          if (!artifact.bytecode || artifact.bytecode === "0x") {
+          if (!artifact.deployedBytecode || artifact.deployedBytecode === "0x") {
             continue
           }
 
