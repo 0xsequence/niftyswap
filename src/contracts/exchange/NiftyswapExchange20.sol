@@ -486,16 +486,19 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
 
     // Convert all tokenProduct rest to currency
     soldTokenNumerator = tokenNumerator % _totalLiquidity;
-    boughtCurrencyNumerator = getSellPrice(soldTokenNumerator, _tokenReserve, _currencyReserve);
 
-    // Discount royalty currency
-    (royaltyRecipient, royaltyNumerator) = getRoyaltyInfo(_tokenId, boughtCurrencyNumerator);
-    boughtCurrencyNumerator = boughtCurrencyNumerator.sub(royaltyNumerator);
+    if (soldTokenNumerator != 0) {
+      boughtCurrencyNumerator = getSellPrice(soldTokenNumerator, _tokenReserve.mul(_totalLiquidity), _currencyReserve.mul(_totalLiquidity));
 
-    currencyNumerator = currencyNumerator.add(boughtCurrencyNumerator);
+      // Discount royalty currency
+      (royaltyRecipient, royaltyNumerator) = getRoyaltyInfo(_tokenId, boughtCurrencyNumerator);
+      boughtCurrencyNumerator = boughtCurrencyNumerator.sub(royaltyNumerator);
 
-    // Add royalty numerator (needs to be converted to ROYALTIES_DENOMINATOR)
-    royaltyNumerator = royaltyNumerator.mul(ROYALTIES_DENOMINATOR) / _totalLiquidity;
+      currencyNumerator = currencyNumerator.add(boughtCurrencyNumerator);
+
+      // Add royalty numerator (needs to be converted to ROYALTIES_DENOMINATOR)
+      royaltyNumerator = royaltyNumerator.mul(ROYALTIES_DENOMINATOR) / _totalLiquidity;
+    }
 
     // Calculate amounts
     currencyAmount = currencyNumerator / _totalLiquidity;
