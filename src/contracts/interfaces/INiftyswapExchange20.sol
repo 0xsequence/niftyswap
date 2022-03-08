@@ -245,4 +245,6 @@ interface INiftyswapExchange20 {
    * @param _royaltyRecipient Address to check the claimable royalties
    */
   function getRoyalties(address _royaltyRecipient) external view returns (uint256);
+
+  function getRoyaltiesNumerator(address _royaltyRecipient) external view returns (uint256);
 }

@@ -36,6 +36,7 @@ interface NiftyswapExchange20Interface extends ethers.utils.Interface {
     "getPrice_currencyToToken(uint256[],uint256[])": FunctionFragment;
     "getPrice_tokenToCurrency(uint256[],uint256[])": FunctionFragment;
     "getRoyalties(address)": FunctionFragment;
+    "getRoyaltiesNumerator(address)": FunctionFragment;
     "getRoyaltyInfo(uint256,uint256)": FunctionFragment;
     "getSellPrice(uint256,uint256,uint256)": FunctionFragment;
     "getSellPriceWithRoyalty(uint256,uint256,uint256,uint256)": FunctionFragment;
@@ -115,6 +116,10 @@ interface NiftyswapExchange20Interface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getRoyalties",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getRoyaltiesNumerator",
     values: [string]
   ): string;
   encodeFunctionData(
@@ -223,6 +228,10 @@ interface NiftyswapExchange20Interface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getRoyalties",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getRoyaltiesNumerator",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -495,6 +504,16 @@ export class NiftyswapExchange20 extends Contract {
     ): Promise<[BigNumber]>;
 
     "getRoyalties(address)"(
+      _royaltyRecipient: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    getRoyaltiesNumerator(
+      _royaltyRecipient: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    "getRoyaltiesNumerator(address)"(
       _royaltyRecipient: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
@@ -834,6 +853,16 @@ export class NiftyswapExchange20 extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  getRoyaltiesNumerator(
+    _royaltyRecipient: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  "getRoyaltiesNumerator(address)"(
+    _royaltyRecipient: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   getRoyaltyInfo(
     _tokenId: BigNumberish,
     _cost: BigNumberish,
@@ -1165,6 +1194,16 @@ export class NiftyswapExchange20 extends Contract {
     ): Promise<BigNumber>;
 
     "getRoyalties(address)"(
+      _royaltyRecipient: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getRoyaltiesNumerator(
+      _royaltyRecipient: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getRoyaltiesNumerator(address)"(
       _royaltyRecipient: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1647,6 +1686,16 @@ export class NiftyswapExchange20 extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getRoyaltiesNumerator(
+      _royaltyRecipient: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getRoyaltiesNumerator(address)"(
+      _royaltyRecipient: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getRoyaltyInfo(
       _tokenId: BigNumberish,
       _cost: BigNumberish,
@@ -1991,6 +2040,16 @@ export class NiftyswapExchange20 extends Contract {
     ): Promise<PopulatedTransaction>;
 
     "getRoyalties(address)"(
+      _royaltyRecipient: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getRoyaltiesNumerator(
+      _royaltyRecipient: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getRoyaltiesNumerator(address)"(
       _royaltyRecipient: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;

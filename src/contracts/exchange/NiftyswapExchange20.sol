@@ -43,10 +43,11 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
   address internal globalRoyaltyRecipient;  // global royalty fee recipient if ERC2981 is not used
 
   // Mapping variables
-  mapping(uint256 => uint256) internal totalSupplies;    // Liquidity pool token supply per Token id
-  mapping(uint256 => uint256) internal currencyReserves; // currency Token reserve per Token id
-  mapping(address => uint256) internal royalties;        // Mapping tracking how much royalties can be claimed per address
+  mapping(uint256 => uint256) internal totalSupplies;      // Liquidity pool token supply per Token id
+  mapping(uint256 => uint256) internal currencyReserves;   // currency Token reserve per Token id
+  mapping(address => uint256) internal royaltiesNumerator; // Mapping tracking how much royalties can be claimed per address
 
+  uint256 internal constant ROYALTIES_DENOMINATOR = 10000;
 
   /***********************************|
   |            Constructor           |
@@ -130,7 +131,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
       // Note: Royalty will be a bit higher since LF fees are added first
       (address royaltyRecipient, uint256 royaltyAmount) = getRoyaltyInfo(idBought, currencyAmount);
       if (royaltyAmount > 0) {
-        royalties[royaltyRecipient] = royalties[royaltyRecipient].add(royaltyAmount);
+        royaltiesNumerator[royaltyRecipient] = royaltiesNumerator[royaltyRecipient].add(royaltyAmount.mul(ROYALTIES_DENOMINATOR));
       }
 
       // Calculate currency token amount to refund (if any) where whatever is not used will be returned
@@ -260,7 +261,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
       // Note: Royalty will be a bit lower since LF fees are substracted first
       (address royaltyRecipient, uint256 royaltyAmount) = getRoyaltyInfo(idSold, currencyAmount);
       if (royaltyAmount > 0) {
-        royalties[royaltyRecipient] = royalties[royaltyRecipient].add(royaltyAmount);
+        royaltiesNumerator[royaltyRecipient] = royaltiesNumerator[royaltyRecipient].add(royaltyAmount.mul(ROYALTIES_DENOMINATOR));
       }
 
       // Increase total amount of currency to receive (minus royalty to pay)
@@ -277,7 +278,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     for (uint256 i = 0; i < _extraFeeAmounts.length; i++) {
       if (_extraFeeAmounts[i] > 0) {
         totalCurrency = totalCurrency.sub(_extraFeeAmounts[i]);
-        royalties[_extraFeeRecipients[i]] = royalties[_extraFeeRecipients[i]].add(_extraFeeAmounts[i]);
+        royaltiesNumerator[_extraFeeRecipients[i]] = royaltiesNumerator[_extraFeeRecipients[i]].add(_extraFeeAmounts[i].mul(ROYALTIES_DENOMINATOR));
       }
     }
 
@@ -466,16 +467,19 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
    * @return currencyAmount Currency corresponding to pool amount plus rounded tokens.
    * @return tokenAmount    Token corresponding to pool amount plus rounded currency.
    */
-    function _toRoundedLiquidity(
+  function _toRoundedLiquidity(
+    uint256 _tokenId,
     uint256 _amountPool,
     uint256 _tokenReserve,
     uint256 _currencyReserve,
     uint256 _totalLiquidity
-  ) internal pure returns (
+  ) internal view returns (
     uint256 currencyAmount,
     uint256 tokenAmount,
     int256  tradedCurrency,
-    int256  tradedToken
+    int256  tradedToken,
+    address royaltyRecipient,
+    uint256 royaltyNumerator
   ) {
     uint256 currencyProduct = _amountPool.mul(_currencyReserve);
     uint256 tokenProduct = _amountPool.mul(_tokenReserve);
@@ -483,11 +487,15 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     if (tokenProduct > currencyProduct) {
       // Convert all currencyProduct rest to token
       uint256 currencyRest = currencyProduct % _totalLiquidity;
-      uint256 boughtToken = getSellPrice(currencyRest, _currencyReserve, _tokenReserve);
+
+      // Discount royalty currency
+      (royaltyRecipient, royaltyNumerator) = getRoyaltyInfo(_tokenId, currencyRest);
+
+      uint256 boughtToken = getSellPrice(currencyRest.sub(royaltyNumerator), _currencyReserve, _tokenReserve);
 
       // This is not needed, the division removes the rest
       // currencyProduct -= currencyRest;
-      tokenProduct += boughtToken;
+      tokenProduct = tokenProduct.add(boughtToken);
 
       tradedCurrency = -int256(currencyRest);
       tradedToken = int256(boughtToken);
@@ -496,13 +504,20 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
       uint256 tokenRest = tokenProduct % _totalLiquidity;
       uint256 boughtCurrency = getSellPrice(tokenRest, _tokenReserve, _currencyReserve);
 
+      // Discount royalty currency
+      (royaltyRecipient, royaltyNumerator) = getRoyaltyInfo(_tokenId, boughtCurrency);
+      boughtCurrency = boughtCurrency.sub(royaltyNumerator);
+
       // This is not needed, the division removes the rest
       // tokenProduct -= tokenRest;
-      currencyProduct += boughtCurrency;
+      currencyProduct = currencyProduct.add(boughtCurrency);
 
       tradedCurrency = int256(boughtCurrency);
       tradedToken = -int256(tokenRest);
     }
+
+    // Add royalty numerator (needs to be converted to ROYALTIES_DENOMINATOR)
+    royaltyNumerator = royaltyNumerator.mul(ROYALTIES_DENOMINATOR) / _totalLiquidity;
 
     // Calculate amounts
     currencyAmount = currencyProduct / _totalLiquidity;
@@ -569,13 +584,20 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
         uint256 tokenReserve = tokenReserves[i];
         int256 tradedCurrency;
         int256 tradedToken;
+        address royaltyRecipient;
+        uint256 royaltyNumerator;
 
         (
           currencyAmount,
           tokenAmount,
           tradedCurrency,
-          tradedToken
-        ) = _toRoundedLiquidity(amountPool, tokenReserve, currencyReserve, totalLiquidity);
+          tradedToken,
+          royaltyRecipient,
+          royaltyNumerator
+        ) = _toRoundedLiquidity(id, amountPool, tokenReserve, currencyReserve, totalLiquidity);
+
+        // Add royalties
+        royaltiesNumerator[royaltyRecipient] = royaltiesNumerator[royaltyRecipient].add(royaltyNumerator);
 
         // Add trade info to event
         eventObjs[i].currencyTraded = tradedCurrency;
@@ -683,7 +705,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     for (uint256 i = 0; i < nExtraFees; i++) {
       if (_extraFeeAmounts[i] > 0) {
         maxCurrency = maxCurrency.sub(_extraFeeAmounts[i]);
-        royalties[_extraFeeRecipients[i]] = royalties[_extraFeeRecipients[i]].add(_extraFeeAmounts[i]);
+        royaltiesNumerator[_extraFeeRecipients[i]] = royaltiesNumerator[_extraFeeRecipients[i]].add(_extraFeeAmounts[i].mul(ROYALTIES_DENOMINATOR));
       }
     }
 
@@ -837,8 +859,8 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
    * @param _royaltyRecipient Address that is able to claim royalties
    */
   function sendRoyalties(address _royaltyRecipient) override external {
-    uint256 royaltyAmount = royalties[_royaltyRecipient];
-    royalties[_royaltyRecipient] = 0;
+    uint256 royaltyAmount = royaltiesNumerator[_royaltyRecipient] / ROYALTIES_DENOMINATOR;
+    royaltiesNumerator[_royaltyRecipient] = royaltiesNumerator[_royaltyRecipient] % ROYALTIES_DENOMINATOR;
     TransferHelper.safeTransfer(currency, _royaltyRecipient, royaltyAmount);
   }
 
@@ -856,11 +878,11 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
         return (_r, _c);
       } catch {
         // Default back to global setting if error occurs
-        return (globalRoyaltyRecipient, (_cost.mul(globalRoyaltyFee)).div(1000));
+        return (globalRoyaltyRecipient, (_cost.mul(globalRoyaltyFee)) / 1000);
       }
 
     } else {
-      return (globalRoyaltyRecipient, (_cost.mul(globalRoyaltyFee)).div(1000));
+      return (globalRoyaltyRecipient, (_cost.mul(globalRoyaltyFee)) / 1000);
     }
   }
 
@@ -996,9 +1018,12 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
    * @param _royaltyRecipient Address to check the claimable royalties
    */
   function getRoyalties(address _royaltyRecipient) override external view returns (uint256) {
-    return royalties[_royaltyRecipient];
+    return royaltiesNumerator[_royaltyRecipient] / ROYALTIES_DENOMINATOR;
   }
 
+  function getRoyaltiesNumerator(address _royaltyRecipient) override external view returns (uint256) {
+    return royaltiesNumerator[_royaltyRecipient];
+  }
 
   /***********************************|
   |         Utility Functions         |
