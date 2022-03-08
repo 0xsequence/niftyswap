@@ -476,52 +476,30 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
   ) internal view returns (
     uint256 currencyAmount,
     uint256 tokenAmount,
-    int256  tradedCurrency,
-    int256  tradedToken,
+    uint256 soldTokenNumerator,
+    uint256 boughtCurrencyNumerator,
     address royaltyRecipient,
     uint256 royaltyNumerator
   ) {
-    uint256 currencyProduct = _amountPool.mul(_currencyReserve);
-    uint256 tokenProduct = _amountPool.mul(_tokenReserve);
+    uint256 currencyNumerator = _amountPool.mul(_currencyReserve);
+    uint256 tokenNumerator = _amountPool.mul(_tokenReserve);
 
-    if (tokenProduct > currencyProduct) {
-      // Convert all currencyProduct rest to token
-      uint256 currencyRest = currencyProduct % _totalLiquidity;
+    // Convert all tokenProduct rest to currency
+    soldTokenNumerator = tokenNumerator % _totalLiquidity;
+    boughtCurrencyNumerator = getSellPrice(soldTokenNumerator, _tokenReserve, _currencyReserve);
 
-      // Discount royalty currency
-      (royaltyRecipient, royaltyNumerator) = getRoyaltyInfo(_tokenId, currencyRest);
+    // Discount royalty currency
+    (royaltyRecipient, royaltyNumerator) = getRoyaltyInfo(_tokenId, boughtCurrencyNumerator);
+    boughtCurrencyNumerator = boughtCurrencyNumerator.sub(royaltyNumerator);
 
-      uint256 boughtToken = getSellPrice(currencyRest.sub(royaltyNumerator), _currencyReserve, _tokenReserve);
-
-      // This is not needed, the division removes the rest
-      // currencyProduct -= currencyRest;
-      tokenProduct = tokenProduct.add(boughtToken);
-
-      tradedCurrency = -int256(currencyRest);
-      tradedToken = int256(boughtToken);
-    } else {
-      // Convert all tokenProduct rest to currency
-      uint256 tokenRest = tokenProduct % _totalLiquidity;
-      uint256 boughtCurrency = getSellPrice(tokenRest, _tokenReserve, _currencyReserve);
-
-      // Discount royalty currency
-      (royaltyRecipient, royaltyNumerator) = getRoyaltyInfo(_tokenId, boughtCurrency);
-      boughtCurrency = boughtCurrency.sub(royaltyNumerator);
-
-      // This is not needed, the division removes the rest
-      // tokenProduct -= tokenRest;
-      currencyProduct = currencyProduct.add(boughtCurrency);
-
-      tradedCurrency = int256(boughtCurrency);
-      tradedToken = -int256(tokenRest);
-    }
+    currencyNumerator = currencyNumerator.add(boughtCurrencyNumerator);
 
     // Add royalty numerator (needs to be converted to ROYALTIES_DENOMINATOR)
     royaltyNumerator = royaltyNumerator.mul(ROYALTIES_DENOMINATOR) / _totalLiquidity;
 
     // Calculate amounts
-    currencyAmount = currencyProduct / _totalLiquidity;
-    tokenAmount = tokenProduct / _totalLiquidity;
+    currencyAmount = currencyNumerator / _totalLiquidity;
+    tokenAmount = tokenNumerator / _totalLiquidity;
   }
 
   /**
@@ -582,16 +560,16 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
 
       {
         uint256 tokenReserve = tokenReserves[i];
-        int256 tradedCurrency;
-        int256 tradedToken;
+        uint256 soldTokenNumerator;
+        uint256 boughtCurrencyNumerator;
         address royaltyRecipient;
         uint256 royaltyNumerator;
 
         (
           currencyAmount,
           tokenAmount,
-          tradedCurrency,
-          tradedToken,
+          soldTokenNumerator,
+          boughtCurrencyNumerator,
           royaltyRecipient,
           royaltyNumerator
         ) = _toRoundedLiquidity(id, amountPool, tokenReserve, currencyReserve, totalLiquidity);
@@ -600,8 +578,8 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
         royaltiesNumerator[royaltyRecipient] = royaltiesNumerator[royaltyRecipient].add(royaltyNumerator);
 
         // Add trade info to event
-        eventObjs[i].currencyTraded = tradedCurrency;
-        eventObjs[i].tokenTraded = tradedToken;
+        eventObjs[i].soldTokenNumerator = soldTokenNumerator;
+        eventObjs[i].boughtCurrencyNumerator = boughtCurrencyNumerator;
         eventObjs[i].totalSupply = totalLiquidity;
       }
 

@@ -112,14 +112,14 @@ var _abi = [
                         type: "uint256"
                     },
                     {
-                        internalType: "int256",
-                        name: "currencyTraded",
-                        type: "int256"
+                        internalType: "uint256",
+                        name: "soldTokenNumerator",
+                        type: "uint256"
                     },
                     {
-                        internalType: "int256",
-                        name: "tokenTraded",
-                        type: "int256"
+                        internalType: "uint256",
+                        name: "boughtCurrencyNumerator",
+                        type: "uint256"
                     },
                     {
                         internalType: "uint256",

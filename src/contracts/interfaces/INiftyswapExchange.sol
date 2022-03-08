@@ -33,8 +33,8 @@ interface INiftyswapExchange {
 
   struct LiquidityRemovedEventObj {
     uint256 currencyAmount;
-    int256 currencyTraded;
-    int256 tokenTraded;
+    uint256 soldTokenNumerator;
+    uint256 boughtCurrencyNumerator;
     uint256 totalSupply;
   }
 

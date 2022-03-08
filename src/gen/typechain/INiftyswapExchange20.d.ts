@@ -944,8 +944,8 @@ export class INiftyswapExchange20 extends Contract {
         BigNumber[],
         ([BigNumber, BigNumber, BigNumber, BigNumber] & {
           currencyAmount: BigNumber;
-          currencyTraded: BigNumber;
-          tokenTraded: BigNumber;
+          soldTokenNumerator: BigNumber;
+          boughtCurrencyNumerator: BigNumber;
           totalSupply: BigNumber;
         })[]
       ],
@@ -955,8 +955,8 @@ export class INiftyswapExchange20 extends Contract {
         tokenAmounts: BigNumber[];
         details: ([BigNumber, BigNumber, BigNumber, BigNumber] & {
           currencyAmount: BigNumber;
-          currencyTraded: BigNumber;
-          tokenTraded: BigNumber;
+          soldTokenNumerator: BigNumber;
+          boughtCurrencyNumerator: BigNumber;
           totalSupply: BigNumber;
         })[];
       }
