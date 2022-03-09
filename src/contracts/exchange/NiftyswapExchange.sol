@@ -427,7 +427,12 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
     // Convert all tokenProduct rest to currency
     soldTokenNumerator = tokenNumerator % _totalLiquidity;
     if (soldTokenNumerator != 0) {
-      boughtCurrencyNumerator = getSellPrice(soldTokenNumerator, _tokenReserve.mul(_totalLiquidity), _currencyReserve.mul(_totalLiquidity));
+      // The trade happens "after" funds are out of the pool
+      // so we need to remove these funds before computing the rate
+      uint256 virtualTokenReserve = _tokenReserve.sub(tokenNumerator / _totalLiquidity).mul(_totalLiquidity);
+      uint256 virtualCurrencyReserve = _currencyReserve.sub(currencyNumerator / _totalLiquidity).mul(_totalLiquidity);
+
+      boughtCurrencyNumerator = getSellPrice(soldTokenNumerator, virtualTokenReserve, virtualCurrencyReserve);
 
       currencyNumerator = currencyNumerator.add(boughtCurrencyNumerator);
     }
