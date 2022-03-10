@@ -1045,6 +1045,80 @@ describe('NiftyswapExchange20', () => {
               expect(diffUserCurrency).to.be.eql(BigNumber.from(509))
             }
           })
+
+          it('Should trade rounding error when withdrawing liquidity, without rounding to zero', async () => {
+            const types = [BigNumber.from(1)]
+            const currencyAmountToAdd = [BigNumber.from(25000)]
+            const tokenAmountToAdd = [BigNumber.from(100)]
+  
+            await operatorERC1155Contract.functions.safeBatchTransferFrom(
+              operatorAddress,
+              niftyswapExchangeContract.address,
+              types,
+              tokenAmountToAdd,
+              getAddLiquidityData(currencyAmountToAdd, deadline),
+              { gasLimit: 50000000 }
+            )
+
+            // Add a single unit of liquidity
+            await operatorERC1155Contract.connect(userWallet).functions.safeBatchTransferFrom(
+              userAddress,
+              niftyswapExchangeContract.address,
+              types,
+              [2],
+              getAddLiquidityData([BigNumber.from(500)], deadline),
+              { gasLimit: 50000000 }
+            )
+
+            let userTokenBalance = await userERC1155Contract.functions.balanceOf(userAddress, types[0])
+            let userCurrencyBalance = await userCurrencyContract.functions.balanceOf(userAddress)
+
+            const maxCurrency = extraFeeArray.length === 0 ? BigNumber.from(300) : BigNumber.from(300).add(extraFeeArray[0])
+
+            // Buy a single unit of token, force amount to be rounded
+            await userExchangeContract.functions.buyTokens(
+              types,
+              [BigNumber.from(1)],
+              maxCurrency,
+              deadline,
+              userAddress,
+              [],
+              [],
+              { gasLimit: 8000000 }
+            )
+
+            // Get liquidity of tokens, currency and totalSupply
+            const tokenInExchange = await userERC1155Contract.functions.balanceOf(userExchangeContract.address, types[0])
+            const currencyInExchange = await userCurrencyContract.functions.balanceOf(userExchangeContract.address)
+            const totalSupply = await niftyswapExchangeContract.functions.getTotalSupply(types)
+
+            userTokenBalance = await userERC1155Contract.functions.balanceOf(userAddress, types[0])
+            userCurrencyBalance = await userCurrencyContract.functions.balanceOf(userAddress)
+
+            // Withdraw liquidity, it should return 0 tokens but more than 250 currency
+            await niftyswapExchangeContract.connect(userWallet).functions.safeBatchTransferFrom(
+              userAddress,
+              niftyswapExchangeContract.address,
+              types,
+              [500],
+              getRemoveLiquidityData([BigNumber.from(250)], [BigNumber.from(0)], deadline),
+              { gasLimit: 8000000 }
+            )
+
+            const newUserCurrencyBalance = await userCurrencyContract.functions.balanceOf(userAddress)
+            const newUserTokenBalance = await userERC1155Contract.functions.balanceOf(userAddress, types[0])
+
+            const diffUserCurrency = newUserCurrencyBalance[0].sub(userCurrencyBalance[0])
+            const diffUserToken = newUserTokenBalance[0].sub(userTokenBalance[0])
+
+            expect(diffUserToken).to.be.eql(BigNumber.from(1))
+
+            if (royaltyFee.isZero()) {
+              expect(diffUserCurrency).to.be.eql(BigNumber.from(747))
+            } else {
+              expect(diffUserCurrency).to.be.eql(BigNumber.from(742))
+            }
+          })
         })
 
         context('When liquidity was added', () => {
