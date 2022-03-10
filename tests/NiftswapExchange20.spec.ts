@@ -2329,6 +2329,12 @@ describe('NiftyswapExchange20', () => {
           await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange20#setRoyaltyInfo: TOKEN SUPPORTS ERC-2981'))
         })
 
+        it('Royalty should be capped at 25%', async () => {
+          await (ownerERC1155Contract as ERC1155RoyaltyMock).functions.set666FeeRecipient(ethers.Wallet.createRandom().address)
+          await (ownerERC1155Contract as ERC1155RoyaltyMock).functions.set666Fee(300)
+          expect((await niftyswapExchangeContract.functions.getRoyaltyInfo(666, 100))[1]).to.be.eql(BigNumber.from(25))
+        })
+
         context('When token IDs dont have the same royalty info', async () => {
           const tokenAmountToBuy = BigNumber.from(10)
           const tokenAmountToAdd = BigNumber.from(50)
@@ -2406,7 +2412,6 @@ describe('NiftyswapExchange20', () => {
             const royalties = await niftyswapExchangeContract.functions.getRoyalties(recipient1)
             expect(royalties[0].div(2)).to.be.eql(royalties666[0].div(royaltyFee666 / royaltyFee))  
           })
-
                     
           context('when sendRoyalties() is successful', () => {
             let preWithdrawExchangeBalance

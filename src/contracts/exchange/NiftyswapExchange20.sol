@@ -48,6 +48,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
   mapping(address => uint256) internal royaltiesNumerator; // Mapping tracking how much royalties can be claimed per address
 
   uint256 internal constant ROYALTIES_DENOMINATOR = 10000;
+  uint256 internal constant MAX_ROYALTY = ROYALTIES_DENOMINATOR / 4;
 
   /***********************************|
   |            Constructor           |
@@ -832,7 +833,8 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     // Don't use IS_ERC2981 in case token contract was updated
     bool isERC2981 = token.supportsInterface(type(IERC2981).interfaceId);
     require(!isERC2981, "NiftyswapExchange20#setRoyaltyInfo: TOKEN SUPPORTS ERC-2981");
-    require(_fee < FEE_MULTIPLIER, "NiftyswapExchange20#setRoyaltyInfo: ROYALTY_FEE_IS_TOO_HIGH");
+    require(_fee <= MAX_ROYALTY, "NiftyswapExchange20#setRoyaltyInfo: ROYALTY_FEE_IS_TOO_HIGH");
+
     globalRoyaltyFee = _fee;
     globalRoyaltyRecipient = _recipient;
     emit RoyaltyChanged(_recipient, _fee);
@@ -851,7 +853,8 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
   }
 
   /**
-   * @notice Will return how much of currency need to be paid for the royalty 
+   * @notice Will return how much of currency need to be paid for the royalty
+   * @notice Royalty is capped at 25% of the total amount of currency
    * @param _tokenId ID of the erc-1155 token being traded
    * @param _cost    Amount of currency sent/received for the trade
    * @return recipient Address that will be able to claim the royalty
@@ -861,7 +864,9 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     if (IS_ERC2981) {
       // Add a try/catch in-case token *removed* ERC-2981 support
       try IERC2981(address(token)).royaltyInfo(_tokenId, _cost) returns(address _r, uint256 _c) {
-        return (_r, _c);
+        // Cap to 25% of the total amount of currency
+        uint256 max = _cost.mul(MAX_ROYALTY) / ROYALTIES_DENOMINATOR;
+        return (_r, _c > max ? max : _c);
       } catch {
         // Default back to global setting if error occurs
         return (globalRoyaltyRecipient, (_cost.mul(globalRoyaltyFee)) / 1000);
