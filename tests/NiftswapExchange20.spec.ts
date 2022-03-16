@@ -1809,7 +1809,7 @@ describe('NiftyswapExchange20', () => {
             let tokenReserveWithFee = tokenAmountToAdd.add(tokenAmountToSell).mul(1000)
             let denominator = tokenReserveWithFee.add(soldAmountWithFee)
             const newPreRoyaltyCost = numerator.div(denominator)
-            const newRoyalty = (newPreRoyaltyCost.mul(royaltyFee)).div(1000)
+            const newRoyalty = (newPreRoyaltyCost.mul(royaltyFee)).div(10000)
 
             expect(newCost).to.be.eql(newPreRoyaltyCost.sub(newRoyalty))
           })
@@ -2130,7 +2130,7 @@ describe('NiftyswapExchange20', () => {
             let numerator = currencyReserve.mul(tokenAmountToBuy).mul(1000)
             let denominator = tokenReserve.sub(tokenAmountToBuy).mul(LP_FEE_MULTIPLIER)
             const newPreRoyaltyCost = numerator.div(denominator).add(1)
-            const newRoyalty = (newPreRoyaltyCost.mul(royaltyFee)).div(1000)
+            const newRoyalty = (newPreRoyaltyCost.mul(royaltyFee)).div(10000)
 
             expect(newCost[0]).to.be.eql(newPreRoyaltyCost.add(newRoyalty))
           })
