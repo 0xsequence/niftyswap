@@ -869,11 +869,11 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
         return (_r, _c > max ? max : _c);
       } catch {
         // Default back to global setting if error occurs
-        return (globalRoyaltyRecipient, (_cost.mul(globalRoyaltyFee)) / 1000);
+        return (globalRoyaltyRecipient, (_cost.mul(globalRoyaltyFee)) / ROYALTIES_DENOMINATOR);
       }
 
     } else {
-      return (globalRoyaltyRecipient, (_cost.mul(globalRoyaltyFee)) / 1000);
+      return (globalRoyaltyRecipient, (_cost.mul(globalRoyaltyFee)) / ROYALTIES_DENOMINATOR);
     }
   }
 

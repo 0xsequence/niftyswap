@@ -76,7 +76,7 @@ describe('NiftyswapExchange20', () => {
 
   // Fees param
   const LP_FEE_MULTIPLIER = 990  // 1%
-  const ROYALTY_FEE = 20         // 2%
+  const ROYALTY_FEE = 200        // 2%
   const EXTRA_FEE = 66667777     // flat fee
 
   // Add liquidity data
@@ -160,7 +160,7 @@ describe('NiftyswapExchange20', () => {
           royaltyFee = BigNumber.from(ROYALTY_FEE)
 
           // Set fee to 2% and fee recipient to operator
-          await (ownerERC1155Contract as ERC1155RoyaltyMock).functions.setFee(20)
+          await (ownerERC1155Contract as ERC1155RoyaltyMock).functions.setFee(200)
           await (ownerERC1155Contract as ERC1155RoyaltyMock).functions.setFeeRecipient(randomAddress)
 
           erc1155_error_prefix = 'ERC1155#'
@@ -1590,7 +1590,7 @@ describe('NiftyswapExchange20', () => {
           const tokenReserve = (await ownerERC1155Contract.balanceOf(niftyswapExchangeContract.address, 0))
           const currencyReserve = (await niftyswapExchangeContract.functions.getCurrencyReserves([0]))[0][0]
           preRoyaltyCost = (await niftyswapExchangeContract.functions.getSellPrice(tokenAmountToSell, tokenReserve, currencyReserve))[0]
-          expectedRoyalty = (preRoyaltyCost.mul(royaltyFee)).div(1000).mul(nTokenTypes)
+          expectedRoyalty = (preRoyaltyCost.mul(royaltyFee)).div(10000).mul(nTokenTypes)
 
           // Sell
           sellTokenData = getSellTokenData20(userAddress, cost, deadline, extraFeeRecipients, extraFeeArray)
@@ -1944,7 +1944,7 @@ describe('NiftyswapExchange20', () => {
           const tokenReserve = (await ownerERC1155Contract.balanceOf(niftyswapExchangeContract.address, 0))
           const currencyReserve = (await niftyswapExchangeContract.functions.getCurrencyReserves([0]))[0][0]
           preRoyaltyCost = (await niftyswapExchangeContract.functions.getBuyPrice(tokenAmountToBuy, currencyReserve, tokenReserve))[0]
-          expectedRoyalty = preRoyaltyCost.mul(royaltyFee).div(1000).mul(nTokenTypes)
+          expectedRoyalty = preRoyaltyCost.mul(royaltyFee).div(10000).mul(nTokenTypes)
         })
 
         it('should fail if currency balance is insufficient', async () => {
@@ -2331,7 +2331,7 @@ describe('NiftyswapExchange20', () => {
 
         it('Royalty should be capped at 25%', async () => {
           await (ownerERC1155Contract as ERC1155RoyaltyMock).functions.set666FeeRecipient(ethers.Wallet.createRandom().address)
-          await (ownerERC1155Contract as ERC1155RoyaltyMock).functions.set666Fee(300)
+          await (ownerERC1155Contract as ERC1155RoyaltyMock).functions.set666Fee(3000)
           expect((await niftyswapExchangeContract.functions.getRoyaltyInfo(666, 100))[1]).to.be.eql(BigNumber.from(25))
         })
 
@@ -2346,8 +2346,8 @@ describe('NiftyswapExchange20', () => {
           const recipient1 = ethers.Wallet.createRandom().address
           const recipient666 = ethers.Wallet.createRandom().address
 
-          const royaltyFee = 20
-          const royaltyFee666 = 100
+          const royaltyFee = 200
+          const royaltyFee666 = 1000
           
           let expectedRoyalty: BigNumber
           let expectedRoyalty666: BigNumber
@@ -2380,8 +2380,8 @@ describe('NiftyswapExchange20', () => {
             const currency_reserve = (await niftyswapExchangeContract.functions.getCurrencyReserves([idsTobuy[0]]))[0][0]
             const preRoyaltyCost = (await niftyswapExchangeContract.functions.getBuyPrice(tokenAmountToBuy, currency_reserve, token_reserve))[0]
 
-            expectedRoyalty = preRoyaltyCost.mul(royaltyFee).div(1000).mul(2)
-            expectedRoyalty666 = preRoyaltyCost.mul(royaltyFee666).div(1000)
+            expectedRoyalty = preRoyaltyCost.mul(royaltyFee).div(10000).mul(2)
+            expectedRoyalty666 = preRoyaltyCost.mul(royaltyFee666).div(10000)
             
             // Calculate cost
             const allcosts = (await niftyswapExchangeContract.functions.getPrice_currencyToToken(idsTobuy, tokensAmountsToBuy))
@@ -2513,7 +2513,7 @@ describe('NiftyswapExchange20', () => {
           const token_reserve = (await ownerERC1155Contract.balanceOf(niftyswapExchangeContract.address, types[0]))
           const currency_reserve = (await niftyswapExchangeContract.functions.getCurrencyReserves([types[0]]))[0][0]
           const preRoyaltyCost = (await niftyswapExchangeContract.functions.getBuyPrice(amount_to_buy, currency_reserve, token_reserve))[0]
-          const expectedRoyalty = preRoyaltyCost.mul(royaltyFee).div(1000)
+          const expectedRoyalty = preRoyaltyCost.mul(royaltyFee).div(10000)
 
           // Perform the puirchase
           tx = userExchangeContract.functions.buyTokens(
