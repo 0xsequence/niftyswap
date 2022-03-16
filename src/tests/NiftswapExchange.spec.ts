@@ -1194,7 +1194,7 @@ contract('NiftyswapExchange', (accounts: string[]) => {
           await expect(tx2).to.be.rejectedWith(RevertError(erc1155_error_prefix + "_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH"))
         })
         
-        it.only('should buy tokens if currency amount is sufficient', async () => {
+        it('should buy tokens if currency amount is sufficient', async () => {
           let t = getBuyTokenData("0xC412c53268847418B75A39BFffeCabCa5E0F6446", [35], [new BigNumber(1)], 10000000)
           const tx = userCurrencyContract.functions.safeTransferFrom(userAddress, niftyswapExchangeContract.address, currencyID, cost, t,
             {gasLimit: 8000000}

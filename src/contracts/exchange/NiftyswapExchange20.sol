@@ -494,16 +494,20 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
       uint256 virtualTokenReserve = _tokenReserve.sub(tokenNumerator / _totalLiquidity).mul(_totalLiquidity);
       uint256 virtualCurrencyReserve = _currencyReserve.sub(currencyNumerator / _totalLiquidity).mul(_totalLiquidity);
 
-      boughtCurrencyNumerator = getSellPrice(soldTokenNumerator, virtualTokenReserve, virtualCurrencyReserve);
+      // Skip process if any of the two reserves is left empty
+      // this step is important to avoid an error withdrawing all left liquidity
+      if (virtualCurrencyReserve != 0 && virtualTokenReserve != 0) {
+        boughtCurrencyNumerator = getSellPrice(soldTokenNumerator, virtualTokenReserve, virtualCurrencyReserve);
 
-      // Discount royalty currency
-      (royaltyRecipient, royaltyNumerator) = getRoyaltyInfo(_tokenId, boughtCurrencyNumerator);
-      boughtCurrencyNumerator = boughtCurrencyNumerator.sub(royaltyNumerator);
+        // Discount royalty currency
+        (royaltyRecipient, royaltyNumerator) = getRoyaltyInfo(_tokenId, boughtCurrencyNumerator);
+        boughtCurrencyNumerator = boughtCurrencyNumerator.sub(royaltyNumerator);
 
-      currencyNumerator = currencyNumerator.add(boughtCurrencyNumerator);
+        currencyNumerator = currencyNumerator.add(boughtCurrencyNumerator);
 
-      // Add royalty numerator (needs to be converted to ROYALTIES_DENOMINATOR)
-      royaltyNumerator = royaltyNumerator.mul(ROYALTIES_DENOMINATOR) / _totalLiquidity;
+        // Add royalty numerator (needs to be converted to ROYALTIES_DENOMINATOR)
+        royaltyNumerator = royaltyNumerator.mul(ROYALTIES_DENOMINATOR) / _totalLiquidity;
+      }
     }
 
     // Calculate amounts
