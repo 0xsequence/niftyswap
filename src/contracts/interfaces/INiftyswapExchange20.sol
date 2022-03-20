@@ -13,7 +13,9 @@ interface INiftyswapExchange20 {
     address indexed recipient,
     uint256[] tokensBoughtIds,
     uint256[] tokensBoughtAmounts,
-    uint256[] currencySoldAmounts
+    uint256[] currencySoldAmounts,
+    address[] extraFeeRecipients,
+    uint256[] extraFeeAmounts
   );
 
   event CurrencyPurchase(
@@ -21,7 +23,9 @@ interface INiftyswapExchange20 {
     address indexed recipient,
     uint256[] tokensSoldIds,
     uint256[] tokensSoldAmounts,
-    uint256[] currencyBoughtAmounts
+    uint256[] currencyBoughtAmounts,
+    address[] extraFeeRecipients,
+    uint256[] extraFeeAmounts
   );
 
   event LiquidityAdded(

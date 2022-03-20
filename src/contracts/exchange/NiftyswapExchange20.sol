@@ -702,7 +702,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
 
     // Execute trade and retrieve amount of currency spent
     uint256[] memory currencySold = _currencyToToken(_tokenIds, _tokensBoughtAmounts, maxCurrency, _deadline, recipient);
-    emit TokensPurchase(msg.sender, recipient, _tokenIds, _tokensBoughtAmounts, currencySold);
+    emit TokensPurchase(msg.sender, recipient, _tokenIds, _tokensBoughtAmounts, currencySold, _extraFeeRecipients, _extraFeeAmounts);
 
     return currencySold;
   }
@@ -753,7 +753,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     
       // Execute trade and retrieve amount of currency received
       uint256[] memory currencyBought = _tokenToCurrency(_ids, _amounts, obj.minCurrency, obj.deadline, recipient, obj.extraFeeRecipients, obj.extraFeeAmounts);
-      emit CurrencyPurchase(_from, recipient, _ids, _amounts, currencyBought);
+      emit CurrencyPurchase(_from, recipient, _ids, _amounts, currencyBought, obj.extraFeeRecipients, obj.extraFeeAmounts);
 
     /***********************************|
     |      Adding Liquidity Tokens      |

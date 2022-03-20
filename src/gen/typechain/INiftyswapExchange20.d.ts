@@ -202,11 +202,11 @@ interface INiftyswapExchange20Interface extends ethers.utils.Interface {
   ): Result;
 
   events: {
-    "CurrencyPurchase(address,address,uint256[],uint256[],uint256[])": EventFragment;
+    "CurrencyPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])": EventFragment;
     "LiquidityAdded(address,uint256[],uint256[],uint256[])": EventFragment;
     "LiquidityRemoved(address,uint256[],uint256[],tuple[])": EventFragment;
     "RoyaltyChanged(address,uint256)": EventFragment;
-    "TokensPurchase(address,address,uint256[],uint256[],uint256[])": EventFragment;
+    "TokensPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "CurrencyPurchase"): EventFragment;
@@ -905,15 +905,27 @@ export class INiftyswapExchange20 extends Contract {
       recipient: string | null,
       tokensSoldIds: null,
       tokensSoldAmounts: null,
-      currencyBoughtAmounts: null
+      currencyBoughtAmounts: null,
+      extraFeeRecipients: null,
+      extraFeeAmounts: null
     ): TypedEventFilter<
-      [string, string, BigNumber[], BigNumber[], BigNumber[]],
+      [
+        string,
+        string,
+        BigNumber[],
+        BigNumber[],
+        BigNumber[],
+        string[],
+        BigNumber[]
+      ],
       {
         buyer: string;
         recipient: string;
         tokensSoldIds: BigNumber[];
         tokensSoldAmounts: BigNumber[];
         currencyBoughtAmounts: BigNumber[];
+        extraFeeRecipients: string[];
+        extraFeeAmounts: BigNumber[];
       }
     >;
 
@@ -975,15 +987,27 @@ export class INiftyswapExchange20 extends Contract {
       recipient: string | null,
       tokensBoughtIds: null,
       tokensBoughtAmounts: null,
-      currencySoldAmounts: null
+      currencySoldAmounts: null,
+      extraFeeRecipients: null,
+      extraFeeAmounts: null
     ): TypedEventFilter<
-      [string, string, BigNumber[], BigNumber[], BigNumber[]],
+      [
+        string,
+        string,
+        BigNumber[],
+        BigNumber[],
+        BigNumber[],
+        string[],
+        BigNumber[]
+      ],
       {
         buyer: string;
         recipient: string;
         tokensBoughtIds: BigNumber[];
         tokensBoughtAmounts: BigNumber[];
         currencySoldAmounts: BigNumber[];
+        extraFeeRecipients: string[];
+        extraFeeAmounts: BigNumber[];
       }
     >;
   };

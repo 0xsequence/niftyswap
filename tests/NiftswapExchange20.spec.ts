@@ -26,6 +26,8 @@ import { abi as exchangeABI } from '@0xsequence/niftyswap/artifacts/contracts/ex
 import { BigNumber } from 'ethers'
 import { web3 } from 'hardhat'
 
+const exchangeIface = new ethers.utils.Interface(exchangeABI)
+
 // init test wallets from package.json mnemonic
 
 const { wallet: ownerWallet, provider: ownerProvider, signer: ownerSigner } = utils.createTestWallet(web3, 0)
@@ -1763,8 +1765,9 @@ describe('NiftyswapExchange20', () => {
         })
 
         describe('When trade is successful', async () => {
+          let tx
           beforeEach(async () => {
-            await userERC1155Contract.functions.safeBatchTransferFrom(
+            tx = await userERC1155Contract.functions.safeBatchTransferFrom(
               userAddress,
               niftyswapExchangeContract.address,
               types,
@@ -1818,7 +1821,7 @@ describe('NiftyswapExchange20', () => {
             let filterFromOperatorContract: ethers.ethers.EventFilter
 
             // Get event filter to get internal tx event
-            filterFromOperatorContract = niftyswapExchangeContract.filters.CurrencyPurchase(null, null, null, null, null)
+            filterFromOperatorContract = niftyswapExchangeContract.filters.CurrencyPurchase(null, null, null, null, null, null, null)
 
             // Get logs from internal transaction event
             // @ts-ignore (https://github.com/ethers-io/ethers.js/issues/204#issuecomment-427059031)
@@ -1826,9 +1829,61 @@ describe('NiftyswapExchange20', () => {
             let logs = await operatorProvider.getLogs(filterFromOperatorContract)
             expect(logs[0].topics[0]).to.be.eql(
               niftyswapExchangeContract.interface.getEventTopic(
-                niftyswapExchangeContract.interface.events['CurrencyPurchase(address,address,uint256[],uint256[],uint256[])']
+                niftyswapExchangeContract.interface.events['CurrencyPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])']
               )
             )
+          })
+
+          describe('CurrencyPurchase Event', () => {
+            let args;
+
+            beforeEach(async () => {
+              const eventTopicHash = niftyswapExchangeContract.interface.getEventTopic(
+                niftyswapExchangeContract.interface.events['CurrencyPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])']
+              )
+              const receipt = await tx.wait(1)
+              const log = receipt.logs.find(a => a['topics'][0] === eventTopicHash)
+              args = exchangeIface.parseLog(log).args
+            })
+            
+            it('should have buyer address as `buyer` field', async () => {  
+              expect(args.buyer).to.be.eql(userAddress)
+            })
+    
+            it('should have recipient address as `recipient` field', async () => {  
+              expect(args.recipient).to.be.eql(userAddress)
+            })
+
+            it('should have tokensSoldIds as `tokensSoldIds` field', async () => {
+              for (let i = 0; i < types.length; i++) {
+                expect(args.tokensSoldIds[i]).to.be.eql(types[i])
+              }
+            })
+
+            it('should have tokensSoldAmounts as `tokensSoldAmounts` field', async () => {  
+              for (let i = 0; i < types.length; i++) {
+                expect(args.tokensSoldAmounts[i]).to.be.eql(tokensAmountsToSell[i])
+              }
+            })
+
+            it('should have currencyBoughtAmounts as `currencyBoughtAmounts` field', async () => {  
+              const costPer = (cost.add(extraFee)).div(types.length)
+              for (let i = 0; i < types.length; i++) {
+                expect(args.currencyBoughtAmounts[i]).to.be.eql(costPer)
+              }
+            })
+
+            it('should have extraFeeRecipients as `extraFeeRecipients` field', async () => {  
+              for (let i = 0; i < types.length; i++) {
+                expect(args.extraFeeRecipients[i]).to.be.eql(extraFeeRecipients[i])
+              }
+            })
+
+            it('should have extraFeeAmounts as `extraFeeAmounts` field', async () => {  
+              for (let i = 0; i < types.length; i++) {
+                expect(args.extraFeeAmounts[i]).to.be.eql(extraFeeArray[i])
+              }
+            })
           })
 
           describe('Royalties Fees', () => {
@@ -2083,8 +2138,10 @@ describe('NiftyswapExchange20', () => {
         })
 
         describe('When trade is successful', async () => {
+          let tx; 
+
           beforeEach(async () => {
-            await userExchangeContract.functions.buyTokens(
+            tx = await userExchangeContract.functions.buyTokens(
               types,
               tokensAmountsToBuy,
               cost,
@@ -2139,7 +2196,7 @@ describe('NiftyswapExchange20', () => {
             let filterFromOperatorContract: ethers.ethers.EventFilter
 
             // Get event filter to get internal tx event
-            filterFromOperatorContract = niftyswapExchangeContract.filters.TokensPurchase(null, null, null, null, null)
+            filterFromOperatorContract = niftyswapExchangeContract.filters.TokensPurchase(null, null, null, null, null, null, null)
 
             // Get logs from internal transaction event
             // @ts-ignore (https://github.com/ethers-io/ethers.js/issues/204#issuecomment-427059031)
@@ -2147,9 +2204,61 @@ describe('NiftyswapExchange20', () => {
             let logs = await operatorProvider.getLogs(filterFromOperatorContract)
             expect(logs[0].topics[0]).to.be.eql(
               niftyswapExchangeContract.interface.getEventTopic(
-                niftyswapExchangeContract.interface.events['TokensPurchase(address,address,uint256[],uint256[],uint256[])']
+                niftyswapExchangeContract.interface.events['TokensPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])']
               )
             )
+          })
+
+          describe('TokensPurchase Event', () => {
+            let args;
+
+            beforeEach(async () => {
+              const eventTopicHash = niftyswapExchangeContract.interface.getEventTopic(
+                niftyswapExchangeContract.interface.events['TokensPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])']
+              )
+              const receipt = await tx.wait(1)
+              const log = receipt.logs.find(a => a['topics'][0] === eventTopicHash)
+              args = exchangeIface.parseLog(log).args
+            })
+            
+            it('should have buyer address as `buyer` field', async () => {  
+              expect(args.buyer).to.be.eql(userAddress)
+            })
+    
+            it('should have recipient address as `recipient` field', async () => {  
+              expect(args.recipient).to.be.eql(userAddress)
+            })
+
+            it('should have tokensBoughtIds as `tokensBoughtIds` field', async () => {
+              for (let i = 0; i < types.length; i++) {
+                expect(args.tokensBoughtIds[i]).to.be.eql(types[i])
+              }
+            })
+
+            it('should have tokensBoughtAmounts as `tokensBoughtAmounts` field', async () => {  
+              for (let i = 0; i < types.length; i++) {
+                expect(args.tokensBoughtAmounts[i]).to.be.eql(tokensAmountsToBuy[i])
+              }
+            })
+
+            it('should have currencySoldAmounts as `currencySoldAmounts` field', async () => {  
+              const costPer = (cost.sub(extraFee)).div(types.length)
+              for (let i = 0; i < types.length; i++) {
+                expect(args.currencySoldAmounts[i]).to.be.eql(costPer)
+              }
+            })
+
+            it('should have extraFeeRecipients as `extraFeeRecipients` field', async () => {  
+              for (let i = 0; i < types.length; i++) {
+                expect(args.extraFeeRecipients[i]).to.be.eql(extraFeeRecipients[i])
+              }
+            })
+
+            it('should have extraFeeAmounts as `extraFeeAmounts` field', async () => {  
+              for (let i = 0; i < types.length; i++) {
+                expect(args.extraFeeAmounts[i]).to.be.eql(extraFeeArray[i])
+              }
+            })
           })
 
           describe('Royalties Fees', () => {

@@ -48,6 +48,18 @@ var _abi = [
                 name: "currencyBoughtAmounts",
                 type: "uint256[]"
             },
+            {
+                indexed: false,
+                internalType: "address[]",
+                name: "extraFeeRecipients",
+                type: "address[]"
+            },
+            {
+                indexed: false,
+                internalType: "uint256[]",
+                name: "extraFeeAmounts",
+                type: "uint256[]"
+            },
         ],
         name: "CurrencyPurchase",
         type: "event"
@@ -186,6 +198,18 @@ var _abi = [
                 indexed: false,
                 internalType: "uint256[]",
                 name: "currencySoldAmounts",
+                type: "uint256[]"
+            },
+            {
+                indexed: false,
+                internalType: "address[]",
+                name: "extraFeeRecipients",
+                type: "address[]"
+            },
+            {
+                indexed: false,
+                internalType: "uint256[]",
+                name: "extraFeeAmounts",
                 type: "uint256[]"
             },
         ],
