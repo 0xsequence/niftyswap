@@ -303,7 +303,7 @@ describe('NiftyswapExchange20', () => {
 
           it('should return true for 0x0e89341c (IERC1155 Metadata)', async () => {
             const support = await niftyswapExchangeContract.functions.supportsInterface('0x0e89341c')
-            expect(support).to.be.eql(true)
+            expect(support[0]).to.be.eql(true)
           })
         })
       })
