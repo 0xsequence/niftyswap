@@ -62,11 +62,19 @@ contract NiftyswapFactory20 is INiftyswapFactory20, Ownable, IDelegatedERC1155Me
   |        Metadata Functions         |
   |__________________________________*/
 
+  /**
+   * @notice Changes the implementation of the ERC-1155 Metadata contract
+   * @dev This function changes the implementation for all child exchanges of the factory
+   * @param _contract The address of the ERC-1155 Metadata contract
+   */
   function setMetadataContract(IERC1155Metadata _contract) onlyOwner external {
     emit MetadataContractChanged(address(_contract));
     metadataContract = _contract;
   }
 
+  /**
+   * @notice Returns the address of the ERC-1155 Metadata contract
+   */
   function metadataProvider() external override view returns (IERC1155Metadata) {
     return metadataContract;
   }
