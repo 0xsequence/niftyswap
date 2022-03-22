@@ -53,9 +53,11 @@ interface INiftyswapFactory20Interface extends ethers.utils.Interface {
   ): Result;
 
   events: {
+    "MetadataContractChanged(address)": EventFragment;
     "NewExchange(address,address,uint256,address)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "MetadataContractChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewExchange"): EventFragment;
 }
 
@@ -227,6 +229,10 @@ export class INiftyswapFactory20 extends Contract {
   };
 
   filters: {
+    MetadataContractChanged(
+      metadataContract: string | null
+    ): TypedEventFilter<[string], { metadataContract: string }>;
+
     NewExchange(
       token: string | null,
       currency: string | null,

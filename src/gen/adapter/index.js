@@ -7,7 +7,7 @@ var __createBinding = (this && this.__createBinding) || (Object.create ? (functi
     o[k2] = m[k];
 }));
 exports.__esModule = true;
-exports.WrapAndNiftyswap__factory = exports.Ownable__factory = exports.DelegatedOwnable__factory = exports.ERC20WrapperMock__factory = exports.ERC20TokenMock__factory = exports.ERC1155RoyaltyMock__factory = exports.ERC1155PackedBalanceMock__factory = exports.ERC1155Mock__factory = exports.IWrapAndNiftyswap__factory = exports.IOwnable__factory = exports.INiftyswapFactory20__factory = exports.INiftyswapFactory__factory = exports.INiftyswapExchange20__factory = exports.INiftyswapExchange__factory = exports.IERC2981__factory = exports.NiftyswapFactory20__factory = exports.NiftyswapFactory__factory = exports.NiftyswapExchange20__factory = exports.NiftyswapExchange__factory = void 0;
+exports.WrapAndNiftyswap__factory = exports.Ownable__factory = exports.ERC1155MetadataPrefix__factory = exports.DelegatedOwnable__factory = exports.ERC20WrapperMock__factory = exports.ERC20TokenMock__factory = exports.ERC1155RoyaltyMock__factory = exports.ERC1155PackedBalanceMock__factory = exports.ERC1155Mock__factory = exports.IWrapAndNiftyswap__factory = exports.IOwnable__factory = exports.INiftyswapFactory20__factory = exports.INiftyswapFactory__factory = exports.INiftyswapExchange20__factory = exports.INiftyswapExchange__factory = exports.IERC2981__factory = exports.IERC1155Metadata__factory = exports.IDelegatedERC1155Metadata__factory = exports.NiftyswapFactory20__factory = exports.NiftyswapFactory__factory = exports.NiftyswapExchange20__factory = exports.NiftyswapExchange__factory = void 0;
 var NiftyswapExchange__factory_1 = require("./factories/NiftyswapExchange__factory");
 __createBinding(exports, NiftyswapExchange__factory_1, "NiftyswapExchange__factory");
 var NiftyswapExchange20__factory_1 = require("./factories/NiftyswapExchange20__factory");
@@ -16,6 +16,10 @@ var NiftyswapFactory__factory_1 = require("./factories/NiftyswapFactory__factory
 __createBinding(exports, NiftyswapFactory__factory_1, "NiftyswapFactory__factory");
 var NiftyswapFactory20__factory_1 = require("./factories/NiftyswapFactory20__factory");
 __createBinding(exports, NiftyswapFactory20__factory_1, "NiftyswapFactory20__factory");
+var IDelegatedERC1155Metadata__factory_1 = require("./factories/IDelegatedERC1155Metadata__factory");
+__createBinding(exports, IDelegatedERC1155Metadata__factory_1, "IDelegatedERC1155Metadata__factory");
+var IERC1155Metadata__factory_1 = require("./factories/IERC1155Metadata__factory");
+__createBinding(exports, IERC1155Metadata__factory_1, "IERC1155Metadata__factory");
 var IERC2981__factory_1 = require("./factories/IERC2981__factory");
 __createBinding(exports, IERC2981__factory_1, "IERC2981__factory");
 var INiftyswapExchange__factory_1 = require("./factories/INiftyswapExchange__factory");
@@ -42,6 +46,8 @@ var ERC20WrapperMock__factory_1 = require("./factories/ERC20WrapperMock__factory
 __createBinding(exports, ERC20WrapperMock__factory_1, "ERC20WrapperMock__factory");
 var DelegatedOwnable__factory_1 = require("./factories/DelegatedOwnable__factory");
 __createBinding(exports, DelegatedOwnable__factory_1, "DelegatedOwnable__factory");
+var ERC1155MetadataPrefix__factory_1 = require("./factories/ERC1155MetadataPrefix__factory");
+__createBinding(exports, ERC1155MetadataPrefix__factory_1, "ERC1155MetadataPrefix__factory");
 var Ownable__factory_1 = require("./factories/Ownable__factory");
 __createBinding(exports, Ownable__factory_1, "Ownable__factory");
 var WrapAndNiftyswap__factory_1 = require("./factories/WrapAndNiftyswap__factory");

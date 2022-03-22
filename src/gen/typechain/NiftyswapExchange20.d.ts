@@ -50,6 +50,7 @@ interface NiftyswapExchange20Interface extends ethers.utils.Interface {
     "setApprovalForAll(address,bool)": FunctionFragment;
     "setRoyaltyInfo(uint256,address)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
+    "uri(uint256)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -173,6 +174,7 @@ interface NiftyswapExchange20Interface extends ethers.utils.Interface {
     functionFragment: "supportsInterface",
     values: [BytesLike]
   ): string;
+  encodeFunctionData(functionFragment: "uri", values: [BigNumberish]): string;
 
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(
@@ -281,6 +283,7 @@ interface NiftyswapExchange20Interface extends ethers.utils.Interface {
     functionFragment: "supportsInterface",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "uri", data: BytesLike): Result;
 
   events: {
     "ApprovalForAll(address,address,bool)": EventFragment;
@@ -682,6 +685,13 @@ export class NiftyswapExchange20 extends Contract {
       interfaceID: BytesLike,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
+
+    uri(_id: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
+
+    "uri(uint256)"(
+      _id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
   };
 
   balanceOf(
@@ -1018,6 +1028,10 @@ export class NiftyswapExchange20 extends Contract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
+  uri(_id: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
+  "uri(uint256)"(_id: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
   callStatic: {
     balanceOf(
       _owner: string,
@@ -1352,6 +1366,13 @@ export class NiftyswapExchange20 extends Contract {
       interfaceID: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    uri(_id: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
+    "uri(uint256)"(
+      _id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<string>;
   };
 
   filters: {
@@ -1815,6 +1836,13 @@ export class NiftyswapExchange20 extends Contract {
       interfaceID: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    uri(_id: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+
+    "uri(uint256)"(
+      _id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -2163,6 +2191,16 @@ export class NiftyswapExchange20 extends Contract {
 
     "supportsInterface(bytes4)"(
       interfaceID: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    uri(
+      _id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "uri(uint256)"(
+      _id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
