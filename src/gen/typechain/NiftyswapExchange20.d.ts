@@ -32,6 +32,7 @@ interface NiftyswapExchange20Interface extends ethers.utils.Interface {
     "getFactoryAddress()": FunctionFragment;
     "getGlobalRoyaltyFee()": FunctionFragment;
     "getGlobalRoyaltyRecipient()": FunctionFragment;
+    "getLPFee()": FunctionFragment;
     "getOwner()": FunctionFragment;
     "getPrice_currencyToToken(uint256[],uint256[])": FunctionFragment;
     "getPrice_tokenToCurrency(uint256[],uint256[])": FunctionFragment;
@@ -105,6 +106,7 @@ interface NiftyswapExchange20Interface extends ethers.utils.Interface {
     functionFragment: "getGlobalRoyaltyRecipient",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "getLPFee", values?: undefined): string;
   encodeFunctionData(functionFragment: "getOwner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getPrice_currencyToToken",
@@ -217,6 +219,7 @@ interface NiftyswapExchange20Interface extends ethers.utils.Interface {
     functionFragment: "getGlobalRoyaltyRecipient",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getLPFee", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getOwner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getPrice_currencyToToken",
@@ -469,6 +472,10 @@ export class NiftyswapExchange20 extends Contract {
     getGlobalRoyaltyRecipient(overrides?: CallOverrides): Promise<[string]>;
 
     "getGlobalRoyaltyRecipient()"(overrides?: CallOverrides): Promise<[string]>;
+
+    getLPFee(overrides?: CallOverrides): Promise<[string]>;
+
+    "getLPFee()"(overrides?: CallOverrides): Promise<[string]>;
 
     getOwner(overrides?: CallOverrides): Promise<[string]>;
 
@@ -815,6 +822,10 @@ export class NiftyswapExchange20 extends Contract {
 
   "getGlobalRoyaltyRecipient()"(overrides?: CallOverrides): Promise<string>;
 
+  getLPFee(overrides?: CallOverrides): Promise<string>;
+
+  "getLPFee()"(overrides?: CallOverrides): Promise<string>;
+
   getOwner(overrides?: CallOverrides): Promise<string>;
 
   "getOwner()"(overrides?: CallOverrides): Promise<string>;
@@ -1159,6 +1170,10 @@ export class NiftyswapExchange20 extends Contract {
     getGlobalRoyaltyRecipient(overrides?: CallOverrides): Promise<string>;
 
     "getGlobalRoyaltyRecipient()"(overrides?: CallOverrides): Promise<string>;
+
+    getLPFee(overrides?: CallOverrides): Promise<string>;
+
+    "getLPFee()"(overrides?: CallOverrides): Promise<string>;
 
     getOwner(overrides?: CallOverrides): Promise<string>;
 
@@ -1672,6 +1687,10 @@ export class NiftyswapExchange20 extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getLPFee(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "getLPFee()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     getOwner(overrides?: CallOverrides): Promise<BigNumber>;
 
     "getOwner()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -2029,6 +2048,10 @@ export class NiftyswapExchange20 extends Contract {
     "getGlobalRoyaltyRecipient()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    getLPFee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "getLPFee()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

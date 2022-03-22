@@ -158,7 +158,7 @@ interface INiftyswapExchange20 {
    * @param _assetBoughtReserve Amount of Tokens (output type) in exchange reserves.
    * @return Amount of currency tokens to send to Niftyswap.
    */
-  function getBuyPrice(uint256 _assetBoughtAmount, uint256 _assetSoldReserve, uint256 _assetBoughtReserve) external pure returns (uint256);
+  function getBuyPrice(uint256 _assetBoughtAmount, uint256 _assetSoldReserve, uint256 _assetBoughtReserve) external view returns (uint256);
 
   /**
    * @dev Pricing function used for converting Tokens to currency token (including royalty fee)
@@ -177,7 +177,7 @@ interface INiftyswapExchange20 {
    * @param _assetBoughtReserve Amount of currency tokens in exchange reserves.
    * @return Amount of currency tokens to receive from Niftyswap.
    */
-  function getSellPrice(uint256 _assetSoldAmount,uint256 _assetSoldReserve, uint256 _assetBoughtReserve) external pure returns (uint256);
+  function getSellPrice(uint256 _assetSoldAmount,uint256 _assetSoldReserve, uint256 _assetBoughtReserve) external view returns (uint256);
 
   /**
    * @dev Pricing function used for converting Tokens to currency token (including royalty fee)
@@ -223,6 +223,11 @@ interface INiftyswapExchange20 {
    * @return Address of Token that is sold on this exchange.
    */
   function getTokenAddress() external view returns (address);
+
+  /**
+   * @return LP fee per 1000 units
+   */
+  function getLPFee() external view returns (uint256);
 
   /**
    * @return Address of the currency contract that is used as currency

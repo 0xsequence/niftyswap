@@ -44,6 +44,9 @@ describe('NiftyswapFactory20', () => {
 
   let niftyswapFactoryContract: NiftyswapFactory20
 
+  // LP param
+  const LP_FEE = 10                       // 1%
+
   // Token Param
   let types: number[] = []
   let values: number[] = []
@@ -90,6 +93,7 @@ describe('NiftyswapFactory20', () => {
       await niftyswapFactoryContract.functions.createExchange(
         ownerERC1155Contract.address,
         ownerBaseTokenContract.address,
+        LP_FEE,
         0
       )
     })
@@ -106,11 +110,12 @@ describe('NiftyswapFactory20', () => {
     })
 
     describe('getPairExchanges() function', () => {
-      it('should return array with a pair exchange instances', async () => {
+      it('should return array with a pair exchange instances and their fees', async () => {
         // Create another exchange instance
         await niftyswapFactoryContract.functions.createExchange(
           ownerERC1155Contract.address,
           ownerBaseTokenContract.address,
+          200,
           1
         )
 
@@ -118,22 +123,23 @@ describe('NiftyswapFactory20', () => {
         await niftyswapFactoryContract.functions.createExchange(
           ownerERC1155Contract.address,
           ownerBaseTokenContract.address,
+          50,
           99
         )
 
-        const exchange_address0 = await niftyswapFactoryContract.functions.tokensToExchange(
+        const exchange_0 = await niftyswapFactoryContract.functions.tokensToExchange(
           ownerERC1155Contract.address,
           ownerBaseTokenContract.address,
           0
         )
 
-        const exchange_address1 = await niftyswapFactoryContract.functions.tokensToExchange(
+        const exchange_1 = await niftyswapFactoryContract.functions.tokensToExchange(
           ownerERC1155Contract.address,
           ownerBaseTokenContract.address,
           1
         )
 
-        const exchange_address99 = await niftyswapFactoryContract.functions.tokensToExchange(
+        const exchange_99 = await niftyswapFactoryContract.functions.tokensToExchange(
           ownerERC1155Contract.address,
           ownerBaseTokenContract.address,
           99
@@ -144,41 +150,52 @@ describe('NiftyswapFactory20', () => {
           ownerBaseTokenContract.address
         ))[0]
 
-        await expect(pair_exchanges[0]).to.be.eql(exchange_address0[0])
-        await expect(pair_exchanges[1]).to.be.eql(exchange_address1[0])
-        await expect(pair_exchanges[2]).to.be.eql(exchange_address99[0])
+        await expect(pair_exchanges[0]).to.be.eql(exchange_0[0])
+        await expect(pair_exchanges[1]).to.be.eql(exchange_1[0])
+        await expect(pair_exchanges[2]).to.be.eql(exchange_99[0])
       })
     })
   })
 
   describe('createExchange() function', () => {
-    beforeEach(async () => {})
-
     it('should REVERT if Token is 0x0', async () => {
-      const tx = niftyswapFactoryContract.functions.createExchange(ZERO_ADDRESS, ownerBaseTokenContract.address, 0, {
+      const tx = niftyswapFactoryContract.functions.createExchange(ZERO_ADDRESS, ownerBaseTokenContract.address, LP_FEE, 0, {
         gasLimit: 1000000
       })
       await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange20#constructor:INVALID_INPUT'))
     })
 
     it('should REVERT if Base Token is 0x0', async () => {
-      const tx = niftyswapFactoryContract.functions.createExchange(ownerERC1155Contract.address, ZERO_ADDRESS, 0, {
+      const tx = niftyswapFactoryContract.functions.createExchange(ownerERC1155Contract.address, ZERO_ADDRESS, LP_FEE, 0, {
         gasLimit: 1000000
       })
       await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange20#constructor:INVALID_INPUT'))
+    })
+
+
+    it('should REVERT if LP fee is above 1000', async () => {
+      const tx = niftyswapFactoryContract.functions.createExchange(
+        ownerERC1155Contract.address,
+        ownerBaseTokenContract.address,
+        1001,
+        0,
+        {gasLimit: 5000000}
+      )
+      await expect(tx).to.be.rejectedWith(RevertError("NiftyswapExchange20#constructor:INVALID_LP_FEE"))
     })
 
     it("should PASS if exchange doesn't exist yet", async () => {
       const tx = niftyswapFactoryContract.functions.createExchange(
         ownerERC1155Contract.address,
         ownerBaseTokenContract.address,
+        LP_FEE,
         0
       )
       await expect(tx).to.be.fulfilled
     })
 
     it('should PASS if creating an exchange with a new base currency contract', async () => {
-      const tx = niftyswapFactoryContract.functions.createExchange(ownerERC1155Contract.address, userAddress, 0)
+      const tx = niftyswapFactoryContract.functions.createExchange(ownerERC1155Contract.address, userAddress, LP_FEE, 0)
       await expect(tx).to.be.fulfilled
     })
 
@@ -190,6 +207,7 @@ describe('NiftyswapFactory20', () => {
         tx = await niftyswapFactoryContract.functions.createExchange(
           ownerERC1155Contract.address,
           ownerBaseTokenContract.address,
+          LP_FEE,
           0
         )
 
@@ -207,6 +225,7 @@ describe('NiftyswapFactory20', () => {
         const tx = niftyswapFactoryContract.functions.createExchange(
           ownerERC1155Contract.address,
           ownerBaseTokenContract.address,
+          LP_FEE,
           0,
           {
             gasLimit: 1000000

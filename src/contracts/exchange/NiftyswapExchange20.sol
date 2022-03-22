@@ -32,10 +32,10 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
   |__________________________________*/
 
   // Variables
-  IERC1155 internal immutable token;              // address of the ERC-1155 token contract
-  address internal immutable currency;            // address of the ERC-20 currency used for exchange
-  address internal immutable factory;             // address for the factory that created this contract
-  uint256 internal constant FEE_MULTIPLIER = 990; // multiplier that calculates the LP fee (1.0%)
+  IERC1155 internal immutable token;         // address of the ERC-1155 token contract
+  address internal immutable currency;       // address of the ERC-20 currency used for exchange
+  address internal immutable factory;        // address for the factory that created this contract
+  uint256 internal immutable FEE_MULTIPLIER; // multiplier that calculates the LP fee (1.0%)
 
   // Royalty variables
   bool internal immutable IS_ERC2981; // whether token contract supports ERC-2981
@@ -61,16 +61,23 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
    * @param _tokenAddr     The address of the ERC-1155 Token
    * @param _currencyAddr  The address of the ERC-20 currency Token
    * @param _currencyAddr  Address of the admin, which should be the same as the factory owner
+   * @param _lpFee    Fee that will go to LPs.
+   *                  Number between 0 and 1000, where 10 is 1.0% and 100 is 10%.
    */
-  constructor(address _tokenAddr, address _currencyAddr) DelegatedOwnable(msg.sender) {
+  constructor(address _tokenAddr, address _currencyAddr, uint256 _lpFee) DelegatedOwnable(msg.sender) {
     require(
       _tokenAddr != address(0) && _currencyAddr != address(0),
       "NiftyswapExchange20#constructor:INVALID_INPUT"
+    );
+    require(
+      _lpFee >= 0 && _lpFee <= 1000,  
+      "NiftyswapExchange20#constructor:INVALID_LP_FEE"
     );
 
     factory = msg.sender;
     token = IERC1155(_tokenAddr);
     currency = _currencyAddr;
+    FEE_MULTIPLIER = 1000 - _lpFee;
 
     // If global royalty, lets check for ERC-2981 support
     try IERC1155(_tokenAddr).supportsInterface(type(IERC2981).interfaceId) returns (bool supported) {
@@ -167,7 +174,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     uint256 _assetBoughtAmount,
     uint256 _assetSoldReserve,
     uint256 _assetBoughtReserve)
-    override public pure returns (uint256 price)
+    override public view returns (uint256 price)
   {
     // Reserves must not be empty
     require(_assetSoldReserve > 0 && _assetBoughtReserve > 0, "NiftyswapExchange20#getBuyPrice: EMPTY_RESERVE");
@@ -302,7 +309,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     uint256 _assetSoldAmount,
     uint256 _assetSoldReserve,
     uint256 _assetBoughtReserve)
-    override public pure returns (uint256 price)
+    override public view returns (uint256 price)
   {
     //Reserves must not be empty
     require(_assetSoldReserve > 0 && _assetBoughtReserve > 0, "NiftyswapExchange20#getSellPrice: EMPTY_RESERVE");
@@ -956,6 +963,13 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
    */
   function getTokenAddress() override external view returns (address) {
     return address(token);
+  }
+
+  /**
+   * @return LP fee per 1000 units
+   */
+  function getLPFee() override external view returns (uint256) {
+    return 1000-FEE_MULTIPLIER;
   }
 
   /**

@@ -77,9 +77,10 @@ describe('NiftyswapExchange20', () => {
   const currencyAmount = BigNumber.from(10000000).mul(BigNumber.from(10).pow(18))
 
   // Fees param
-  const LP_FEE_MULTIPLIER = 990  // 1%
-  const ROYALTY_FEE = 200        // 2%
-  const EXTRA_FEE = 66667777     // flat fee
+  let LP_FEE
+  let LP_FEE_MULTIPLIER
+  const ROYALTY_FEE = 200               // 2%
+  const EXTRA_FEE = 66667777            // flat fee
 
   // Add liquidity data
   const tokenAmountToAdd = BigNumber.from(300)
@@ -119,6 +120,7 @@ describe('NiftyswapExchange20', () => {
     ['ERC-2981 Token Contract with 2% royalty', 4],
     ['Regular Token Contract with 2% royalty', 5],
     ['ERC-2981 Token Contract with 2% royalty and fixed extra fee', 6],
+    ['ERC-2981 Token Contract with 2% royalty and fixed extra fee with 10% LP fee', 7],
   ]
 
   let erc1155_error_prefix
@@ -155,7 +157,7 @@ describe('NiftyswapExchange20', () => {
           erc1155_error_prefix = 'ERC1155#'
           royaltyFee = BigNumber.from(0)
           
-        } else if (condition[1] == 4 || condition[1] == 6) {
+        } else if (condition[1] == 4 || condition[1] == 6 || condition[1] == 7) {
           ownerERC1155Contract = (await erc1155RoyaltyAbstract.deploy(ownerWallet)) as ERC1155RoyaltyMock
           operatorERC1155Contract = (await ownerERC1155Contract.connect(operatorSigner)) as ERC1155RoyaltyMock
           userERC1155Contract = (await ownerERC1155Contract.connect(userSigner)) as ERC1155RoyaltyMock
@@ -166,7 +168,7 @@ describe('NiftyswapExchange20', () => {
           await (ownerERC1155Contract as ERC1155RoyaltyMock).functions.setFeeRecipient(randomAddress)
 
           erc1155_error_prefix = 'ERC1155#'
-        }
+        } 
 
         // Deploy Currency Token contract
         ownerCurrencyContract = (await erc20Abstract.deploy(ownerWallet)) as ERC20TokenMock
@@ -176,10 +178,18 @@ describe('NiftyswapExchange20', () => {
         // Deploy Niftyswap factory
         niftyswapFactoryContract = (await niftyswapFactoryAbstract.deploy(ownerWallet, [ownerAddress])) as NiftyswapFactory20
 
+        if (condition[1] == 7) {
+          LP_FEE = 100 // 10%
+        } else {
+          LP_FEE = 10 // 1%
+        }
+        LP_FEE_MULTIPLIER = 1000-LP_FEE // 1%
+
         // Create exchange contract for the ERC-20/1155 token
         await niftyswapFactoryContract.functions.createExchange(
           ownerERC1155Contract.address,
           ownerCurrencyContract.address,
+          LP_FEE,
           0
         )
 
@@ -234,6 +244,37 @@ describe('NiftyswapExchange20', () => {
           it('should return token address', async () => {
             const token_address = await niftyswapExchangeContract.functions.getTokenAddress()
             await expect(token_address[0]).to.be.eql(ownerERC1155Contract.address)
+          })
+        })
+
+        describe('getLPFee() function', () => {
+          it('should return the LP fee', async () => {
+            // With default LP fee
+            const fee = await niftyswapExchangeContract.functions.getLPFee()
+            await expect(fee[0]).to.be.eql(BigNumber.from(LP_FEE))
+
+            // Create a new exchange with different LP fee
+            await niftyswapFactoryContract.functions.createExchange(
+              ownerERC1155Contract.address,
+              ownerCurrencyContract.address,
+              200,
+              1
+            )
+
+            // Retrieve exchange address
+            const exchangeAddress = (
+              await niftyswapFactoryContract.functions.tokensToExchange(
+                ownerERC1155Contract.address,
+                ownerCurrencyContract.address,
+                1
+              )
+            )[0]
+
+            // Type exchange contract
+            niftyswapExchangeContract = new ethers.Contract(exchangeAddress, exchangeABI, ownerWallet) as NiftyswapExchange20
+
+            const fee2 = await niftyswapExchangeContract.functions.getLPFee()
+            await expect(fee2[0]).to.be.eql(BigNumber.from(200))
           })
         })
 
