@@ -9,6 +9,8 @@ interface INiftyswapFactory20 {
 
   event NewExchange(address indexed token, address indexed currency, uint256 indexed salt, address exchange);
 
+  event MetadataContractChanged(address indexed metadataContract);
+
   /***********************************|
   |         Public  Functions         |
   |__________________________________*/

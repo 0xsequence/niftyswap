@@ -4,8 +4,10 @@ pragma solidity 0.7.4;
 import "./NiftyswapExchange20.sol";
 import "../utils/Ownable.sol";
 import "../interfaces/INiftyswapFactory20.sol";
+import "../interfaces/IDelegatedERC1155Metadata.sol";
 
-contract NiftyswapFactory20 is INiftyswapFactory20, Ownable {
+
+contract NiftyswapFactory20 is INiftyswapFactory20, Ownable, IDelegatedERC1155Metadata {
 
   /***********************************|
   |       Events And Variables        |
@@ -14,6 +16,9 @@ contract NiftyswapFactory20 is INiftyswapFactory20, Ownable {
   // tokensToExchange[erc1155_token_address][currency_address]
   mapping(address => mapping(address => mapping(uint256 => address))) public override tokensToExchange;
   mapping(address => mapping(address => address[])) internal pairExchanges;
+
+  // Metadata implementation
+  IERC1155Metadata internal metadataContract; // address of the ERC-1155 Metadata contract
 
   /**
    * @notice Will set the initial Niftyswap admin
@@ -56,4 +61,24 @@ contract NiftyswapFactory20 is INiftyswapFactory20, Ownable {
     return pairExchanges[_token][_currency];
   }
 
+  /***********************************|
+  |        Metadata Functions         |
+  |__________________________________*/
+
+  /**
+   * @notice Changes the implementation of the ERC-1155 Metadata contract
+   * @dev This function changes the implementation for all child exchanges of the factory
+   * @param _contract The address of the ERC-1155 Metadata contract
+   */
+  function setMetadataContract(IERC1155Metadata _contract) onlyOwner external {
+    emit MetadataContractChanged(address(_contract));
+    metadataContract = _contract;
+  }
+
+  /**
+   * @notice Returns the address of the ERC-1155 Metadata contract
+   */
+  function metadataProvider() external override view returns (IERC1155Metadata) {
+    return metadataContract;
+  }
 }

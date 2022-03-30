@@ -16,7 +16,7 @@ Most exchanges maintain an order book and facilitate matches between buyers and 
 
 An important feature of Niftyswap is the utilization of a factory/registry contract that deploys a separate exchange contract for each ERC-1155 token contract. These exchange contracts each hold independent reserves of a single fungible ERC-1155 currency and their associated ERC-1155 token id. This allows trades between the [Currency](#currency) and the ERC-1155 tokens based on the relative supplies. 
 
-For more details, see [Specification.pdf](https://github.com/0xsequence/niftyswap/blob/master/SPECIFICATIONS.pdf)
+For more details, see [Specification](https://github.com/0xsequence/niftyswap/blob/master/SPECIFICATIONS.md)
 
 
 ## Getting started

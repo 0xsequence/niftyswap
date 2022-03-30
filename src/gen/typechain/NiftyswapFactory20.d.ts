@@ -24,6 +24,8 @@ interface NiftyswapFactory20Interface extends ethers.utils.Interface {
     "createExchange(address,address,uint256,uint256)": FunctionFragment;
     "getOwner()": FunctionFragment;
     "getPairExchanges(address,address)": FunctionFragment;
+    "metadataProvider()": FunctionFragment;
+    "setMetadataContract(address)": FunctionFragment;
     "tokensToExchange(address,address,uint256)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
   };
@@ -36,6 +38,14 @@ interface NiftyswapFactory20Interface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "getPairExchanges",
     values: [string, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "metadataProvider",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setMetadataContract",
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "tokensToExchange",
@@ -56,6 +66,14 @@ interface NiftyswapFactory20Interface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "metadataProvider",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setMetadataContract",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "tokensToExchange",
     data: BytesLike
   ): Result;
@@ -65,10 +83,12 @@ interface NiftyswapFactory20Interface extends ethers.utils.Interface {
   ): Result;
 
   events: {
+    "MetadataContractChanged(address)": EventFragment;
     "NewExchange(address,address,uint256,address)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "MetadataContractChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewExchange"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 }
@@ -149,6 +169,20 @@ export class NiftyswapFactory20 extends Contract {
       overrides?: CallOverrides
     ): Promise<[string[]]>;
 
+    metadataProvider(overrides?: CallOverrides): Promise<[string]>;
+
+    "metadataProvider()"(overrides?: CallOverrides): Promise<[string]>;
+
+    setMetadataContract(
+      _contract: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "setMetadataContract(address)"(
+      _contract: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     tokensToExchange(
       arg0: string,
       arg1: string,
@@ -205,6 +239,20 @@ export class NiftyswapFactory20 extends Contract {
     _currency: string,
     overrides?: CallOverrides
   ): Promise<string[]>;
+
+  metadataProvider(overrides?: CallOverrides): Promise<string>;
+
+  "metadataProvider()"(overrides?: CallOverrides): Promise<string>;
+
+  setMetadataContract(
+    _contract: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "setMetadataContract(address)"(
+    _contract: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   tokensToExchange(
     arg0: string,
@@ -263,6 +311,20 @@ export class NiftyswapFactory20 extends Contract {
       overrides?: CallOverrides
     ): Promise<string[]>;
 
+    metadataProvider(overrides?: CallOverrides): Promise<string>;
+
+    "metadataProvider()"(overrides?: CallOverrides): Promise<string>;
+
+    setMetadataContract(
+      _contract: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "setMetadataContract(address)"(
+      _contract: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     tokensToExchange(
       arg0: string,
       arg1: string,
@@ -289,6 +351,10 @@ export class NiftyswapFactory20 extends Contract {
   };
 
   filters: {
+    MetadataContractChanged(
+      metadataContract: string | null
+    ): TypedEventFilter<[string], { metadataContract: string }>;
+
     NewExchange(
       token: string | null,
       currency: string | null,
@@ -339,6 +405,20 @@ export class NiftyswapFactory20 extends Contract {
       _token: string,
       _currency: string,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    metadataProvider(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "metadataProvider()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    setMetadataContract(
+      _contract: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "setMetadataContract(address)"(
+      _contract: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     tokensToExchange(
@@ -397,6 +477,22 @@ export class NiftyswapFactory20 extends Contract {
       _token: string,
       _currency: string,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    metadataProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "metadataProvider()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    setMetadataContract(
+      _contract: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "setMetadataContract(address)"(
+      _contract: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     tokensToExchange(

@@ -25,6 +25,7 @@ import {
 import { abi as exchangeABI } from '@0xsequence/niftyswap/artifacts/contracts/exchange/NiftyswapExchange20.sol/NiftyswapExchange20.json'
 import { BigNumber } from 'ethers'
 import { web3 } from 'hardhat'
+import { ERC1155MetadataPrefix } from 'src/gen/typechain/ERC1155MetadataPrefix'
 
 const exchangeIface = new ethers.utils.Interface(exchangeABI)
 
@@ -53,6 +54,7 @@ describe('NiftyswapExchange20', () => {
   let erc1155RoyaltyAbstract: AbstractContract
   let erc1155PackedAbstract: AbstractContract
   let niftyswapFactoryAbstract: AbstractContract
+  let erc1155MetadataPrefixAbstract: AbstractContract
 
   // ERC-1155 token
   let ownerERC1155Contract: ERC1155Mock | ERC1155RoyaltyMock
@@ -111,6 +113,7 @@ describe('NiftyswapExchange20', () => {
     erc1155RoyaltyAbstract = await AbstractContract.fromArtifactName('ERC1155RoyaltyMock')
     erc1155PackedAbstract = await AbstractContract.fromArtifactName('ERC1155PackedBalanceMock')
     niftyswapFactoryAbstract = await AbstractContract.fromArtifactName('NiftyswapFactory20')
+    erc1155MetadataPrefixAbstract = await AbstractContract.fromArtifactName('ERC1155MetadataPrefix')
   })
 
   let conditions = [
@@ -339,6 +342,11 @@ describe('NiftyswapExchange20', () => {
 
           it('should return true for 0xd9b67a26 (IERC1155)', async () => {
             const support = await niftyswapExchangeContract.functions.supportsInterface('0xd9b67a26')
+            expect(support[0]).to.be.eql(true)
+          })
+
+          it('should return true for 0x0e89341c (IERC1155 Metadata)', async () => {
+            const support = await niftyswapExchangeContract.functions.supportsInterface('0x0e89341c')
             expect(support[0]).to.be.eql(true)
           })
         })
@@ -766,6 +774,47 @@ describe('NiftyswapExchange20', () => {
                 niftyswapExchangeContract.interface.events['LiquidityAdded(address,uint256[],uint256[],uint256[])']
               )
             )
+          })
+
+          context('With token metadata', () => {
+            it('should revert if prefix metadata contract is not defined', async () => {
+              const call = niftyswapExchangeContract.functions.uri(1)
+              await expect(call).to.be.rejected
+            })
+
+            context('after changing metadata implementation', () => {
+              let prefixMetadataContract: ERC1155MetadataPrefix
+
+              beforeEach(async () => {
+                prefixMetadataContract = (await erc1155MetadataPrefixAbstract.deploy(ownerWallet, ["", true])) as ERC1155MetadataPrefix
+                await niftyswapFactoryContract.setMetadataContract(prefixMetadataContract.address)
+              })
+
+              it('should return `id@address` of token', async () => {
+                const uri = (await niftyswapExchangeContract.functions.uri(1))[0]
+                expect(uri).to.be.eql(`1@${niftyswapExchangeContract.address.toLowerCase()}`)
+              })
+
+              it('should return prefixed `id@address` of token', async () => {
+                await prefixMetadataContract.functions.setUriPrefix("https://sequence.app/")
+                const uri = (await niftyswapExchangeContract.functions.uri(1))[0]
+                expect(uri).to.be.eql(`https://sequence.app/1@${niftyswapExchangeContract.address.toLowerCase()}`)
+              })
+
+              it('should return uri for 2 ** 256 - 1 id', async () => {
+                const maxUint256 = BigNumber.from(2).pow(256).sub(1)
+                const uri = (await niftyswapExchangeContract.functions.uri(maxUint256))[0]
+                expect(uri).to.be.eql(`${maxUint256.toString()}@${niftyswapExchangeContract.address.toLowerCase()}`)
+              })
+
+              it('should change metadata implementation', async () => {
+                const prefixMetadataContract2 = (await erc1155MetadataPrefixAbstract.deploy(ownerWallet, ["", false])) as ERC1155MetadataPrefix
+                await niftyswapFactoryContract.setMetadataContract(prefixMetadataContract2.address)
+                await prefixMetadataContract2.functions.setUriPrefix("https://v2.sequence.app/")
+                const uri = (await niftyswapExchangeContract.functions.uri(25666))[0]
+                expect(uri).to.be.eql(`https://v2.sequence.app/25666`)
+              })
+            })
           })
         })
 
