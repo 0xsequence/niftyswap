@@ -1014,7 +1014,11 @@ describe('NiftyswapExchange20', () => {
             if (royaltyFee.isZero()) {
               expect(diffUserCurrency).to.be.eql(BigNumber.from(497))
             } else {
-              expect(diffUserCurrency).to.be.eql(BigNumber.from(492))
+              if (LP_FEE === 100) {
+                expect(diffUserCurrency).to.be.eql(BigNumber.from(471))
+              } else {
+                expect(diffUserCurrency).to.be.eql(BigNumber.from(492))
+              }
             }
           })
 
@@ -1085,7 +1089,11 @@ describe('NiftyswapExchange20', () => {
             if (royaltyFee.isZero()) {
               expect(diffUserCurrency).to.be.eql(BigNumber.from(513))
             } else {
-              expect(diffUserCurrency).to.be.eql(BigNumber.from(509))
+              if (LP_FEE === 100) {
+                expect(diffUserCurrency).to.be.eql(BigNumber.from(501))
+              } else {
+                expect(diffUserCurrency).to.be.eql(BigNumber.from(509))
+              }
             }
           })
 
@@ -1131,10 +1139,6 @@ describe('NiftyswapExchange20', () => {
             )
 
             // Get liquidity of tokens, currency and totalSupply
-            const tokenInExchange = await userERC1155Contract.functions.balanceOf(userExchangeContract.address, types[0])
-            const currencyInExchange = await userCurrencyContract.functions.balanceOf(userExchangeContract.address)
-            const totalSupply = await niftyswapExchangeContract.functions.getTotalSupply(types)
-
             userTokenBalance = await userERC1155Contract.functions.balanceOf(userAddress, types[0])
             userCurrencyBalance = await userCurrencyContract.functions.balanceOf(userAddress)
 
@@ -1159,7 +1163,11 @@ describe('NiftyswapExchange20', () => {
             if (royaltyFee.isZero()) {
               expect(diffUserCurrency).to.be.eql(BigNumber.from(747))
             } else {
-              expect(diffUserCurrency).to.be.eql(BigNumber.from(742))
+              if (LP_FEE === 100) {
+                expect(diffUserCurrency).to.be.eql(BigNumber.from(722))
+              } else {
+                expect(diffUserCurrency).to.be.eql(BigNumber.from(742))
+              }
             }
           })
         })
