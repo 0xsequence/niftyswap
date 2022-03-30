@@ -5,6 +5,8 @@ import "../interfaces/INiftyswapExchange20.sol";
 import "../utils/ReentrancyGuard.sol";
 import "../utils/DelegatedOwnable.sol";
 import "../interfaces/IERC2981.sol";
+import "../interfaces/IERC1155Metadata.sol";
+import "../interfaces/IDelegatedERC1155Metadata.sol";
 import "@0xsequence/erc-1155/contracts/interfaces/IERC20.sol";
 import "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 import "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
@@ -24,7 +26,7 @@ import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
  *      errors when it comes to removing liquidity, possibly preventing them to be withdrawn without
  *      some collaboration between liquidity providers.
  */
-contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchange20, DelegatedOwnable {
+contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchange20, IERC1155Metadata, DelegatedOwnable {
   using SafeMath for uint256;
 
   /***********************************|
@@ -46,7 +48,6 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
   mapping(uint256 => uint256) internal totalSupplies;    // Liquidity pool token supply per Token id
   mapping(uint256 => uint256) internal currencyReserves; // currency Token reserve per Token id
   mapping(address => uint256) internal royalties;        // Mapping tracking how much royalties can be claimed per address
-
 
   /***********************************|
   |            Constructor           |
@@ -76,6 +77,19 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     } catch {}
   }
 
+  /***********************************|
+  |        Metadata Functions         |
+  |__________________________________*/
+
+  /**
+      @notice A distinct Uniform Resource Identifier (URI) for a given token.
+      @dev URIs are defined in RFC 3986.
+      The URI MUST point to a JSON file that conforms to the "ERC-1155 Metadata URI JSON Schema".        
+      @return URI string
+  */
+  function uri(uint256 _id) external override view returns (string memory) {
+    return IDelegatedERC1155Metadata(factory).metadataProvider().uri(_id);
+  }
 
   /***********************************|
   |        Exchange Functions         |
@@ -981,7 +995,8 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     return interfaceID == type(IERC20).interfaceId ||
       interfaceID == type(IERC165).interfaceId || 
       interfaceID == type(IERC1155).interfaceId || 
-      interfaceID == type(IERC1155TokenReceiver).interfaceId;
+      interfaceID == type(IERC1155TokenReceiver).interfaceId ||
+      interfaceID == type(IERC1155Metadata).interfaceId;
   }
 
 }
