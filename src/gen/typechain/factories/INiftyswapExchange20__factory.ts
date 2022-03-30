@@ -410,9 +410,9 @@ const _abi = [
     name: "getLPFee",
     outputs: [
       {
-        internalType: "address",
+        internalType: "uint256",
         name: "",
-        type: "address",
+        type: "uint256",
       },
     ],
     stateMutability: "view",

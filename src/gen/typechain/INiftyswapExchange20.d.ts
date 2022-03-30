@@ -341,9 +341,9 @@ export class INiftyswapExchange20 extends Contract {
 
     "getGlobalRoyaltyRecipient()"(overrides?: CallOverrides): Promise<[string]>;
 
-    getLPFee(overrides?: CallOverrides): Promise<[string]>;
+    getLPFee(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "getLPFee()"(overrides?: CallOverrides): Promise<[string]>;
+    "getLPFee()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     getPrice_currencyToToken(
       _ids: BigNumberish[],
@@ -558,9 +558,9 @@ export class INiftyswapExchange20 extends Contract {
 
   "getGlobalRoyaltyRecipient()"(overrides?: CallOverrides): Promise<string>;
 
-  getLPFee(overrides?: CallOverrides): Promise<string>;
+  getLPFee(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "getLPFee()"(overrides?: CallOverrides): Promise<string>;
+  "getLPFee()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   getPrice_currencyToToken(
     _ids: BigNumberish[],
@@ -775,9 +775,9 @@ export class INiftyswapExchange20 extends Contract {
 
     "getGlobalRoyaltyRecipient()"(overrides?: CallOverrides): Promise<string>;
 
-    getLPFee(overrides?: CallOverrides): Promise<string>;
+    getLPFee(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "getLPFee()"(overrides?: CallOverrides): Promise<string>;
+    "getLPFee()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     getPrice_currencyToToken(
       _ids: BigNumberish[],
