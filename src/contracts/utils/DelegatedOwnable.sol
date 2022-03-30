@@ -22,7 +22,7 @@ contract DelegatedOwnable {
     try IOwnable(_firstOwnableParent).getOwner() {
       // Do nothing if parent has ownable function
     } catch {
-      revert("PARENT IS NOT OWNABLE");
+      revert("DO#1"); // PARENT IS NOT OWNABLE
     }
     ownableParent = _firstOwnableParent;
     emit ParentOwnerChanged(address(0), _firstOwnableParent);
@@ -32,7 +32,7 @@ contract DelegatedOwnable {
    * @dev Throws if called by any account other than the master owner.
    */
   modifier onlyOwner() {
-    require(msg.sender == getOwner(), "DelegatedOwnable#onlyOwner: SENDER_IS_NOT_OWNER");
+    require(msg.sender == getOwner(), "DO#2"); // DelegatedOwnable#onlyOwner: SENDER_IS_NOT_OWNER
     _;
   }
 
@@ -41,7 +41,7 @@ contract DelegatedOwnable {
    * @param _newParent Address of the new owner
    */
   function changeOwnableParent(address _newParent) public onlyOwner {
-    require(_newParent != address(0), "DelegatedOwnable#changeOwnableParent: INVALID_ADDRESS");
+    require(_newParent != address(0), "D3"); // DelegatedOwnable#changeOwnableParent: INVALID_ADDRESS
     ownableParent = _newParent;
     emit ParentOwnerChanged(ownableParent, _newParent);
   }

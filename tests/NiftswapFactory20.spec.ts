@@ -162,14 +162,14 @@ describe('NiftyswapFactory20', () => {
       const tx = niftyswapFactoryContract.functions.createExchange(ZERO_ADDRESS, ownerBaseTokenContract.address, LP_FEE, 0, {
         gasLimit: 1000000
       })
-      await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange20#constructor:INVALID_INPUT'))
+      await expect(tx).to.be.rejectedWith(RevertError('NE20#1'))
     })
 
     it('should REVERT if Base Token is 0x0', async () => {
       const tx = niftyswapFactoryContract.functions.createExchange(ownerERC1155Contract.address, ZERO_ADDRESS, LP_FEE, 0, {
         gasLimit: 1000000
       })
-      await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange20#constructor:INVALID_INPUT'))
+      await expect(tx).to.be.rejectedWith(RevertError('NE20#1'))
     })
 
 
@@ -181,7 +181,7 @@ describe('NiftyswapFactory20', () => {
         0,
         {gasLimit: 5000000}
       )
-      await expect(tx).to.be.rejectedWith(RevertError("NiftyswapExchange20#constructor:INVALID_LP_FEE"))
+      await expect(tx).to.be.rejectedWith(RevertError("NE20#2"))
     })
 
     it("should PASS if exchange doesn't exist yet", async () => {
@@ -231,7 +231,7 @@ describe('NiftyswapFactory20', () => {
             gasLimit: 1000000
           }
         )
-        await expect(tx).to.be.rejectedWith(RevertError('NiftyswapFactory20#createExchange: EXCHANGE_ALREADY_CREATED'))
+        await expect(tx).to.be.rejectedWith(RevertError('NF20#1'))
       })
 
       it('should emit NewExchange event', async () => {

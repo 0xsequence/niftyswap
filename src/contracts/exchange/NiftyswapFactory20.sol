@@ -39,7 +39,7 @@ contract NiftyswapFactory20 is INiftyswapFactory20, Ownable, IDelegatedERC1155Me
    *                  This is mainly meant to be used for tokens that change their ERC-2981 support.
    */
   function createExchange(address _token, address _currency, uint256 _lpFee, uint256 _instance) public override {
-    require(tokensToExchange[_token][_currency][_instance] == address(0x0), "NiftyswapFactory20#createExchange: EXCHANGE_ALREADY_CREATED");
+    require(tokensToExchange[_token][_currency][_instance] == address(0x0), "NF20#1"); // NiftyswapFactory20#createExchange: EXCHANGE_ALREADY_CREATED
 
     // Create new exchange contract
     NiftyswapExchange20 exchange = new NiftyswapExchange20(_token, _currency, _lpFee);
