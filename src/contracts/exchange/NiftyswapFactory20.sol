@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity 0.7.4;
+
 import "./NiftyswapExchange20.sol";
 import "../utils/Ownable.sol";
 import "../interfaces/INiftyswapFactory20.sol";
@@ -32,14 +33,16 @@ contract NiftyswapFactory20 is INiftyswapFactory20, Ownable, IDelegatedERC1155Me
    * @notice Creates a NiftySwap Exchange for given token contract
    * @param _token    The address of the ERC-1155 token contract
    * @param _currency The address of the ERC-20 token contract
+   * @param _lpFee    Fee that will go to LPs.
+   *                  Number between 0 and 1000, where 10 is 1.0% and 100 is 10%.
    * @param _instance Instance # that allows to deploy new instances of an exchange.
    *                  This is mainly meant to be used for tokens that change their ERC-2981 support.
    */
-  function createExchange(address _token, address _currency, uint256 _instance) public override {
-    require(tokensToExchange[_token][_currency][_instance] == address(0x0), "NiftyswapFactory20#createExchange: EXCHANGE_ALREADY_CREATED");
+  function createExchange(address _token, address _currency, uint256 _lpFee, uint256 _instance) public override {
+    require(tokensToExchange[_token][_currency][_instance] == address(0x0), "NF20#1"); // NiftyswapFactory20#createExchange: EXCHANGE_ALREADY_CREATED
 
     // Create new exchange contract
-    NiftyswapExchange20 exchange = new NiftyswapExchange20(_token, _currency);
+    NiftyswapExchange20 exchange = new NiftyswapExchange20(_token, _currency, _lpFee);
 
     // Store exchange and token addresses
     tokensToExchange[_token][_currency][_instance] = address(exchange);

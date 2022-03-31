@@ -38,7 +38,7 @@ contract ReentrancyGuard {
    */
   modifier nonReentrant() {
     // On the first call to nonReentrant, _notEntered will be true
-    require(_notEntered, "ReentrancyGuard: reentrant call");
+    require(_notEntered, "RG#1"); // ReentrancyGuard: reentrant call
 
     // Any calls to nonReentrant after this point will fail
     _notEntered = false;

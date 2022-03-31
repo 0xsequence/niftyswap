@@ -25,21 +25,21 @@ contract ERC1155RoyaltyMock is ERC1155MintBurnMock {
    */
   function royaltyInfo(uint256 _tokenId, uint256 _salePrice) external view returns (address receiver, uint256 royaltyAmount) {
     if (_tokenId == 666) {
-      uint256 fee = _salePrice.mul(royaltyFee666).div(1000);
+      uint256 fee = _salePrice.mul(royaltyFee666).div(10000);
       return (royaltyRecipient666, fee);
     } else {
-      uint256 fee = _salePrice.mul(royaltyFee).div(1000);
+      uint256 fee = _salePrice.mul(royaltyFee).div(10000);
       return (royaltyRecipient, fee);
     }
   }
 
   function setFee(uint256 _fee) public {
-    require(_fee < 1000, "FEE IS TOO HIGH");
+    require(_fee < 10000, "FEE IS TOO HIGH");
     royaltyFee = _fee;
   }
 
   function set666Fee(uint256 _fee) public {
-    require(_fee < 1000, "FEE IS TOO HIGH");
+    require(_fee < 10000, "FEE IS TOO HIGH");
     royaltyFee666 = _fee;
   }
 

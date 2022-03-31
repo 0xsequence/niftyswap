@@ -27,13 +27,13 @@ contract ERC1155MetadataPrefix is IERC1155Metadata, Ownable {
     string memory suffix = _uint256toString(_id);
 
     if (includeAddress) {
-      suffix = string(abi.encodePacked(suffix, "@", _addressToStrign(msg.sender)));
+      suffix = string(abi.encodePacked(suffix, "@", _addressToString(msg.sender)));
     }
 
     return string(abi.encodePacked(uriPrefix, suffix));
   }
 
-  function _addressToStrign(address account) public pure returns(string memory) {
+  function _addressToString(address account) public pure returns(string memory) {
     return _bytesToString(abi.encodePacked(account));
   }
 

@@ -73,6 +73,11 @@ var _abi = [
             },
             {
                 internalType: "uint256",
+                name: "_lpFee",
+                type: "uint256"
+            },
+            {
+                internalType: "uint256",
                 name: "_instance",
                 type: "uint256"
             },

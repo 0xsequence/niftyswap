@@ -21,7 +21,7 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface ERC1155MetadataPrefixInterface extends ethers.utils.Interface {
   functions: {
-    "_addressToStrign(address)": FunctionFragment;
+    "_addressToString(address)": FunctionFragment;
     "_bytesToString(bytes)": FunctionFragment;
     "getOwner()": FunctionFragment;
     "setUriPrefix(string)": FunctionFragment;
@@ -31,7 +31,7 @@ interface ERC1155MetadataPrefixInterface extends ethers.utils.Interface {
   };
 
   encodeFunctionData(
-    functionFragment: "_addressToStrign",
+    functionFragment: "_addressToString",
     values: [string]
   ): string;
   encodeFunctionData(
@@ -51,7 +51,7 @@ interface ERC1155MetadataPrefixInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "uriPrefix", values?: undefined): string;
 
   decodeFunctionResult(
-    functionFragment: "_addressToStrign",
+    functionFragment: "_addressToString",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -123,12 +123,12 @@ export class ERC1155MetadataPrefix extends Contract {
   interface: ERC1155MetadataPrefixInterface;
 
   functions: {
-    _addressToStrign(
+    _addressToString(
       account: string,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "_addressToStrign(address)"(
+    "_addressToString(address)"(
       account: string,
       overrides?: CallOverrides
     ): Promise<[string]>;
@@ -179,9 +179,9 @@ export class ERC1155MetadataPrefix extends Contract {
     "uriPrefix()"(overrides?: CallOverrides): Promise<[string]>;
   };
 
-  _addressToStrign(account: string, overrides?: CallOverrides): Promise<string>;
+  _addressToString(account: string, overrides?: CallOverrides): Promise<string>;
 
-  "_addressToStrign(address)"(
+  "_addressToString(address)"(
     account: string,
     overrides?: CallOverrides
   ): Promise<string>;
@@ -226,12 +226,12 @@ export class ERC1155MetadataPrefix extends Contract {
   "uriPrefix()"(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
-    _addressToStrign(
+    _addressToString(
       account: string,
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "_addressToStrign(address)"(
+    "_addressToString(address)"(
       account: string,
       overrides?: CallOverrides
     ): Promise<string>;
@@ -291,12 +291,12 @@ export class ERC1155MetadataPrefix extends Contract {
   };
 
   estimateGas: {
-    _addressToStrign(
+    _addressToString(
       account: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "_addressToStrign(address)"(
+    "_addressToString(address)"(
       account: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -348,12 +348,12 @@ export class ERC1155MetadataPrefix extends Contract {
   };
 
   populateTransaction: {
-    _addressToStrign(
+    _addressToString(
       account: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "_addressToStrign(address)"(
+    "_addressToString(address)"(
       account: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;

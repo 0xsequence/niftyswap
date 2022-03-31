@@ -188,7 +188,7 @@ interface NiftyswapExchangeInterface extends ethers.utils.Interface {
     "ApprovalForAll(address,address,bool)": EventFragment;
     "CurrencyPurchase(address,address,uint256[],uint256[],uint256[])": EventFragment;
     "LiquidityAdded(address,uint256[],uint256[],uint256[])": EventFragment;
-    "LiquidityRemoved(address,uint256[],uint256[],uint256[])": EventFragment;
+    "LiquidityRemoved(address,uint256[],uint256[],tuple[])": EventFragment;
     "TokensPurchase(address,address,uint256[],uint256[],uint256[])": EventFragment;
     "TransferBatch(address,address,address,uint256[],uint256[])": EventFragment;
     "TransferSingle(address,address,address,uint256,uint256)": EventFragment;
@@ -942,14 +942,29 @@ export class NiftyswapExchange extends Contract {
       provider: string | null,
       tokenIds: null,
       tokenAmounts: null,
-      currencyAmounts: null
+      details: null
     ): TypedEventFilter<
-      [string, BigNumber[], BigNumber[], BigNumber[]],
+      [
+        string,
+        BigNumber[],
+        BigNumber[],
+        ([BigNumber, BigNumber, BigNumber, BigNumber] & {
+          currencyAmount: BigNumber;
+          soldTokenNumerator: BigNumber;
+          boughtCurrencyNumerator: BigNumber;
+          totalSupply: BigNumber;
+        })[]
+      ],
       {
         provider: string;
         tokenIds: BigNumber[];
         tokenAmounts: BigNumber[];
-        currencyAmounts: BigNumber[];
+        details: ([BigNumber, BigNumber, BigNumber, BigNumber] & {
+          currencyAmount: BigNumber;
+          soldTokenNumerator: BigNumber;
+          boughtCurrencyNumerator: BigNumber;
+          totalSupply: BigNumber;
+        })[];
       }
     >;
 

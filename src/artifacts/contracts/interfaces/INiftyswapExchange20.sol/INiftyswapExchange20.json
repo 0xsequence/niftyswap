@@ -35,6 +35,18 @@
           "internalType": "uint256[]",
           "name": "currencyBoughtAmounts",
           "type": "uint256[]"
+        },
+        {
+          "indexed": false,
+          "internalType": "address[]",
+          "name": "extraFeeRecipients",
+          "type": "address[]"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256[]",
+          "name": "extraFeeAmounts",
+          "type": "uint256[]"
         }
       ],
       "name": "CurrencyPurchase",
@@ -93,10 +105,32 @@
           "type": "uint256[]"
         },
         {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "currencyAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "soldTokenNumerator",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "boughtCurrencyNumerator",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "totalSupply",
+              "type": "uint256"
+            }
+          ],
           "indexed": false,
-          "internalType": "uint256[]",
-          "name": "currencyAmounts",
-          "type": "uint256[]"
+          "internalType": "struct INiftyswapExchange20.LiquidityRemovedEventObj[]",
+          "name": "details",
+          "type": "tuple[]"
         }
       ],
       "name": "LiquidityRemoved",
@@ -152,6 +186,18 @@
           "indexed": false,
           "internalType": "uint256[]",
           "name": "currencySoldAmounts",
+          "type": "uint256[]"
+        },
+        {
+          "indexed": false,
+          "internalType": "address[]",
+          "name": "extraFeeRecipients",
+          "type": "address[]"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256[]",
+          "name": "extraFeeAmounts",
           "type": "uint256[]"
         }
       ],
@@ -233,7 +279,7 @@
           "type": "uint256"
         }
       ],
-      "stateMutability": "pure",
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -342,6 +388,19 @@
       "type": "function"
     },
     {
+      "inputs": [],
+      "name": "getLPFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [
         {
           "internalType": "uint256[]",
@@ -411,6 +470,25 @@
     {
       "inputs": [
         {
+          "internalType": "address",
+          "name": "_royaltyRecipient",
+          "type": "address"
+        }
+      ],
+      "name": "getRoyaltiesNumerator",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "uint256",
           "name": "_assetSoldAmount",
           "type": "uint256"
@@ -434,7 +512,7 @@
           "type": "uint256"
         }
       ],
-      "stateMutability": "pure",
+      "stateMutability": "view",
       "type": "function"
     },
     {
