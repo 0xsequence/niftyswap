@@ -852,7 +852,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
 
   /**
    * @notice Will set the royalties fees and recipient for contracts that don't support ERC-2981
-   * @param _fee       Fee pourcentage with a 1000 basis (e.g. 0.3% is 3 and 1% is 10 and 100% is 1000)
+   * @param _fee       Fee pourcentage with a 10000 basis (e.g. 0.3% is 3 and 1% is 10 and 100% is 1000)
    * @param _recipient Address where to send the fees to
    */
   function setRoyaltyInfo(uint256 _fee, address _recipient) onlyOwner public {
