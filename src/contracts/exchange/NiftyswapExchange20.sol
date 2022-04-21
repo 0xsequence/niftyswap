@@ -178,7 +178,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     if (totalRefundCurrency > 0) {
       TransferHelper.safeTransfer(currency, _recipient, totalRefundCurrency);
     }
-    
+
     return currencySold;
   }
 
@@ -585,7 +585,6 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
       // Store current id and amount from argument arrays
       uint256 id = _tokenIds[i];
       uint256 amountPool = _poolTokenAmounts[i];
-      uint256 tokenReserve = tokenReserves[i];
 
       // Load total liquidity pool token supply for Token _id
       uint256 totalLiquidity = totalSupplies[id];
