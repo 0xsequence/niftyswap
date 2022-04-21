@@ -468,12 +468,13 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
         currencyAmounts[i] = maxCurrency;
       }
     }
+    
+    // Transfer all currency to this contract
+    TransferHelper.safeTransferFrom(currency, _provider, address(this), totalCurrency);
 
     // Mint liquidity pool tokens
     _batchMint(_provider, _tokenIds, liquiditiesToMint, "");
 
-    // Transfer all currency to this contract
-    TransferHelper.safeTransferFrom(currency, _provider, address(this), totalCurrency);
 
     // Emit event
     emit LiquidityAdded(_provider, _tokenIds, _tokenAmounts, currencyAmounts);
