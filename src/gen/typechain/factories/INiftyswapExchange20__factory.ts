@@ -54,6 +54,18 @@ const _abi = [
         name: "currencyBoughtAmounts",
         type: "uint256[]",
       },
+      {
+        indexed: false,
+        internalType: "address[]",
+        name: "extraFeeRecipients",
+        type: "address[]",
+      },
+      {
+        indexed: false,
+        internalType: "uint256[]",
+        name: "extraFeeAmounts",
+        type: "uint256[]",
+      },
     ],
     name: "CurrencyPurchase",
     type: "event",
@@ -111,10 +123,32 @@ const _abi = [
         type: "uint256[]",
       },
       {
+        components: [
+          {
+            internalType: "uint256",
+            name: "currencyAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "soldTokenNumerator",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "boughtCurrencyNumerator",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "totalSupply",
+            type: "uint256",
+          },
+        ],
         indexed: false,
-        internalType: "uint256[]",
-        name: "currencyAmounts",
-        type: "uint256[]",
+        internalType: "struct INiftyswapExchange20.LiquidityRemovedEventObj[]",
+        name: "details",
+        type: "tuple[]",
       },
     ],
     name: "LiquidityRemoved",
@@ -170,6 +204,18 @@ const _abi = [
         indexed: false,
         internalType: "uint256[]",
         name: "currencySoldAmounts",
+        type: "uint256[]",
+      },
+      {
+        indexed: false,
+        internalType: "address[]",
+        name: "extraFeeRecipients",
+        type: "address[]",
+      },
+      {
+        indexed: false,
+        internalType: "uint256[]",
+        name: "extraFeeAmounts",
         type: "uint256[]",
       },
     ],
@@ -251,7 +297,7 @@ const _abi = [
         type: "uint256",
       },
     ],
-    stateMutability: "pure",
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -360,6 +406,19 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "getLPFee",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "uint256[]",
@@ -429,6 +488,25 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "_royaltyRecipient",
+        type: "address",
+      },
+    ],
+    name: "getRoyaltiesNumerator",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "uint256",
         name: "_assetSoldAmount",
         type: "uint256",
@@ -452,7 +530,7 @@ const _abi = [
         type: "uint256",
       },
     ],
-    stateMutability: "pure",
+    stateMutability: "view",
     type: "function",
   },
   {

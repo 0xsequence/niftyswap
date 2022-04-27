@@ -107,10 +107,32 @@ const _abi = [
         type: "uint256[]",
       },
       {
+        components: [
+          {
+            internalType: "uint256",
+            name: "currencyAmount",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "soldTokenNumerator",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "boughtCurrencyNumerator",
+            type: "uint256",
+          },
+          {
+            internalType: "uint256",
+            name: "totalSupply",
+            type: "uint256",
+          },
+        ],
         indexed: false,
-        internalType: "uint256[]",
-        name: "currencyAmounts",
-        type: "uint256[]",
+        internalType: "struct INiftyswapExchange.LiquidityRemovedEventObj[]",
+        name: "details",
+        type: "tuple[]",
       },
     ],
     name: "LiquidityRemoved",

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity 0.7.4;
+pragma experimental ABIEncoderV2;
 
 interface INiftyswapExchange20 {
 
@@ -12,7 +13,9 @@ interface INiftyswapExchange20 {
     address indexed recipient,
     uint256[] tokensBoughtIds,
     uint256[] tokensBoughtAmounts,
-    uint256[] currencySoldAmounts
+    uint256[] currencySoldAmounts,
+    address[] extraFeeRecipients,
+    uint256[] extraFeeAmounts
   );
 
   event CurrencyPurchase(
@@ -20,7 +23,9 @@ interface INiftyswapExchange20 {
     address indexed recipient,
     uint256[] tokensSoldIds,
     uint256[] tokensSoldAmounts,
-    uint256[] currencyBoughtAmounts
+    uint256[] currencyBoughtAmounts,
+    address[] extraFeeRecipients,
+    uint256[] extraFeeAmounts
   );
 
   event LiquidityAdded(
@@ -30,11 +35,18 @@ interface INiftyswapExchange20 {
     uint256[] currencyAmounts
   );
 
+  struct LiquidityRemovedEventObj {
+    uint256 currencyAmount;
+    uint256 soldTokenNumerator;
+    uint256 boughtCurrencyNumerator;
+    uint256 totalSupply;
+  }
+
   event LiquidityRemoved(
     address indexed provider,
     uint256[] tokenIds,
     uint256[] tokenAmounts,
-    uint256[] currencyAmounts
+    LiquidityRemovedEventObj[] details
   );
 
   event RoyaltyChanged(
@@ -146,7 +158,7 @@ interface INiftyswapExchange20 {
    * @param _assetBoughtReserve Amount of Tokens (output type) in exchange reserves.
    * @return Amount of currency tokens to send to Niftyswap.
    */
-  function getBuyPrice(uint256 _assetBoughtAmount, uint256 _assetSoldReserve, uint256 _assetBoughtReserve) external pure returns (uint256);
+  function getBuyPrice(uint256 _assetBoughtAmount, uint256 _assetSoldReserve, uint256 _assetBoughtReserve) external view returns (uint256);
 
   /**
    * @dev Pricing function used for converting Tokens to currency token (including royalty fee)
@@ -165,7 +177,7 @@ interface INiftyswapExchange20 {
    * @param _assetBoughtReserve Amount of currency tokens in exchange reserves.
    * @return Amount of currency tokens to receive from Niftyswap.
    */
-  function getSellPrice(uint256 _assetSoldAmount,uint256 _assetSoldReserve, uint256 _assetBoughtReserve) external pure returns (uint256);
+  function getSellPrice(uint256 _assetSoldAmount,uint256 _assetSoldReserve, uint256 _assetBoughtReserve) external view returns (uint256);
 
   /**
    * @dev Pricing function used for converting Tokens to currency token (including royalty fee)
@@ -213,6 +225,11 @@ interface INiftyswapExchange20 {
   function getTokenAddress() external view returns (address);
 
   /**
+   * @return LP fee per 1000 units
+   */
+  function getLPFee() external view returns (uint256);
+
+  /**
    * @return Address of the currency contract that is used as currency
    */
   function getCurrencyInfo() external view returns (address);
@@ -237,4 +254,6 @@ interface INiftyswapExchange20 {
    * @param _royaltyRecipient Address to check the claimable royalties
    */
   function getRoyalties(address _royaltyRecipient) external view returns (uint256);
+
+  function getRoyaltiesNumerator(address _royaltyRecipient) external view returns (uint256);
 }

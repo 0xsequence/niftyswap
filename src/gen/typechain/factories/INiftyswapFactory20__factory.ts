@@ -23,6 +23,19 @@ const _abi = [
       {
         indexed: true,
         internalType: "address",
+        name: "metadataContract",
+        type: "address",
+      },
+    ],
+    name: "MetadataContractChanged",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
         name: "token",
         type: "address",
       },
@@ -59,6 +72,11 @@ const _abi = [
         internalType: "address",
         name: "_currency",
         type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "_lpFee",
+        type: "uint256",
       },
       {
         internalType: "uint256",

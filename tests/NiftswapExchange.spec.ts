@@ -1298,6 +1298,65 @@ describe('NiftyswapExchange', () => {
             })
           })
         })
+
+        describe('Trade token rounding error', () => {
+          it('Should trade rounding error when withdrawing liquidity', async () => {
+            const types = [BigNumber.from(1)]
+            const currencyAmountToAdd = [BigNumber.from(1000000000)]
+            const tokenAmountToAdd = [BigNumber.from(100)]
+
+            await operatorERC1155Contract.functions.safeBatchTransferFrom(
+              operatorAddress,
+              niftyswapExchangeContract.address,
+              types,
+              tokenAmountToAdd,
+              getAddLiquidityData(currencyAmountToAdd, deadline),
+              { gasLimit: 50000000 }
+            )
+
+            // Add a single unit of liquidity
+            await operatorERC1155Contract.functions.safeBatchTransferFrom(
+              operatorAddress,
+              niftyswapExchangeContract.address,
+              types,
+              [1],
+              getAddLiquidityData([BigNumber.from(10000000)], deadline),
+              { gasLimit: 50000000 }
+            )
+
+            // Buy a single unit of token, force amount to be rounded
+            await userCurrencyContract.functions.safeTransferFrom(
+              userAddress,
+              niftyswapExchangeContract.address,
+              currencyID,
+              BigNumber.from(40000000),
+              getBuyTokenData(userAddress, [1], [BigNumber.from(1)], Date.now()),
+              { gasLimit: 8000000 }
+            )
+
+            let operatorAddressTokenBalance = await userERC1155Contract.functions.balanceOf(operatorAddress, types[0])
+            let operatorAddressCurrencyBalance = await userCurrencyContract.functions.balanceOf(operatorAddress, currencyID)
+
+            await niftyswapExchangeContract.connect(operatorWallet).functions.safeBatchTransferFrom(
+              operatorAddress,
+              niftyswapExchangeContract.address,
+              types,
+              [BigNumber.from(10000000)],
+              getRemoveLiquidityData([BigNumber.from(BigNumber.from(1))], [BigNumber.from(0)], deadline),
+              { gasLimit: 8000000 }
+            )
+
+            const newOperatorAddressCurrencyBalance = await userCurrencyContract.functions.balanceOf(operatorAddress, currencyID)
+            const newOperatorAddressTokenBalance = await userERC1155Contract.functions.balanceOf(operatorAddress, types[0])
+
+            const diffOperatorCurrency = newOperatorAddressCurrencyBalance[0].sub(operatorAddressCurrencyBalance[0])
+            const diffOperatorToken = newOperatorAddressTokenBalance[0].sub(operatorAddressTokenBalance[0])
+
+            expect(diffOperatorToken).to.be.eql(BigNumber.from(0))
+            expect(diffOperatorCurrency).to.be.eql(BigNumber.from(19953926))
+
+          })
+        })
       })
 
       describe('_tokenToCurrency() function', () => {

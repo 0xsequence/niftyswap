@@ -5,6 +5,8 @@ export type { NiftyswapExchange } from "./NiftyswapExchange";
 export type { NiftyswapExchange20 } from "./NiftyswapExchange20";
 export type { NiftyswapFactory } from "./NiftyswapFactory";
 export type { NiftyswapFactory20 } from "./NiftyswapFactory20";
+export type { IDelegatedERC1155Metadata } from "./IDelegatedERC1155Metadata";
+export type { IERC1155Metadata } from "./IERC1155Metadata";
 export type { IERC2981 } from "./IERC2981";
 export type { INiftyswapExchange } from "./INiftyswapExchange";
 export type { INiftyswapExchange20 } from "./INiftyswapExchange20";
@@ -18,6 +20,7 @@ export type { ERC1155RoyaltyMock } from "./ERC1155RoyaltyMock";
 export type { ERC20TokenMock } from "./ERC20TokenMock";
 export type { ERC20WrapperMock } from "./ERC20WrapperMock";
 export type { DelegatedOwnable } from "./DelegatedOwnable";
+export type { ERC1155MetadataPrefix } from "./ERC1155MetadataPrefix";
 export type { Ownable } from "./Ownable";
 export type { WrapAndNiftyswap } from "./WrapAndNiftyswap";
 
@@ -25,6 +28,8 @@ export { NiftyswapExchange__factory } from "./factories/NiftyswapExchange__facto
 export { NiftyswapExchange20__factory } from "./factories/NiftyswapExchange20__factory";
 export { NiftyswapFactory__factory } from "./factories/NiftyswapFactory__factory";
 export { NiftyswapFactory20__factory } from "./factories/NiftyswapFactory20__factory";
+export { IDelegatedERC1155Metadata__factory } from "./factories/IDelegatedERC1155Metadata__factory";
+export { IERC1155Metadata__factory } from "./factories/IERC1155Metadata__factory";
 export { IERC2981__factory } from "./factories/IERC2981__factory";
 export { INiftyswapExchange__factory } from "./factories/INiftyswapExchange__factory";
 export { INiftyswapExchange20__factory } from "./factories/INiftyswapExchange20__factory";
@@ -38,5 +43,6 @@ export { ERC1155RoyaltyMock__factory } from "./factories/ERC1155RoyaltyMock__fac
 export { ERC20TokenMock__factory } from "./factories/ERC20TokenMock__factory";
 export { ERC20WrapperMock__factory } from "./factories/ERC20WrapperMock__factory";
 export { DelegatedOwnable__factory } from "./factories/DelegatedOwnable__factory";
+export { ERC1155MetadataPrefix__factory } from "./factories/ERC1155MetadataPrefix__factory";
 export { Ownable__factory } from "./factories/Ownable__factory";
 export { WrapAndNiftyswap__factory } from "./factories/WrapAndNiftyswap__factory";

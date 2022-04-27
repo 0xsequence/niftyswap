@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity 0.7.4;
+pragma experimental ABIEncoderV2;
 
 interface INiftyswapExchange {
 
@@ -30,11 +31,18 @@ interface INiftyswapExchange {
     uint256[] currencyAmounts
   );
 
+  struct LiquidityRemovedEventObj {
+    uint256 currencyAmount;
+    uint256 soldTokenNumerator;
+    uint256 boughtCurrencyNumerator;
+    uint256 totalSupply;
+  }
+
   event LiquidityRemoved(
     address indexed provider,
     uint256[] tokenIds,
     uint256[] tokenAmounts,
-    uint256[] currencyAmounts
+    LiquidityRemovedEventObj[] details
   );
 
     // OnReceive Objects

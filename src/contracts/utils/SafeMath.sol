@@ -21,7 +21,7 @@ library SafeMath {
     }
 
     uint256 c = a * b;
-    require(c / a == b, "SafeMath#mul: OVERFLOW");
+    require(c / a == b, "SM#1"); // SafeMath#mul: OVERFLOW
 
     return c;
   }
@@ -30,7 +30,7 @@ library SafeMath {
    * @dev Subtracts two unsigned integers, reverts on overflow (i.e. if subtrahend is greater than minuend).
    */
   function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-    require(b <= a, "SafeMath#sub: UNDERFLOW");
+    require(b <= a, "SM#2"); // SafeMath#sub: UNDERFLOW
     uint256 c = a - b;
 
     return c;
@@ -41,7 +41,7 @@ library SafeMath {
    */
   function add(uint256 a, uint256 b) internal pure returns (uint256) {
     uint256 c = a + b;
-    require(c >= a, "SafeMath#add: OVERFLOW");
+    require(c >= a, "SM#3"); // SafeMath#add: OVERFLOW
 
     return c;
   }
