@@ -25,6 +25,9 @@ import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
  * @dev Like Uniswap, tokens with 0 decimals and low supply are susceptible to significant rounding
  *      errors when it comes to removing liquidity, possibly preventing them to be withdrawn without
  *      some collaboration between liquidity providers.
+ * 
+ * @dev ERC-777 tokens may be vulnerable if used as currency in Niftyswap. Please review the code 
+ *      carefully before using it with ERC-777 tokens.
  */
 contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchange20, IERC1155Metadata, DelegatedOwnable {
   using SafeMath for uint256;
@@ -168,13 +171,14 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
       currencyReserves[idBought] = currencyReserve.add(currencyAmount);
     }
 
+    // Send Tokens all tokens purchased
+    token.safeBatchTransferFrom(address(this), _recipient, _tokenIds, _tokensBoughtAmounts, "");
+    
     // Refund currency token if any
     if (totalRefundCurrency > 0) {
       TransferHelper.safeTransfer(currency, _recipient, totalRefundCurrency);
     }
 
-    // Send Tokens all tokens purchased
-    token.safeBatchTransferFrom(address(this), _recipient, _tokenIds, _tokensBoughtAmounts, "");
     return currencySold;
   }
 
@@ -469,11 +473,12 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
       }
     }
 
+    // Transfer all currency to this contract
+    TransferHelper.safeTransferFrom(currency, _provider, address(this), totalCurrency);
+
     // Mint liquidity pool tokens
     _batchMint(_provider, _tokenIds, liquiditiesToMint, "");
 
-    // Transfer all currency to this contract
-    TransferHelper.safeTransferFrom(currency, _provider, address(this), totalCurrency);
 
     // Emit event
     emit LiquidityAdded(_provider, _tokenIds, _tokenAmounts, currencyAmounts);
@@ -580,7 +585,6 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
       // Store current id and amount from argument arrays
       uint256 id = _tokenIds[i];
       uint256 amountPool = _poolTokenAmounts[i];
-      uint256 tokenReserve = tokenReserves[i];
 
       // Load total liquidity pool token supply for Token _id
       uint256 totalLiquidity = totalSupplies[id];
