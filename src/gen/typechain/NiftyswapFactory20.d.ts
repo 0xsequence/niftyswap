@@ -26,7 +26,7 @@ interface NiftyswapFactory20Interface extends ethers.utils.Interface {
     "getPairExchanges(address,address)": FunctionFragment;
     "metadataProvider()": FunctionFragment;
     "setMetadataContract(address)": FunctionFragment;
-    "tokensToExchange(address,address,uint256)": FunctionFragment;
+    "tokensToExchange(address,address,uint256,uint256)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
   };
 
@@ -49,7 +49,7 @@ interface NiftyswapFactory20Interface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "tokensToExchange",
-    values: [string, string, BigNumberish]
+    values: [string, string, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
@@ -84,7 +84,7 @@ interface NiftyswapFactory20Interface extends ethers.utils.Interface {
 
   events: {
     "MetadataContractChanged(address)": EventFragment;
-    "NewExchange(address,address,uint256,address)": EventFragment;
+    "NewExchange(address,address,uint256,uint256,address)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
   };
 
@@ -187,13 +187,15 @@ export class NiftyswapFactory20 extends Contract {
       arg0: string,
       arg1: string,
       arg2: BigNumberish,
+      arg3: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "tokensToExchange(address,address,uint256)"(
+    "tokensToExchange(address,address,uint256,uint256)"(
       arg0: string,
       arg1: string,
       arg2: BigNumberish,
+      arg3: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
@@ -258,13 +260,15 @@ export class NiftyswapFactory20 extends Contract {
     arg0: string,
     arg1: string,
     arg2: BigNumberish,
+    arg3: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "tokensToExchange(address,address,uint256)"(
+  "tokensToExchange(address,address,uint256,uint256)"(
     arg0: string,
     arg1: string,
     arg2: BigNumberish,
+    arg3: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string>;
 
@@ -329,13 +333,15 @@ export class NiftyswapFactory20 extends Contract {
       arg0: string,
       arg1: string,
       arg2: BigNumberish,
+      arg3: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "tokensToExchange(address,address,uint256)"(
+    "tokensToExchange(address,address,uint256,uint256)"(
       arg0: string,
       arg1: string,
       arg2: BigNumberish,
+      arg3: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -358,11 +364,18 @@ export class NiftyswapFactory20 extends Contract {
     NewExchange(
       token: string | null,
       currency: string | null,
+      lpFee: null,
       salt: BigNumberish | null,
       exchange: null
     ): TypedEventFilter<
-      [string, string, BigNumber, string],
-      { token: string; currency: string; salt: BigNumber; exchange: string }
+      [string, string, BigNumber, BigNumber, string],
+      {
+        token: string;
+        currency: string;
+        lpFee: BigNumber;
+        salt: BigNumber;
+        exchange: string;
+      }
     >;
 
     OwnershipTransferred(
@@ -425,13 +438,15 @@ export class NiftyswapFactory20 extends Contract {
       arg0: string,
       arg1: string,
       arg2: BigNumberish,
+      arg3: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "tokensToExchange(address,address,uint256)"(
+    "tokensToExchange(address,address,uint256,uint256)"(
       arg0: string,
       arg1: string,
       arg2: BigNumberish,
+      arg3: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -499,13 +514,15 @@ export class NiftyswapFactory20 extends Contract {
       arg0: string,
       arg1: string,
       arg2: BigNumberish,
+      arg3: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "tokensToExchange(address,address,uint256)"(
+    "tokensToExchange(address,address,uint256,uint256)"(
       arg0: string,
       arg1: string,
       arg2: BigNumberish,
+      arg3: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
