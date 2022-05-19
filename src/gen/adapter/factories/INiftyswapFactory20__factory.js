@@ -44,15 +44,15 @@ var _abi = [
                 type: "address"
             },
             {
-                indexed: false,
-                internalType: "uint256",
-                name: "lpFee",
-                type: "uint256"
-            },
-            {
                 indexed: true,
                 internalType: "uint256",
                 name: "salt",
+                type: "uint256"
+            },
+            {
+                indexed: false,
+                internalType: "uint256",
+                name: "lpFee",
                 type: "uint256"
             },
             {

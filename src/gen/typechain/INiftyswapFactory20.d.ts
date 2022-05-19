@@ -248,16 +248,16 @@ export class INiftyswapFactory20 extends Contract {
     NewExchange(
       token: string | null,
       currency: string | null,
-      lpFee: null,
       salt: BigNumberish | null,
+      lpFee: null,
       exchange: null
     ): TypedEventFilter<
       [string, string, BigNumber, BigNumber, string],
       {
         token: string;
         currency: string;
-        lpFee: BigNumber;
         salt: BigNumber;
+        lpFee: BigNumber;
         exchange: string;
       }
     >;
