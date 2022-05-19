@@ -201,6 +201,7 @@ describe('NiftyswapExchange20', () => {
           await niftyswapFactoryContract.functions.tokensToExchange(
             ownerERC1155Contract.address,
             ownerCurrencyContract.address,
+            LP_FEE,
             0
           )
         )[0]
@@ -269,6 +270,7 @@ describe('NiftyswapExchange20', () => {
               await niftyswapFactoryContract.functions.tokensToExchange(
                 ownerERC1155Contract.address,
                 ownerCurrencyContract.address,
+                200,
                 1
               )
             )[0]

@@ -44,6 +44,12 @@ var _abi = [
                 type: "address"
             },
             {
+                indexed: false,
+                internalType: "uint256",
+                name: "lpFee",
+                type: "uint256"
+            },
+            {
                 indexed: true,
                 internalType: "uint256",
                 name: "salt",
@@ -122,6 +128,11 @@ var _abi = [
                 internalType: "address",
                 name: "_currency",
                 type: "address"
+            },
+            {
+                internalType: "uint256",
+                name: "_lpFee",
+                type: "uint256"
             },
             {
                 internalType: "uint256",

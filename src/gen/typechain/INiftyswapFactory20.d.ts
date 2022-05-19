@@ -23,7 +23,7 @@ interface INiftyswapFactory20Interface extends ethers.utils.Interface {
   functions: {
     "createExchange(address,address,uint256,uint256)": FunctionFragment;
     "getPairExchanges(address,address)": FunctionFragment;
-    "tokensToExchange(address,address,uint256)": FunctionFragment;
+    "tokensToExchange(address,address,uint256,uint256)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -36,7 +36,7 @@ interface INiftyswapFactory20Interface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "tokensToExchange",
-    values: [string, string, BigNumberish]
+    values: [string, string, BigNumberish, BigNumberish]
   ): string;
 
   decodeFunctionResult(
@@ -54,7 +54,7 @@ interface INiftyswapFactory20Interface extends ethers.utils.Interface {
 
   events: {
     "MetadataContractChanged(address)": EventFragment;
-    "NewExchange(address,address,uint256,address)": EventFragment;
+    "NewExchange(address,address,uint256,uint256,address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "MetadataContractChanged"): EventFragment;
@@ -136,13 +136,15 @@ export class INiftyswapFactory20 extends Contract {
     tokensToExchange(
       _token: string,
       _currency: string,
+      _lpFee: BigNumberish,
       _instance: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "tokensToExchange(address,address,uint256)"(
+    "tokensToExchange(address,address,uint256,uint256)"(
       _token: string,
       _currency: string,
+      _lpFee: BigNumberish,
       _instance: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
@@ -179,13 +181,15 @@ export class INiftyswapFactory20 extends Contract {
   tokensToExchange(
     _token: string,
     _currency: string,
+    _lpFee: BigNumberish,
     _instance: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "tokensToExchange(address,address,uint256)"(
+  "tokensToExchange(address,address,uint256,uint256)"(
     _token: string,
     _currency: string,
+    _lpFee: BigNumberish,
     _instance: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string>;
@@ -222,13 +226,15 @@ export class INiftyswapFactory20 extends Contract {
     tokensToExchange(
       _token: string,
       _currency: string,
+      _lpFee: BigNumberish,
       _instance: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "tokensToExchange(address,address,uint256)"(
+    "tokensToExchange(address,address,uint256,uint256)"(
       _token: string,
       _currency: string,
+      _lpFee: BigNumberish,
       _instance: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
@@ -242,11 +248,18 @@ export class INiftyswapFactory20 extends Contract {
     NewExchange(
       token: string | null,
       currency: string | null,
+      lpFee: null,
       salt: BigNumberish | null,
       exchange: null
     ): TypedEventFilter<
-      [string, string, BigNumber, string],
-      { token: string; currency: string; salt: BigNumber; exchange: string }
+      [string, string, BigNumber, BigNumber, string],
+      {
+        token: string;
+        currency: string;
+        lpFee: BigNumber;
+        salt: BigNumber;
+        exchange: string;
+      }
     >;
   };
 
@@ -282,13 +295,15 @@ export class INiftyswapFactory20 extends Contract {
     tokensToExchange(
       _token: string,
       _currency: string,
+      _lpFee: BigNumberish,
       _instance: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "tokensToExchange(address,address,uint256)"(
+    "tokensToExchange(address,address,uint256,uint256)"(
       _token: string,
       _currency: string,
+      _lpFee: BigNumberish,
       _instance: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -326,13 +341,15 @@ export class INiftyswapFactory20 extends Contract {
     tokensToExchange(
       _token: string,
       _currency: string,
+      _lpFee: BigNumberish,
       _instance: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "tokensToExchange(address,address,uint256)"(
+    "tokensToExchange(address,address,uint256,uint256)"(
       _token: string,
       _currency: string,
+      _lpFee: BigNumberish,
       _instance: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;

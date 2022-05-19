@@ -103,6 +103,7 @@ describe('NiftyswapFactory20', () => {
         const exchange_address = await niftyswapFactoryContract.functions.tokensToExchange(
           ownerERC1155Contract.address,
           ownerBaseTokenContract.address,
+          LP_FEE,
           0
         )
         await expect(exchange_address[0]).not.to.be.eql(ZERO_ADDRESS)
@@ -130,18 +131,21 @@ describe('NiftyswapFactory20', () => {
         const exchange_0 = await niftyswapFactoryContract.functions.tokensToExchange(
           ownerERC1155Contract.address,
           ownerBaseTokenContract.address,
+          LP_FEE,
           0
         )
 
         const exchange_1 = await niftyswapFactoryContract.functions.tokensToExchange(
           ownerERC1155Contract.address,
           ownerBaseTokenContract.address,
+          200,
           1
         )
 
         const exchange_99 = await niftyswapFactoryContract.functions.tokensToExchange(
           ownerERC1155Contract.address,
           ownerBaseTokenContract.address,
+          50,
           99
         )
 
@@ -216,6 +220,7 @@ describe('NiftyswapFactory20', () => {
           await niftyswapFactoryContract.functions.tokensToExchange(
             ownerERC1155Contract.address,
             ownerBaseTokenContract.address,
+            LP_FEE,
             0
           )
         )[0]
