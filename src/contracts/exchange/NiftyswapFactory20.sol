@@ -49,7 +49,7 @@ contract NiftyswapFactory20 is INiftyswapFactory20, Ownable, IDelegatedERC1155Me
     pairExchanges[_token][_currency].push(address(exchange));
 
     // Emit event
-    emit NewExchange(_token, _currency, _lpFee, _instance, address(exchange));
+    emit NewExchange(_token, _currency, _instance, _lpFee, address(exchange));
   }
 
   /**

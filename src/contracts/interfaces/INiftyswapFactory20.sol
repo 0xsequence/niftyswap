@@ -7,7 +7,7 @@ interface INiftyswapFactory20 {
   |               Events              |
   |__________________________________*/
 
-  event NewExchange(address indexed token, address indexed currency, uint256 lpFee, uint256 indexed salt, address exchange);
+  event NewExchange(address indexed token, address indexed currency, uint256 indexed salt, uint256 lpFee, address exchange);
 
   event MetadataContractChanged(address indexed metadataContract);
 
