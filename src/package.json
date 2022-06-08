@@ -25,8 +25,8 @@
   "dependencies": {
     "@0xsequence/erc-1155": "3.1.0",
     "@0xsequence/erc20-meta-token": "3.2.0",
+    "@0xsequence/niftyswap": "^5.1.0",
     "@uniswap/lib": "^4.0.1-alpha"
   },
-  "devDependencies": {
-  }
+  "devDependencies": {}
 }

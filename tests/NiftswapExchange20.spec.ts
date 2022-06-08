@@ -2296,7 +2296,7 @@ describe('NiftyswapExchange20', () => {
             let filterFromOperatorContract: ethers.ethers.EventFilter
 
             // Get event filter to get internal tx event
-            filterFromOperatorContract = niftyswapExchangeContract.filters.TokensPurchase(null, null, null, null, null, null, null)
+            filterFromOperatorContract = niftyswapExchangeContract.filters.TokensPurchase(null, null, null, null, null, null, null,null)
 
             // Get logs from internal transaction event
             // @ts-ignore (https://github.com/ethers-io/ethers.js/issues/204#issuecomment-427059031)
@@ -2304,7 +2304,7 @@ describe('NiftyswapExchange20', () => {
             let logs = await operatorProvider.getLogs(filterFromOperatorContract)
             expect(logs[0].topics[0]).to.be.eql(
               niftyswapExchangeContract.interface.getEventTopic(
-                niftyswapExchangeContract.interface.events['TokensPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])']
+                niftyswapExchangeContract.interface.events['TokensPurchase(address,address,uint256[],uint256[],uint256[],uint256[],address[],uint256[])']
               )
             )
           })
@@ -2314,7 +2314,7 @@ describe('NiftyswapExchange20', () => {
 
             beforeEach(async () => {
               const eventTopicHash = niftyswapExchangeContract.interface.getEventTopic(
-                niftyswapExchangeContract.interface.events['TokensPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])']
+                niftyswapExchangeContract.interface.events['TokensPurchase(address,address,uint256[],uint256[],uint256[],uint256[],address[],uint256[])']
               )
               const receipt = await tx.wait(1)
               const log = receipt.logs.find(a => a['topics'][0] === eventTopicHash)

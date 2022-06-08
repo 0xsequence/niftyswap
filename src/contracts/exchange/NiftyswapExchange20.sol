@@ -118,7 +118,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     uint256 _deadline,
     address _recipient
   )
-    internal nonReentrant() returns (uint256[] memory currencySold)
+    internal nonReentrant() returns (uint256[] memory currencySold,uint256[] memory royaltyAmounts)
   {
     // Input validation
     require(_deadline >= block.timestamp, "NE20#3"); // NiftyswapExchange20#_currencyToToken: DEADLINE_EXCEEDED
@@ -132,6 +132,9 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
 
     // Get token reserves
     uint256[] memory tokenReserves = _getTokenReserves(_tokenIds);
+
+    // Royalty Amounts
+    royaltyAmounts = new uint256[](nTokens);
 
     // Assumes the currency Tokens are already received by contract, but not
     // the Tokens Ids
@@ -167,6 +170,9 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
       // Append Token id, Token id amount and currency token amount to tracking arrays
       currencySold[i] = currencyAmount.add(royaltyAmount);
 
+      // 
+      royaltyAmounts[i] = royaltyAmount;
+
       // Update individual currency reseve amount (royalty is not added to liquidity)
       currencyReserves[idBought] = currencyReserve.add(currencyAmount);
     }
@@ -179,7 +185,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
       TransferHelper.safeTransfer(currency, _recipient, totalRefundCurrency);
     }
 
-    return currencySold;
+    return (currencySold, royaltyAmounts);
   }
 
   /**
@@ -727,8 +733,8 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     }
 
     // Execute trade and retrieve amount of currency spent
-    uint256[] memory currencySold = _currencyToToken(_tokenIds, _tokensBoughtAmounts, maxCurrency, _deadline, recipient);
-    emit TokensPurchase(msg.sender, recipient, _tokenIds, _tokensBoughtAmounts, currencySold, _extraFeeRecipients, _extraFeeAmounts);
+    (uint256[] memory currencySold,uint256[] memory royaltyAmounts)  = _currencyToToken(_tokenIds, _tokensBoughtAmounts, maxCurrency, _deadline, recipient);
+    emit TokensPurchase(msg.sender, recipient, _tokenIds, _tokensBoughtAmounts, currencySold, royaltyAmounts,_extraFeeRecipients, _extraFeeAmounts);
 
     return currencySold;
   }

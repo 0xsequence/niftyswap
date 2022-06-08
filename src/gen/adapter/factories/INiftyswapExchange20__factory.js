@@ -202,6 +202,12 @@ var _abi = [
             },
             {
                 indexed: false,
+                internalType: "uint256[]",
+                name: "royaltyAmounts",
+                type: "uint256[]"
+            },
+            {
+                indexed: false,
                 internalType: "address[]",
                 name: "extraFeeRecipients",
                 type: "address[]"
