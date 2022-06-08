@@ -130,11 +130,11 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     // Initialize variables
     currencySold = new uint256[](nTokens); // Amount of currency tokens sold per ID
 
+     // Royalty Amounts
+    royaltyAmounts = new uint256[](nTokens);
+
     // Get token reserves
     uint256[] memory tokenReserves = _getTokenReserves(_tokenIds);
-
-    // Royalty Amounts
-    royaltyAmounts = new uint256[](nTokens);
 
     // Assumes the currency Tokens are already received by contract, but not
     // the Tokens Ids
@@ -734,7 +734,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
 
     // Execute trade and retrieve amount of currency spent
     (uint256[] memory currencySold,uint256[] memory royaltyAmounts)  = _currencyToToken(_tokenIds, _tokensBoughtAmounts, maxCurrency, _deadline, recipient);
-    emit TokensPurchase(msg.sender, recipient, _tokenIds, _tokensBoughtAmounts, currencySold, royaltyAmounts,_extraFeeRecipients, _extraFeeAmounts);
+    emit TokensPurchase(msg.sender, recipient, _tokenIds, _tokensBoughtAmounts, currencySold, royaltyAmounts, _extraFeeRecipients, _extraFeeAmounts);
 
     return currencySold;
   }

@@ -2348,6 +2348,13 @@ describe('NiftyswapExchange20', () => {
               }
             })
 
+            it('should have royaltyAmounts as `royaltyAmounts` field', async () => {
+              const royalty = (cost.sub(extraFee)).div(types.length).mul(royaltyFee).div(10000)
+              for (let i = 0; i < types.length; i++) {
+                expect(args.royaltyAmounts[i]).to.be.eql(royalty)
+              }
+            })
+
             it('should have extraFeeRecipients as `extraFeeRecipients` field', async () => {  
               for (let i = 0; i < types.length; i++) {
                 expect(args.extraFeeRecipients[i]).to.be.eql(extraFeeRecipients[i])
@@ -2669,7 +2676,7 @@ describe('NiftyswapExchange20', () => {
             { gasLimit: 50000000 }
           )
 
-          // Trying to buy the only tokn will fail as it will cause a division by 0
+          // Trying to buy the only token will fail as it will cause a division by 0
           let tx = niftyswapExchangeContract.functions.getPrice_currencyToToken([types[0]], [1])
           await expect(tx).to.be.rejectedWith(OpCodeError())
         })

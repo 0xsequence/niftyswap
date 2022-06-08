@@ -164,7 +164,7 @@ describe('NiftyswapFactory20', () => {
   describe('createExchange() function', () => {
     it('should REVERT if Token is 0x0', async () => {
       const tx = niftyswapFactoryContract.functions.createExchange(ZERO_ADDRESS, ownerBaseTokenContract.address, LP_FEE, 0, {
-        gasLimit: 1000000
+        gasLimit: 2000000
       })
       await expect(tx).to.be.rejectedWith(RevertError('NE20#1'))
     })
