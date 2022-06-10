@@ -2349,9 +2349,9 @@ describe('NiftyswapExchange20', () => {
             })
 
             it('should have royaltyAmounts as `royaltyAmounts` field', async () => {
-              const royalty = (cost.sub(extraFee)).div(types.length).mul(royaltyFee).div(10000)
               for (let i = 0; i < types.length; i++) {
-                expect(args.royaltyAmounts[i]).to.be.eql(royalty)
+                const royaltyAmount = await niftyswapExchangeContract.functions.getRoyaltyInfo(types[i],preRoyaltyCost)
+                expect(args.royaltyAmounts[i]).to.be.eql(royaltyAmount.royalty)
               }
             })
 
