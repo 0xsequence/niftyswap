@@ -1921,7 +1921,7 @@ describe('NiftyswapExchange20', () => {
             let filterFromOperatorContract: ethers.ethers.EventFilter
 
             // Get event filter to get internal tx event
-            filterFromOperatorContract = niftyswapExchangeContract.filters.CurrencyPurchase(null, null, null, null, null, null, null)
+            filterFromOperatorContract = niftyswapExchangeContract.filters.CurrencyPurchase(null, null, null, null, null, null, null, null)
 
             // Get logs from internal transaction event
             // @ts-ignore (https://github.com/ethers-io/ethers.js/issues/204#issuecomment-427059031)
@@ -1929,7 +1929,7 @@ describe('NiftyswapExchange20', () => {
             let logs = await operatorProvider.getLogs(filterFromOperatorContract)
             expect(logs[0].topics[0]).to.be.eql(
               niftyswapExchangeContract.interface.getEventTopic(
-                niftyswapExchangeContract.interface.events['CurrencyPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])']
+                niftyswapExchangeContract.interface.events['CurrencyPurchase(address,address,uint256[],uint256[],uint256[],uint256[],address[],uint256[])']
               )
             )
           })
@@ -1939,7 +1939,7 @@ describe('NiftyswapExchange20', () => {
 
             beforeEach(async () => {
               const eventTopicHash = niftyswapExchangeContract.interface.getEventTopic(
-                niftyswapExchangeContract.interface.events['CurrencyPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])']
+                niftyswapExchangeContract.interface.events['CurrencyPurchase(address,address,uint256[],uint256[],uint256[],uint256[],address[],uint256[])']
               )
               const receipt = await tx.wait(1)
               const log = receipt.logs.find(a => a['topics'][0] === eventTopicHash)
@@ -1970,6 +1970,13 @@ describe('NiftyswapExchange20', () => {
               const costPer = (cost.add(extraFee)).div(types.length)
               for (let i = 0; i < types.length; i++) {
                 expect(args.currencyBoughtAmounts[i]).to.be.eql(costPer)
+              }
+            })
+
+            it('should have royaltyAmounts as `royaltyAmounts` field', async () => {
+              for (let i = 0; i < types.length; i++) {
+                const royaltyAmount = await niftyswapExchangeContract.functions.getRoyaltyInfo(types[i],preRoyaltyCost)
+                expect(args.royaltyAmounts[i]).to.be.eql(royaltyAmount.royalty)
               }
             })
 

@@ -299,7 +299,7 @@ interface NiftyswapExchange20Interface extends ethers.utils.Interface {
 
   events: {
     "ApprovalForAll(address,address,bool)": EventFragment;
-    "CurrencyPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])": EventFragment;
+    "CurrencyPurchase(address,address,uint256[],uint256[],uint256[],uint256[],address[],uint256[])": EventFragment;
     "LiquidityAdded(address,uint256[],uint256[],uint256[])": EventFragment;
     "LiquidityRemoved(address,uint256[],uint256[],tuple[])": EventFragment;
     "ParentOwnerChanged(address,address)": EventFragment;
@@ -1445,12 +1445,14 @@ export class NiftyswapExchange20 extends Contract {
       tokensSoldIds: null,
       tokensSoldAmounts: null,
       currencyBoughtAmounts: null,
+      royaltyAmounts: null,
       extraFeeRecipients: null,
       extraFeeAmounts: null
     ): TypedEventFilter<
       [
         string,
         string,
+        BigNumber[],
         BigNumber[],
         BigNumber[],
         BigNumber[],
@@ -1463,6 +1465,7 @@ export class NiftyswapExchange20 extends Contract {
         tokensSoldIds: BigNumber[];
         tokensSoldAmounts: BigNumber[];
         currencyBoughtAmounts: BigNumber[];
+        royaltyAmounts: BigNumber[];
         extraFeeRecipients: string[];
         extraFeeAmounts: BigNumber[];
       }

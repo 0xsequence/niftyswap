@@ -118,7 +118,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     uint256 _deadline,
     address _recipient
   )
-    internal nonReentrant() returns (uint256[] memory currencySold,uint256[] memory royaltyAmounts)
+    internal nonReentrant() returns (uint256[] memory currencySold, uint256[] memory royaltyAmounts)
   {
     // Input validation
     require(_deadline >= block.timestamp, "NE20#3"); // NiftyswapExchange20#_currencyToToken: DEADLINE_EXCEEDED
@@ -170,7 +170,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
       // Append Token id, Token id amount and currency token amount to tracking arrays
       currencySold[i] = currencyAmount.add(royaltyAmount);
 
-      // 
+      // Append Royalty amounts to tracking array
       royaltyAmounts[i] = royaltyAmount;
 
       // Update individual currency reseve amount (royalty is not added to liquidity)
@@ -254,7 +254,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     address[] memory _extraFeeRecipients,
     uint256[] memory _extraFeeAmounts
   )
-    internal nonReentrant() returns (uint256[] memory currencyBought)
+    internal nonReentrant() returns (uint256[] memory currencyBought, uint256[] memory royaltyAmounts)
   {
     // Number of Token IDs to deposit
     uint256 nTokens = _tokenIds.length;
@@ -265,6 +265,9 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     // Initialize variables
     uint256 totalCurrency = 0; // Total amount of currency tokens to transfer
     currencyBought = new uint256[](nTokens);
+
+    // Royalty Amounts
+    royaltyAmounts = new uint256[](nTokens);
 
     // Get token reserves
     uint256[] memory tokenReserves = _getTokenReserves(_tokenIds);
@@ -305,6 +308,9 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
 
       // Append Token id, Token id amount and currency token amount to tracking arrays
       currencyBought[i] = currencyAmount.sub(royaltyAmount);
+
+      // Append Royalty amount to tracking array
+      royaltyAmounts[i] = royaltyAmount;
     }
 
     // Set the extra fees aside to recipients after sale
@@ -320,7 +326,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
 
     // Transfer currency here
     TransferHelper.safeTransfer(currency, _recipient, totalCurrency);
-    return currencyBought;
+    return (currencyBought, royaltyAmounts);
   }
 
   /**
@@ -733,7 +739,7 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
     }
 
     // Execute trade and retrieve amount of currency spent
-    (uint256[] memory currencySold,uint256[] memory royaltyAmounts)  = _currencyToToken(_tokenIds, _tokensBoughtAmounts, maxCurrency, _deadline, recipient);
+    (uint256[] memory currencySold, uint256[] memory royaltyAmounts)  = _currencyToToken(_tokenIds, _tokensBoughtAmounts, maxCurrency, _deadline, recipient);
     emit TokensPurchase(msg.sender, recipient, _tokenIds, _tokensBoughtAmounts, currencySold, royaltyAmounts, _extraFeeRecipients, _extraFeeAmounts);
 
     return currencySold;
@@ -784,8 +790,8 @@ contract NiftyswapExchange20 is ReentrancyGuard, ERC1155MintBurn, INiftyswapExch
       require(obj.extraFeeRecipients.length == obj.extraFeeAmounts.length, "NE20#23"); // NiftyswapExchange20#buyTokens: EXTRA_FEES_ARRAYS_ARE_NOT_SAME_LENGTH
     
       // Execute trade and retrieve amount of currency received
-      uint256[] memory currencyBought = _tokenToCurrency(_ids, _amounts, obj.minCurrency, obj.deadline, recipient, obj.extraFeeRecipients, obj.extraFeeAmounts);
-      emit CurrencyPurchase(_from, recipient, _ids, _amounts, currencyBought, obj.extraFeeRecipients, obj.extraFeeAmounts);
+      (uint256[] memory currencyBought, uint256[] memory royaltyAmounts) = _tokenToCurrency(_ids, _amounts, obj.minCurrency, obj.deadline, recipient, obj.extraFeeRecipients, obj.extraFeeAmounts);
+      emit CurrencyPurchase(_from, recipient, _ids, _amounts, currencyBought, royaltyAmounts, obj.extraFeeRecipients, obj.extraFeeAmounts);
 
     /***********************************|
     |      Adding Liquidity Tokens      |

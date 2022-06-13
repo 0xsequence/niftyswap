@@ -205,7 +205,7 @@ interface INiftyswapExchange20Interface extends ethers.utils.Interface {
   ): Result;
 
   events: {
-    "CurrencyPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])": EventFragment;
+    "CurrencyPurchase(address,address,uint256[],uint256[],uint256[],uint256[],address[],uint256[])": EventFragment;
     "LiquidityAdded(address,uint256[],uint256[],uint256[])": EventFragment;
     "LiquidityRemoved(address,uint256[],uint256[],tuple[])": EventFragment;
     "RoyaltyChanged(address,uint256)": EventFragment;
@@ -921,12 +921,14 @@ export class INiftyswapExchange20 extends Contract {
       tokensSoldIds: null,
       tokensSoldAmounts: null,
       currencyBoughtAmounts: null,
+      royaltyAmounts: null,
       extraFeeRecipients: null,
       extraFeeAmounts: null
     ): TypedEventFilter<
       [
         string,
         string,
+        BigNumber[],
         BigNumber[],
         BigNumber[],
         BigNumber[],
@@ -939,6 +941,7 @@ export class INiftyswapExchange20 extends Contract {
         tokensSoldIds: BigNumber[];
         tokensSoldAmounts: BigNumber[];
         currencyBoughtAmounts: BigNumber[];
+        royaltyAmounts: BigNumber[];
         extraFeeRecipients: string[];
         extraFeeAmounts: BigNumber[];
       }

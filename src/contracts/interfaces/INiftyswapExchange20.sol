@@ -25,6 +25,7 @@ interface INiftyswapExchange20 {
     uint256[] tokensSoldIds,
     uint256[] tokensSoldAmounts,
     uint256[] currencyBoughtAmounts,
+    uint256[] royaltyAmounts,
     address[] extraFeeRecipients,
     uint256[] extraFeeAmounts
   );
