@@ -12,7 +12,7 @@ contract ERC1155MetadataPrefix is IERC1155Metadata, Ownable {
 
   bool immutable includeAddress;
 
-  constructor(string memory _prefix, bool _includeAddress) Ownable(msg.sender) {
+  constructor(string memory _prefix, bool _includeAddress, address _admin) Ownable(_admin) {
     emit URIPrefixChanged(_prefix);
     uriPrefix = _prefix;
     includeAddress = _includeAddress;
