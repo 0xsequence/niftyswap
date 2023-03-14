@@ -1,6 +1,6 @@
-import * as ethers from 'ethers'
+import {ethers, utils, BigNumber} from 'ethers'
 
-export const UNIT_ETH = ethers.utils.parseEther('1')
+export const UNIT_ETH = utils.parseEther('1')
 export const HIGH_GAS_LIMIT = { gasLimit: 6e9 }
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
@@ -11,7 +11,6 @@ import {
   RemoveLiquidityObj, 
   SellTokensObj20,
 } from 'src/typings/tx-types'
-import { BigNumber } from 'ethers';
 
 // createTestWallet creates a new wallet
 export const createTestWallet = (web3: any, addressIndex: number = 0) => {
