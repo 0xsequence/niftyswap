@@ -1,6 +1,6 @@
 import * as ethers from 'ethers'
 
-import { AbstractContract, BigNumber, expect, RevertError } from './utils'
+import { AbstractContract, BigNumber, expect, HIGH_GAS_LIMIT, RevertError } from './utils'
 
 import * as utils from './utils'
 
@@ -163,16 +163,12 @@ describe('NiftyswapFactory20', () => {
 
   describe('createExchange() function', () => {
     it('should REVERT if Token is 0x0', async () => {
-      const tx = niftyswapFactoryContract.functions.createExchange(ZERO_ADDRESS, ownerBaseTokenContract.address, LP_FEE, 0, {
-        gasLimit: 1000000
-      })
+      const tx = niftyswapFactoryContract.functions.createExchange(ZERO_ADDRESS, ownerBaseTokenContract.address, LP_FEE, 0, HIGH_GAS_LIMIT,)
       await expect(tx).to.be.rejectedWith(RevertError('NE20#1'))
     })
 
     it('should REVERT if Base Token is 0x0', async () => {
-      const tx = niftyswapFactoryContract.functions.createExchange(ownerERC1155Contract.address, ZERO_ADDRESS, LP_FEE, 0, {
-        gasLimit: 1000000
-      })
+      const tx = niftyswapFactoryContract.functions.createExchange(ownerERC1155Contract.address, ZERO_ADDRESS, LP_FEE, 0, HIGH_GAS_LIMIT,)
       await expect(tx).to.be.rejectedWith(RevertError('NE20#1'))
     })
 
@@ -232,9 +228,7 @@ describe('NiftyswapFactory20', () => {
           ownerBaseTokenContract.address,
           LP_FEE,
           0,
-          {
-            gasLimit: 1000000
-          }
+          HIGH_GAS_LIMIT,
         )
         await expect(tx).to.be.rejectedWith(RevertError('NF20#1'))
       })

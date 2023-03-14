@@ -7,7 +7,7 @@ import {
   getBuyTokenData,
   getSellTokenData,
   getAddLiquidityData,
-  getRemoveLiquidityData
+  HIGH_GAS_LIMIT,
 } from './utils'
 
 import * as utils from './utils'
@@ -230,27 +230,27 @@ describe('WrapAndSwap', () => {
 
     it('should revert if order recipient is not swapAndWrap contract', async () => {
       let bad_buyTokenData = getBuyTokenData(userAddress, types, tokensAmountsToBuy, deadline)
-      const tx = userWrapAndNiftyswap.functions.wrapAndSwap(cost, userAddress, bad_buyTokenData, { gasLimit: 10000000 })
+      const tx = userWrapAndNiftyswap.functions.wrapAndSwap(cost, userAddress, bad_buyTokenData, HIGH_GAS_LIMIT)
       await expect(tx).to.be.rejectedWith(RevertError('WrapAndNiftyswap#wrapAndSwap: ORDER RECIPIENT MUST BE THIS CONTRACT'))
     })
 
     it('should buy tokens when balances are sufficient', async () => {
-      const tx = userWrapAndNiftyswap.functions.wrapAndSwap(cost, userAddress, buyTokenData, { gasLimit: 10000000 })
+      const tx = userWrapAndNiftyswap.functions.wrapAndSwap(cost, userAddress, buyTokenData, HIGH_GAS_LIMIT)
       await expect(tx).to.be.fulfilled
     })
 
     it('should buy the 2nd time as well', async () => {
-      await userWrapAndNiftyswap.functions.wrapAndSwap(cost, userAddress, buyTokenData, { gasLimit: 10000000 })
+      await userWrapAndNiftyswap.functions.wrapAndSwap(cost, userAddress, buyTokenData, HIGH_GAS_LIMIT)
       let cost2 = (await niftyswapExchangeContract.functions.getPrice_currencyToToken([0], [tokenAmountToBuy]))[0][0]
       cost2 = cost.mul(nTokenTypes)
       let buyTokenData2 = getBuyTokenData(ZERO_ADDRESS, types, tokensAmountsToBuy, deadline)
-      let tx = userWrapAndNiftyswap.functions.wrapAndSwap(cost2, userAddress, buyTokenData2, { gasLimit: 10000000 })
+      let tx = userWrapAndNiftyswap.functions.wrapAndSwap(cost2, userAddress, buyTokenData2, HIGH_GAS_LIMIT)
       await expect(tx).to.be.fulfilled
     })
 
     context('When wrapAndSwap is completed', () => {
       beforeEach(async () => {
-        await userWrapAndNiftyswap.functions.wrapAndSwap(cost.add(100), userAddress, buyTokenData, { gasLimit: 10000000 })
+        await userWrapAndNiftyswap.functions.wrapAndSwap(cost.add(100), userAddress, buyTokenData, HIGH_GAS_LIMIT)
       })
 
       it('should update Tokens balances if it passes', async () => {
@@ -308,7 +308,7 @@ describe('WrapAndSwap', () => {
         types,
         tokensAmountsToSell,
         bad_sellTokenData,
-        { gasLimit: 10000000 }
+        HIGH_GAS_LIMIT,
       )
       await expect(tx).to.be.rejectedWith(
         RevertError('WrapAndNiftyswap#onERC1155BatchReceived: ORDER RECIPIENT MUST BE THIS CONTRACT')

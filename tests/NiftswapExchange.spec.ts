@@ -7,7 +7,8 @@ import {
   getBuyTokenData,
   getSellTokenData,
   getAddLiquidityData,
-  getRemoveLiquidityData
+  getRemoveLiquidityData,
+  OpCodeError
 } from './utils'
 
 import * as utils from './utils'
@@ -406,7 +407,7 @@ describe('NiftyswapExchange', () => {
             data,
             TX_PARAM
           )
-          await expect(tx2).to.be.rejectedWith(RevertError())
+          await expect(tx2).to.be.rejectedWith(OpCodeError())
 
           data = getAddLiquidityData([currencyAmount1, currencyAmount1], deadline)
           const tx3 = operatorERC1155Contract.functions.safeBatchTransferFrom(
@@ -456,7 +457,7 @@ describe('NiftyswapExchange', () => {
             data,
             TX_PARAM
           )
-          await expect(tx6).to.be.rejectedWith(RevertError())
+          await expect(tx6).to.be.rejectedWith(OpCodeError())
         })
 
         it('should REVERT if any duplicate', async () => {
@@ -995,7 +996,7 @@ describe('NiftyswapExchange', () => {
               data,
               TX_PARAM
             )
-            await expect(tx5).to.be.rejectedWith(RevertError())
+            await expect(tx5).to.be.rejectedWith(OpCodeError())
 
             data = getRemoveLiquidityData([currencyAmountToRemove, currencyAmountToRemove], [tokenAmountToRemove], deadline)
             const tx6 = operatorExchangeContract.functions.safeBatchTransferFrom(
@@ -1065,7 +1066,7 @@ describe('NiftyswapExchange', () => {
               data,
               TX_PARAM
             )
-            await expect(tx11).to.be.rejectedWith(RevertError())
+            await expect(tx11).to.be.rejectedWith(OpCodeError())
 
             data = getRemoveLiquidityData([currencyAmountToRemove], [tokenAmountToRemove, tokenAmountToRemove], deadline)
             const tx12 = operatorExchangeContract.functions.safeBatchTransferFrom(
@@ -1076,7 +1077,7 @@ describe('NiftyswapExchange', () => {
               data,
               TX_PARAM
             )
-            await expect(tx12).to.be.rejectedWith(RevertError())
+            await expect(tx12).to.be.rejectedWith(OpCodeError())
 
             data = getRemoveLiquidityData(
               [currencyAmountToRemove, currencyAmountToRemove],
@@ -1764,7 +1765,7 @@ describe('NiftyswapExchange', () => {
             data,
             TX_PARAM
           )
-          await expect(tx1).to.be.rejectedWith(RevertError())
+          await expect(tx1).to.be.rejectedWith(OpCodeError())
 
           data = getBuyTokenData(userAddress, [0], [tokenAmountToBuy, tokenAmountToBuy], deadline)
           const tx2 = userCurrencyContract.functions.safeTransferFrom(

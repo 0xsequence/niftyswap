@@ -1,7 +1,7 @@
 import {ethers, utils, BigNumber} from 'ethers'
 
 export const UNIT_ETH = utils.parseEther('1')
-export const HIGH_GAS_LIMIT = { gasLimit: 6e9 }
+export const HIGH_GAS_LIMIT = { gasLimit: 6_000_000 }
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 import { 
@@ -27,11 +27,16 @@ export const createTestWallet = (web3: any, addressIndex: number = 0) => {
 
 // Check if tx was Reverted with specified message
 export function RevertError(errorMessage?: string) {
-  let prefix = 'VM Exception while processing transaction: revert'
-  return errorMessage ? RegExp(`^${prefix + ' ' + errorMessage}$`) : RegExp(`^${prefix}$`)
+  if (!errorMessage) {
+    return /Transaction reverted and Hardhat couldn't infer the reason/
+  } else {
+    // return new RegExp(`${errorMessage}`)
+    return new RegExp(`VM Exception while processing transaction: reverted with reason string ["']${errorMessage}["']`)
+  }
 }
 // In some cases hardhat throws invalid op code when Ganache throws revert
 export const OpCodeError = () => RegExp('^VM Exception while processing transaction: (revert|invalid opcode)$')
+export const NoReasonError = () => RegExp('^Transaction reverted without a reason$')
 
 export const methodsSignature = {
   BUYTOKENS: "0xb2d81047",

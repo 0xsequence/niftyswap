@@ -3,12 +3,12 @@ import * as ethers from 'ethers'
 import {
   AbstractContract,
   expect,
+  NoReasonError,
   OpCodeError,
   RevertError,
   getSellTokenData20,
   getAddLiquidityData,
   getRemoveLiquidityData,
-  getBuyTokenData,
 } from './utils'
 
 import * as utils from './utils'
@@ -506,7 +506,7 @@ describe('NiftyswapExchange20', () => {
             data,
             TX_PARAM
           )
-          await expect(tx2).to.be.rejectedWith(OpCodeError())
+          await expect(tx2).to.be.rejectedWith(NoReasonError())
 
           data = getAddLiquidityData([currencyAmount1, currencyAmount1], deadline)
           const tx3 = operatorERC1155Contract.functions.safeBatchTransferFrom(
@@ -556,7 +556,7 @@ describe('NiftyswapExchange20', () => {
             data,
             TX_PARAM
           )
-          await expect(tx6).to.be.rejectedWith(OpCodeError())
+          await expect(tx6).to.be.rejectedWith(NoReasonError())
         })
 
         it('should REVERT if any duplicate', async () => {
@@ -1361,7 +1361,7 @@ describe('NiftyswapExchange20', () => {
               data,
               TX_PARAM
             )
-            await expect(tx5).to.be.rejectedWith(OpCodeError())
+            await expect(tx5).to.be.rejectedWith(NoReasonError())
 
             data = getRemoveLiquidityData([currencyAmountToRemove, currencyAmountToRemove], [tokenAmountToRemove], deadline)
             const tx6 = operatorExchangeContract.functions.safeBatchTransferFrom(
@@ -1431,7 +1431,7 @@ describe('NiftyswapExchange20', () => {
               data,
               TX_PARAM
             )
-            await expect(tx11).to.be.rejectedWith(OpCodeError())
+            await expect(tx11).to.be.rejectedWith(NoReasonError())
 
             data = getRemoveLiquidityData([currencyAmountToRemove], [tokenAmountToRemove, tokenAmountToRemove], deadline)
             const tx12 = operatorExchangeContract.functions.safeBatchTransferFrom(
@@ -1442,7 +1442,7 @@ describe('NiftyswapExchange20', () => {
               data,
               TX_PARAM
             )
-            await expect(tx12).to.be.rejectedWith(OpCodeError())
+            await expect(tx12).to.be.rejectedWith(NoReasonError())
 
             data = getRemoveLiquidityData(
               [currencyAmountToRemove, currencyAmountToRemove],
