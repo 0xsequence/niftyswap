@@ -617,7 +617,7 @@ Three main functions in NiftyswapExchange.sol are subjected to rounding errors: 
 For `_addLiquidity()`, the rounding error can occur at
 
 ```solidity
-uint256 currencyAmount = tokenAmount.mul(currencyReserve) / tokenReserve.sub(amount);
+uint256 currencyAmount = (tokenAmount * currencyReserve) / (tokenReserve - amount);
 ```
 
 where `currencyAmount` is the amount of currency that needs to be sent to NiftySwap for the given `tokenAmount` of token $i$ added to the liquidity. Rounding errors could lead to a smaller value of `currencyAmount` than expected, favoring the new liquidity provider, hence we add `1` to the amount that is required to be sent if a rounding error occurred. 
@@ -625,15 +625,15 @@ where `currencyAmount` is the amount of currency that needs to be sent to NiftyS
 Inversely, if a rounding error occurred when calculating the `currencyAmount`, the amount of liquidity tokens to be minted will favor the new liquidity provider instead of existing liquidity providers, which is undesirable. To compensate, we calculate the amount of liquidity token to mint to new liquidity provider as follow ; 
 
 ```solidity
-liquiditiesToMint[i] = (currencyAmount.sub(rounded ? 1 : 0)).mul(totalLiquidity) / currencyReserve
+liquiditiesToMint[i] = (currencyAmount - (rounded ? 1 : 0)) * totalLiquidity / currencyReserve
 ```
 
 For `buyTokens()`, the rounding error can occur at
 
 ```solidity
 // Calculate buy price of card
-uint256 numerator = _currencyReserve.mul(_tokenBoughtAmount);
-uint256 denominator = (_tokenReserve.sub(_tokenBoughtAmount));
+uint256 numerator = _currencyReserve * _tokenBoughtAmount;
+uint256 denominator = _tokenReserve - _tokenBoughtAmount;
 uint256 cost = numerator / denominator;
 ```
 
@@ -643,8 +643,8 @@ For `_tokenToCurrency()`, the rounding error can occur at
 
 ```solidity
 // Calculate sell price of card
-uint256 numerator = _tokenSoldAmount.mul(_currencyReserve);
-uint256 denominator = _tokenReserve.add(_tokenSoldAmount);
+uint256 numerator = _tokenSoldAmount * _currencyReserve;
+uint256 denominator = _tokenReserve + _tokenSoldAmount;
 uin256 revenue = numerator / denominator; 
 ```
 

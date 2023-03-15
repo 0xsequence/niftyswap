@@ -2,26 +2,21 @@
 # yarn lockfile v1
 
 
-"@0xsequence/erc-1155@3.2.4":
-  version "3.2.4"
-  resolved "https://registry.yarnpkg.com/@0xsequence/erc-1155/-/erc-1155-3.2.4.tgz#84efcdcafa7b35d7d013426aa274a3b18761bb83"
-  integrity sha512-HilZDnVmhlGjoJnpUSJEDCS6kHtCmpuAV0zvagKBOcq0fTFgNSnq1ateN2n2JGFKsEtk4kEQPn/y0Rk699da6g==
+"@0xsequence/erc-1155@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@0xsequence/erc-1155/-/erc-1155-4.0.0.tgz#187d13ce84c95b4348fde09535cd83b0151c42e4"
+  integrity sha512-N0lR3qnryAMEWeiIvfI413LZYSdFwkZ+AxBgch23DwFdo7ugr2n5g/SsmhPsMoray3Syf78MCRKNDMuDU7t26Q==
   optionalDependencies:
     "@ethersproject/abi" "^5.7.0"
     "@ethersproject/providers" "^5.7.2"
     ethers "^5.7.2"
 
-"@0xsequence/erc-1155@^3.1.0":
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/@0xsequence/erc-1155/-/erc-1155-3.1.0.tgz#0e3b4ccf23afee38db490c9084fa248461ebfea7"
-  integrity sha512-nJqCN0MY+hboHF74p5RXv4MR702beMDv2Wh69I8yjvUXk8XUlgy7qyKVnXUSlWIUNIGYL05yASpIeKmMNs2Z6A==
-
-"@0xsequence/erc20-meta-token@3.2.0":
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/@0xsequence/erc20-meta-token/-/erc20-meta-token-3.2.0.tgz#d0a974166957e968066c867c5efba10bcc7cfb70"
-  integrity sha512-yc0JoFutZ+5tUYjLffY9mGOyRb3w6CQeDsMDIqJrDaC/0aJEb2tUbB78r9rzi0B+ylhWqs5OSNybc7hSSQLEXQ==
+"@0xsequence/erc20-meta-token@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@0xsequence/erc20-meta-token/-/erc20-meta-token-4.0.0.tgz#326958d9c6db535b820bad166c45699fd3986ed9"
+  integrity sha512-e4+sN5V2rv7xCcLHvPN2nC7N/6WrL9EUc9cFbVBQE01yUCsBMH4UDHuvKPKS9CFBVfP0LSeeXZNlxJr3SaqzHA==
   dependencies:
-    "@0xsequence/erc-1155" "^3.1.0"
+    "@0xsequence/erc-1155" "^4.0.0"
 
 "@babel/code-frame@^7.0.0":
   version "7.12.13"
@@ -5083,7 +5078,7 @@ hardhat-gas-reporter@1.0.9:
     eth-gas-reporter "^0.2.25"
     sha1 "^1.1.1"
 
-hardhat@2.13.0, hardhat@^2.10.2:
+hardhat@^2.10.2, hardhat@^2.13.0:
   version "2.13.0"
   resolved "https://registry.yarnpkg.com/hardhat/-/hardhat-2.13.0.tgz#d52a0ec9b733a651687e5b1c1b0ee9a11a30f3d0"
   integrity sha512-ZlzBOLML1QGlm6JWyVAG8lVTEAoOaVm1in/RU2zoGAnYEoD1Rp4T+ZMvrLNhHaaeS9hfjJ1gJUBfiDr4cx+htQ==

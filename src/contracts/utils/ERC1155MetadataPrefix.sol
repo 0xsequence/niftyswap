@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity 0.7.4;
+pragma solidity ^0.8.0;
 
 import "../interfaces/IERC1155Metadata.sol";
 import "./Ownable.sol";
@@ -59,7 +59,7 @@ contract ERC1155MetadataPrefix is IERC1155Metadata, Ownable {
     while (v != 0) {
       uint256 remainder = v % 10;
       v = v / 10;
-      reversed[i++] = byte(uint8(48 + remainder));
+      reversed[i++] = bytes1(uint8(48 + remainder));
     }
 
     bytes memory s = new bytes(i);

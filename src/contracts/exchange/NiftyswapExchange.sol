@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity 0.7.4;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.0;
+
 import "../interfaces/INiftyswapExchange.sol";
 import "../utils/ReentrancyGuard.sol";
 import "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
@@ -25,7 +25,6 @@ import "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
  *      some collaboration between liquidity providers.
  */
 contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchange {
-  using SafeMath for uint256;
 
   /***********************************|
   |       Variables & Constants       |
@@ -130,13 +129,13 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
 
       // Calculate currency token amount to refund (if any) where whatever is not used will be returned
       // Will throw if total cost exceeds _maxCurrency
-      totalRefundCurrency = totalRefundCurrency.sub(currencyAmount);
+      totalRefundCurrency -= currencyAmount;
 
       // Append Token id, Token id amount and currency token amount to tracking arrays
       currencySold[i] = currencyAmount;
 
       // Update individual currency reseve amount
-      currencyReserves[idBought] = currencyReserve.add(currencyAmount);
+      currencyReserves[idBought] = currencyReserve + currencyAmount;
     }
 
     // Refund currency token if any
@@ -166,8 +165,8 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
     require(_assetSoldReserve > 0 && _assetBoughtReserve > 0, "NiftyswapExchange#getBuyPrice: EMPTY_RESERVE");
 
     // Calculate price with fee
-    uint256 numerator = _assetSoldReserve.mul(_assetBoughtAmount).mul(1000);
-    uint256 denominator = (_assetBoughtReserve.sub(_assetBoughtAmount)).mul(FEE_MULTIPLIER);
+    uint256 numerator = _assetSoldReserve * _assetBoughtAmount * 1000;
+    uint256 denominator = (_assetBoughtReserve - _assetBoughtAmount) * FEE_MULTIPLIER;
     (price, ) = divRound(numerator, denominator);
     return price; // Will add 1 if rounding error
   }
@@ -225,13 +224,13 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
       // Get amount of currency that will be received
       // Need to sub amountSold because tokens already added in reserve, which would bias the calculation
       // Don't need to add it for currencyReserve because the amount is added after this calculation
-      uint256 currencyAmount = getSellPrice(amountSold, tokenReserve.sub(amountSold), currencyReserve);
+      uint256 currencyAmount = getSellPrice(amountSold, tokenReserve - amountSold, currencyReserve);
 
       // Increase cost of transaction
-      totalCurrency = totalCurrency.add(currencyAmount);
+      totalCurrency += currencyAmount;
 
       // Update individual currency reseve amount
-      currencyReserves[idSold] = currencyReserve.sub(currencyAmount);
+      currencyReserves[idSold] = currencyReserve - currencyAmount;
 
       // Append Token id, Token id amount and currency token amount to tracking arrays
       currencyBought[i] = currencyAmount;
@@ -263,9 +262,9 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
     require(_assetSoldReserve > 0 && _assetBoughtReserve > 0, "NiftyswapExchange#getSellPrice: EMPTY_RESERVE");
 
     // Calculate amount to receive (with fee)
-    uint256 _assetSoldAmount_withFee = _assetSoldAmount.mul(FEE_MULTIPLIER);
-    uint256 numerator = _assetSoldAmount_withFee.mul(_assetBoughtReserve);
-    uint256 denominator = _assetSoldReserve.mul(1000).add(_assetSoldAmount_withFee);
+    uint256 _assetSoldAmount_withFee = _assetSoldAmount * FEE_MULTIPLIER;
+    uint256 numerator = _assetSoldAmount_withFee * _assetBoughtReserve;
+    uint256 denominator = (_assetSoldReserve * 1000) + _assetSoldAmount_withFee;
     return numerator / denominator; //Rounding errors will favor Niftyswap, so nothing to do
   }
 
@@ -347,25 +346,25 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
         *   dy: Amount of token _id deposited
         *   dx: Amount of currency to deposit
         *
-        * Adding .add(1) if rounding errors so to not favor users incorrectly
+        * Adding 1 if rounding errors so to not favor users incorrectly
         */
-        (uint256 currencyAmount, bool rounded) = divRound(amount.mul(currencyReserve), tokenReserve.sub(amount));
+        (uint256 currencyAmount, bool rounded) = divRound(amount * currencyReserve, tokenReserve - amount);
         require(_maxCurrency[i] >= currencyAmount, "NiftyswapExchange#_addLiquidity: MAX_CURRENCY_AMOUNT_EXCEEDED");
 
         // Update currency reserve size for Token id before transfer
-        currencyReserves[tokenId] = currencyReserve.add(currencyAmount);
+        currencyReserves[tokenId] = currencyReserve + currencyAmount;
 
         // Update totalCurrency
-        totalCurrency = totalCurrency.add(currencyAmount);
+        totalCurrency += currencyAmount;
 
         // Proportion of the liquidity pool to give to current liquidity provider
         // If rounding error occured, round down to favor previous liquidity providers
         // See https://github.com/0xsequence/niftyswap/issues/19
-        liquiditiesToMint[i] = (currencyAmount.sub(rounded ? 1 : 0)).mul(totalLiquidity) / currencyReserve;
+        liquiditiesToMint[i] = (currencyAmount - (rounded ? 1 : 0)) * totalLiquidity / currencyReserve;
         currencyAmounts[i] = currencyAmount;
 
         // Mint liquidity ownership tokens and increase liquidity supply accordingly
-        totalSupplies[tokenId] = totalLiquidity.add(liquiditiesToMint[i]);
+        totalSupplies[tokenId] = totalLiquidity + liquiditiesToMint[i];
 
       } else {
         uint256 maxCurrency = _maxCurrency[i];
@@ -377,7 +376,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
         currencyReserves[tokenId] = maxCurrency;
 
         // Update totalCurrency
-        totalCurrency = totalCurrency.add(maxCurrency);
+        totalCurrency += maxCurrency;
 
         // Initial liquidity is amount deposited (Incorrect pricing will be arbitraged)
         // uint256 initialLiquidity = _maxCurrency;
@@ -421,22 +420,22 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
     uint256 soldTokenNumerator,
     uint256 boughtCurrencyNumerator
   ) {
-    uint256 currencyNumerator = _amountPool.mul(_currencyReserve);
-    uint256 tokenNumerator = _amountPool.mul(_tokenReserve);
+    uint256 currencyNumerator = _amountPool * _currencyReserve;
+    uint256 tokenNumerator = _amountPool * _tokenReserve;
 
     // Convert all tokenProduct rest to currency
     soldTokenNumerator = tokenNumerator % _totalLiquidity;
     if (soldTokenNumerator != 0) {
       // The trade happens "after" funds are out of the pool
       // so we need to remove these funds before computing the rate
-      uint256 virtualTokenReserve = _tokenReserve.sub(tokenNumerator / _totalLiquidity).mul(_totalLiquidity);
-      uint256 virtualCurrencyReserve = _currencyReserve.sub(currencyNumerator / _totalLiquidity).mul(_totalLiquidity);
+      uint256 virtualTokenReserve = (_tokenReserve - (tokenNumerator / _totalLiquidity)) * _totalLiquidity;
+      uint256 virtualCurrencyReserve = (_currencyReserve - (currencyNumerator / _totalLiquidity)) * _totalLiquidity;
 
       // Skip process if any of the two reserves is left empty
       // this step is important to avoid an error withdrawing all left liquidity
       if (virtualCurrencyReserve != 0 && virtualTokenReserve != 0) {
         boughtCurrencyNumerator = getSellPrice(soldTokenNumerator, virtualTokenReserve, virtualCurrencyReserve);
-        currencyNumerator = currencyNumerator.add(boughtCurrencyNumerator);
+        currencyNumerator += boughtCurrencyNumerator;
       }
     }
 
@@ -524,13 +523,13 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
       require(tokenAmount >= _minTokens[i], "NiftyswapExchange#_removeLiquidity: INSUFFICIENT_TOKENS");
 
       // Update total liquidity pool token supply of Token _id
-      totalSupplies[id] = totalLiquidity.sub(amountPool);
+      totalSupplies[id] = totalLiquidity - amountPool;
 
       // Update currency reserve size for Token id
-      currencyReserves[id] = currencyReserve.sub(currencyAmount);
+      currencyReserves[id] = currencyReserve - currencyAmount;
 
       // Update totalCurrency and tokenAmounts
-      totalCurrency = totalCurrency.add(currencyAmount);
+      totalCurrency += currencyAmount;
       tokenAmounts[i] = tokenAmount;
 
       eventObjs[i].currencyAmount = currencyAmount;
@@ -834,7 +833,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
    * @param b Denominator
    */
   function divRound(uint256 a, uint256 b) internal pure returns (uint256, bool) {
-    return a % b == 0 ? (a/b, false) : ((a/b).add(1), true);
+    return a % b == 0 ? (a/b, false) : ((a/b) + 1, true);
   }
 
   /**

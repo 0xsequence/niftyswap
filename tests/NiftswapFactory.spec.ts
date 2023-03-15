@@ -1,6 +1,6 @@
 import * as ethers from 'ethers'
 
-import { AbstractContract, BigNumber, expect, RevertError } from './utils'
+import { AbstractContract, BigNumber, expect, HIGH_GAS_LIMIT, RevertError } from './utils'
 
 import * as utils from './utils'
 

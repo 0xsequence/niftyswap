@@ -23,8 +23,8 @@
     "ethers": "^5.0.32"
   },
   "dependencies": {
-    "@0xsequence/erc-1155": "3.2.4",
-    "@0xsequence/erc20-meta-token": "3.2.0",
+    "@0xsequence/erc-1155": "^4.0.0",
+    "@0xsequence/erc20-meta-token": "^4.0.0",
     "@uniswap/lib": "^4.0.1-alpha"
   },
   "devDependencies": {

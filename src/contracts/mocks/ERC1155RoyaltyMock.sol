@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity 0.7.4;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.0;
+
 import "@0xsequence/erc-1155/contracts/mocks/ERC1155MintBurnMock.sol";
 import "../interfaces/IERC2981.sol";
-
 
 contract ERC1155RoyaltyMock is ERC1155MintBurnMock {
   constructor() ERC1155MintBurnMock("TestERC1155", "") {}
 
-  using SafeMath for uint256;
   uint256 public royaltyFee;
   address public royaltyRecipient;
   uint256 public royaltyFee666;
@@ -25,10 +23,10 @@ contract ERC1155RoyaltyMock is ERC1155MintBurnMock {
    */
   function royaltyInfo(uint256 _tokenId, uint256 _salePrice) external view returns (address receiver, uint256 royaltyAmount) {
     if (_tokenId == 666) {
-      uint256 fee = _salePrice.mul(royaltyFee666).div(10000);
+      uint256 fee = _salePrice * royaltyFee666 / 10000;
       return (royaltyRecipient666, fee);
     } else {
-      uint256 fee = _salePrice.mul(royaltyFee).div(10000);
+      uint256 fee = _salePrice * royaltyFee / 10000;
       return (royaltyRecipient, fee);
     }
   }

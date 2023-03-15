@@ -7,7 +7,7 @@ import '@tenderly/hardhat-tenderly'
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: '0.7.4',
+    version: '0.8.16', // Matches forge version
     settings: {
       optimizer: {
         enabled: true,

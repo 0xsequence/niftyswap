@@ -35,8 +35,10 @@ export function RevertError(errorMessage?: string) {
   }
 }
 // In some cases hardhat throws invalid op code when Ganache throws revert
+export const CallError = () => /call revert exception/
 export const OpCodeError = () => RegExp('^VM Exception while processing transaction: (revert|invalid opcode)$')
-export const NoReasonError = () => RegExp('^Transaction reverted without a reason$')
+export const ArrayAccessError = () => /Array accessed at an out-of-bounds or negative index/
+export const RevertUnsafeMathError = () => /Arithmetic operation .*flowed/
 
 export const methodsSignature = {
   BUYTOKENS: "0xb2d81047",

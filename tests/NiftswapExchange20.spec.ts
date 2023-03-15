@@ -3,12 +3,14 @@ import * as ethers from 'ethers'
 import {
   AbstractContract,
   expect,
-  NoReasonError,
   OpCodeError,
   RevertError,
   getSellTokenData20,
   getAddLiquidityData,
   getRemoveLiquidityData,
+  RevertUnsafeMathError,
+  CallError,
+  ArrayAccessError,
 } from './utils'
 
 import * as utils from './utils'
@@ -506,7 +508,7 @@ describe('NiftyswapExchange20', () => {
             data,
             TX_PARAM
           )
-          await expect(tx2).to.be.rejectedWith(NoReasonError())
+          await expect(tx2).to.be.rejectedWith(ArrayAccessError())
 
           data = getAddLiquidityData([currencyAmount1, currencyAmount1], deadline)
           const tx3 = operatorERC1155Contract.functions.safeBatchTransferFrom(
@@ -556,7 +558,7 @@ describe('NiftyswapExchange20', () => {
             data,
             TX_PARAM
           )
-          await expect(tx6).to.be.rejectedWith(NoReasonError())
+          await expect(tx6).to.be.rejectedWith(ArrayAccessError())
         })
 
         it('should REVERT if any duplicate', async () => {
@@ -981,7 +983,7 @@ describe('NiftyswapExchange20', () => {
             removeLiquidityData,
             { gasLimit: 8000000 }
           )
-          await expect(tx).to.be.rejectedWith(RevertError('SafeMath#sub: UNDERFLOW'))
+          await expect(tx).to.be.rejectedWith(RevertUnsafeMathError())
         })
 
         it('should revert if empty reserve', async () => {
@@ -1361,7 +1363,7 @@ describe('NiftyswapExchange20', () => {
               data,
               TX_PARAM
             )
-            await expect(tx5).to.be.rejectedWith(NoReasonError())
+            await expect(tx5).to.be.rejectedWith(ArrayAccessError())
 
             data = getRemoveLiquidityData([currencyAmountToRemove, currencyAmountToRemove], [tokenAmountToRemove], deadline)
             const tx6 = operatorExchangeContract.functions.safeBatchTransferFrom(
@@ -1431,7 +1433,7 @@ describe('NiftyswapExchange20', () => {
               data,
               TX_PARAM
             )
-            await expect(tx11).to.be.rejectedWith(NoReasonError())
+            await expect(tx11).to.be.rejectedWith(ArrayAccessError())
 
             data = getRemoveLiquidityData([currencyAmountToRemove], [tokenAmountToRemove, tokenAmountToRemove], deadline)
             const tx12 = operatorExchangeContract.functions.safeBatchTransferFrom(
@@ -1442,7 +1444,7 @@ describe('NiftyswapExchange20', () => {
               data,
               TX_PARAM
             )
-            await expect(tx12).to.be.rejectedWith(NoReasonError())
+            await expect(tx12).to.be.rejectedWith(ArrayAccessError())
 
             data = getRemoveLiquidityData(
               [currencyAmountToRemove, currencyAmountToRemove],
@@ -1709,7 +1711,7 @@ describe('NiftyswapExchange20', () => {
             { gasLimit: 8000000 }
           )
           if (condition[1] != 2) {
-            await expect(tx).to.be.rejectedWith(RevertError('SafeMath#sub: UNDERFLOW'))
+            await expect(tx).to.be.rejectedWith(RevertUnsafeMathError())
           } else {
             await expect(tx).to.be.rejectedWith(RevertError(erc1155_error_prefix + '_viewUpdateBinValue: UNDERFLOW'))
           }
@@ -2192,7 +2194,7 @@ describe('NiftyswapExchange20', () => {
             extraFeeArray,
             { gasLimit: 8000000 }
           )
-          await expect(tx1).to.be.rejectedWith(OpCodeError())
+          await expect(tx1).to.be.rejectedWith(ArrayAccessError())
 
           const tx2 = userExchangeContract.functions.buyTokens(
             [0],
@@ -2234,7 +2236,7 @@ describe('NiftyswapExchange20', () => {
             [BigNumber.from(1)],
             { gasLimit: 8000000 }
           )
-          await expect(tx).to.be.rejectedWith(RevertError("SafeMath#sub: UNDERFLOW"))
+          await expect(tx).to.be.rejectedWith(RevertUnsafeMathError())
         })
 
         describe('When trade is successful', async () => {
@@ -2671,7 +2673,7 @@ describe('NiftyswapExchange20', () => {
 
           // Trying to buy the only tokn will fail as it will cause a division by 0
           let tx = niftyswapExchangeContract.functions.getPrice_currencyToToken([types[0]], [1])
-          await expect(tx).to.be.rejectedWith(OpCodeError())
+          await expect(tx).to.be.rejectedWith(CallError())
         })
 
         it('Pool stuck at 1 token can go back up to normal with loss', async () => {
