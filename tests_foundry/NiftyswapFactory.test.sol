@@ -4,8 +4,7 @@ pragma solidity ^0.8.0;
 import {NiftyswapFactory} from "src/contracts/exchange/NiftyswapFactory.sol";
 import {ERC1155Mock} from "src/contracts/mocks/ERC1155Mock.sol";
 
-import "forge-std/Test.sol";
-import "forge-std/Vm.sol";
+import {Test, Vm, console} from "forge-std/Test.sol";
 
 contract NiftyswapFactoryTest is Test {
     // Events can't be imported
@@ -23,40 +22,66 @@ contract NiftyswapFactoryTest is Test {
         erc1155B = address(new ERC1155Mock());
     }
 
-    function test_createExchange() external {
-        // Happy path
+    function test_createExchange_happyPath() external {
         vm.expectEmit(true, true, true, false);
         emit NewExchange(erc1155A, erc1155B, BASE_TOKEN_ID, address(0));
         factory.createExchange(erc1155A, erc1155B, BASE_TOKEN_ID);
 
         address ex = factory.tokensToExchange(erc1155A, erc1155B, BASE_TOKEN_ID);
         assertFalse(ex == address(0));
+    }
 
-        // Already created
+    function test_createExchange_alreadyCreated() external {
+        createExchange();
+
         vm.expectRevert("NiftyswapFactory#createExchange: EXCHANGE_ALREADY_CREATED");
         factory.createExchange(erc1155A, erc1155B, BASE_TOKEN_ID);
+    }
 
-        // Revert on 0x0
+    function test_createExchange_revertOnZeroAddr() external {
         vm.expectRevert('NiftyswapExchange#constructor:INVALID_INPUT');
         factory.createExchange(address(0), erc1155B, BASE_TOKEN_ID);
         vm.expectRevert('NiftyswapExchange#constructor:INVALID_INPUT');
         factory.createExchange(erc1155A, address(0), BASE_TOKEN_ID);
+    }
 
-        // New base token id
+    function test_createExchange_newBaseTokenId() external {
+        createExchange();
+
         vm.expectEmit(true, true, true, false);
         emit NewExchange(erc1155A, erc1155B, BASE_TOKEN_ID + 1, address(0));
         factory.createExchange(erc1155A, erc1155B, BASE_TOKEN_ID + 1);
 
-        ex = factory.tokensToExchange(erc1155A, erc1155B, BASE_TOKEN_ID + 1);
+        address ex = factory.tokensToExchange(erc1155A, erc1155B, BASE_TOKEN_ID + 1);
         assertFalse(ex == address(0));
+    }
 
-        // Same contracts
+    function test_createExchange_sameContract() external {
         vm.expectEmit(true, true, true, false);
         emit NewExchange(erc1155A, erc1155A, BASE_TOKEN_ID, address(0));
         factory.createExchange(erc1155A, erc1155A, BASE_TOKEN_ID);
 
-        ex = factory.tokensToExchange(erc1155A, erc1155A, BASE_TOKEN_ID);
+        address ex = factory.tokensToExchange(erc1155A, erc1155A, BASE_TOKEN_ID);
         assertFalse(ex == address(0));
+    }
+
+    //
+    // Helpers
+    //
+
+    function createExchange() private {
+        factory.createExchange(erc1155A, erc1155B, BASE_TOKEN_ID);
+    }
+
+    /**
+     * Skip a test.
+     */
+    modifier skipTest() {
+        console.log("Test skipped");
+        if (false) {
+            // Required for compiler
+            _;
+        }
     }
 
 }
