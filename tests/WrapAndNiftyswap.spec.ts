@@ -7,17 +7,12 @@ import {
   getBuyTokenData,
   getSellTokenData,
   getAddLiquidityData,
-  HIGH_GAS_LIMIT,
+  HIGH_GAS_LIMIT
 } from './utils'
 
 import * as utils from './utils'
 
-import {
-  ERC1155Mock,
-  NiftyswapExchange,
-  NiftyswapFactory,
-  WrapAndNiftyswap
-} from 'src/gen/typechain'
+import { ERC1155Mock, NiftyswapExchange, NiftyswapFactory, WrapAndNiftyswap } from 'src/gen/typechain'
 
 import { ERC20Mock, ERC20Wrapper } from '@0xsequence/erc20-meta-token'
 
@@ -88,9 +83,7 @@ describe('WrapAndSwap', () => {
 
   // Add liquidity data
   const tokenAmountToAdd = BigNumber.from(300)
-  const currencyAmountToAdd = BigNumber.from(10)
-    .pow(18)
-    .mul(299)
+  const currencyAmountToAdd = BigNumber.from(10).pow(18).mul(299)
 
   // Transactions parameters
   const TX_PARAM = { gasLimit: 5000000 }
@@ -180,12 +173,7 @@ describe('WrapAndSwap', () => {
     await ownerERC20Contract.functions.mockMint(userAddress, currencyAmount)
 
     // Wrap some tokens for niftyswap liquidity
-    await operatorERC20Contract.functions.approve(
-      ownerTokenWrapper.address,
-      BigNumber.from(2)
-        .pow(256)
-        .sub(1)
-    )
+    await operatorERC20Contract.functions.approve(ownerTokenWrapper.address, BigNumber.from(2).pow(256).sub(1))
     await operatorTokenWrapper.functions.deposit(
       operatorERC20Contract.address,
       operatorAddress,
@@ -207,13 +195,7 @@ describe('WrapAndSwap', () => {
     )
 
     // User approves wrapAndSwap
-    await userERC20Contract.functions.approve(
-      userWrapAndNiftyswap.address,
-      BigNumber.from(2)
-        .pow(256)
-        .sub(1),
-      TX_PARAM
-    )
+    await userERC20Contract.functions.approve(userWrapAndNiftyswap.address, BigNumber.from(2).pow(256).sub(1), TX_PARAM)
   })
 
   describe('wrapAndSwap() function', () => {
@@ -308,7 +290,7 @@ describe('WrapAndSwap', () => {
         types,
         tokensAmountsToSell,
         bad_sellTokenData,
-        HIGH_GAS_LIMIT,
+        HIGH_GAS_LIMIT
       )
       await expect(tx).to.be.rejectedWith(
         RevertError('WrapAndNiftyswap#onERC1155BatchReceived: ORDER RECIPIENT MUST BE THIS CONTRACT')

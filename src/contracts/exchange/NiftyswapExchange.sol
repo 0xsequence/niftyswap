@@ -749,7 +749,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
     /**
      * @notice Prevents receiving Ether or calls to unsuported methods
      */
-    fallback() external { // solhint-disable-line payable-fallback
+    fallback() external {
         revert("NiftyswapExchange:UNSUPPORTED_METHOD");
     }
 

@@ -3,14 +3,13 @@ import * as ethers from 'ethers'
 import {
   AbstractContract,
   expect,
-  OpCodeError,
   RevertError,
   getSellTokenData20,
   getAddLiquidityData,
   getRemoveLiquidityData,
   RevertUnsafeMathError,
   CallError,
-  ArrayAccessError,
+  ArrayAccessError
 } from './utils'
 
 import * as utils from './utils'
@@ -83,14 +82,12 @@ describe('NiftyswapExchange20', () => {
   // Fees param
   let LP_FEE
   let LP_FEE_MULTIPLIER
-  const ROYALTY_FEE = 200               // 2%
-  const EXTRA_FEE = 66667777            // flat fee
+  const ROYALTY_FEE = 200 // 2%
+  const EXTRA_FEE = 66667777 // flat fee
 
   // Add liquidity data
   const tokenAmountToAdd = BigNumber.from(300)
-  const currencyAmountToAdd = BigNumber.from(10)
-    .pow(18)
-    .mul(299)
+  const currencyAmountToAdd = BigNumber.from(10).pow(18).mul(299)
 
   // Transactions parameters
   const TX_PARAM = { gasLimit: 5000000 }
@@ -125,7 +122,7 @@ describe('NiftyswapExchange20', () => {
     ['ERC-2981 Token Contract with 2% royalty', 4],
     ['Regular Token Contract with 2% royalty', 5],
     ['ERC-2981 Token Contract with 2% royalty and fixed extra fee', 6],
-    ['ERC-2981 Token Contract with 2% royalty and fixed extra fee with 10% LP fee', 7],
+    ['ERC-2981 Token Contract with 2% royalty and fixed extra fee with 10% LP fee', 7]
   ]
 
   let erc1155_error_prefix
@@ -136,7 +133,7 @@ describe('NiftyswapExchange20', () => {
   let extraFeeArray: BigNumber[] = []
   let extraFeeRecipients: string[] = []
 
-  conditions.forEach(function(condition) {
+  conditions.forEach(function (condition) {
     context(condition[0] as string, () => {
       // deploy before each test, to reset state of contract
       beforeEach(async () => {
@@ -147,21 +144,18 @@ describe('NiftyswapExchange20', () => {
           userERC1155Contract = (await ownerERC1155Contract.connect(userSigner)) as ERC1155Mock
           erc1155_error_prefix = 'ERC1155#'
           royaltyFee = BigNumber.from(0)
-
         } else if (condition[1] == 2) {
           ownerERC1155Contract = (await erc1155PackedAbstract.deploy(ownerWallet)) as ERC1155PackedBalanceMock
           operatorERC1155Contract = (await ownerERC1155Contract.connect(operatorSigner)) as ERC1155PackedBalanceMock
           userERC1155Contract = (await ownerERC1155Contract.connect(userSigner)) as ERC1155PackedBalanceMock
           erc1155_error_prefix = 'ERC1155PackedBalance#'
           royaltyFee = BigNumber.from(0)
-
         } else if (condition[1] == 3) {
           ownerERC1155Contract = (await erc1155RoyaltyAbstract.deploy(ownerWallet)) as ERC1155RoyaltyMock
           operatorERC1155Contract = (await ownerERC1155Contract.connect(operatorSigner)) as ERC1155RoyaltyMock
           userERC1155Contract = (await ownerERC1155Contract.connect(userSigner)) as ERC1155RoyaltyMock
           erc1155_error_prefix = 'ERC1155#'
           royaltyFee = BigNumber.from(0)
-          
         } else if (condition[1] == 4 || condition[1] == 6 || condition[1] == 7) {
           ownerERC1155Contract = (await erc1155RoyaltyAbstract.deploy(ownerWallet)) as ERC1155RoyaltyMock
           operatorERC1155Contract = (await ownerERC1155Contract.connect(operatorSigner)) as ERC1155RoyaltyMock
@@ -173,7 +167,7 @@ describe('NiftyswapExchange20', () => {
           await (ownerERC1155Contract as ERC1155RoyaltyMock).functions.setFeeRecipient(randomAddress)
 
           erc1155_error_prefix = 'ERC1155#'
-        } 
+        }
 
         // Deploy Currency Token contract
         ownerCurrencyContract = (await erc20Abstract.deploy(ownerWallet)) as ERC20TokenMock
@@ -188,7 +182,7 @@ describe('NiftyswapExchange20', () => {
         } else {
           LP_FEE = 10 // 1%
         }
-        LP_FEE_MULTIPLIER = 1000-LP_FEE // 1%
+        LP_FEE_MULTIPLIER = 1000 - LP_FEE // 1%
 
         // Create exchange contract for the ERC-20/1155 token
         await niftyswapFactoryContract.functions.createExchange(
@@ -212,11 +206,11 @@ describe('NiftyswapExchange20', () => {
         niftyswapExchangeContract = new ethers.Contract(exchangeAddress, exchangeABI, ownerWallet) as NiftyswapExchange20
         operatorExchangeContract = (await niftyswapExchangeContract.connect(operatorSigner)) as NiftyswapExchange20
         userExchangeContract = (await niftyswapExchangeContract.connect(userSigner)) as NiftyswapExchange20
-        
+
         // Set royalty for condition 5
         if (condition[1] == 5) {
           royaltyFee = BigNumber.from(ROYALTY_FEE)
-          await niftyswapExchangeContract.functions.setRoyaltyInfo(ROYALTY_FEE, randomAddress, {gasLimit: 8000000})
+          await niftyswapExchangeContract.functions.setRoyaltyInfo(ROYALTY_FEE, randomAddress, { gasLimit: 8000000 })
         }
 
         // Set extra fees for condition 6
@@ -300,12 +294,12 @@ describe('NiftyswapExchange20', () => {
 
             // Calculate the price manually with floats
             const numerator = bought_amount * sellReserve * 1000
-            const denominator =  (buyReserve - bought_amount) * LP_FEE_MULTIPLIER
+            const denominator = (buyReserve - bought_amount) * LP_FEE_MULTIPLIER
             const floatPrice = numerator / denominator // Price without rounding
 
             // Get the price from the contract
             const price = await niftyswapExchangeContract.functions.getBuyPrice(bought_amount, sellReserve, buyReserve)
-            expect(price[0]).to.be.eql(BigNumber.from(Math.ceil(floatPrice))) 
+            expect(price[0]).to.be.eql(BigNumber.from(Math.ceil(floatPrice)))
           })
         })
 
@@ -313,16 +307,16 @@ describe('NiftyswapExchange20', () => {
           it('should round DOWN', async () => {
             let sold_amount = 100
             let buyReserve = 1500
-            let sellReserve = 751 
+            let sellReserve = 751
 
             // Calculate price manually with floats
             const numerator = sold_amount * LP_FEE_MULTIPLIER * buyReserve
-            const denominator =  sellReserve * 1000 + sold_amount * LP_FEE_MULTIPLIER
+            const denominator = sellReserve * 1000 + sold_amount * LP_FEE_MULTIPLIER
             const floatPrice = numerator / denominator // Price without rounding
 
             // Get the price from the contract directly
             const price = await niftyswapExchangeContract.functions.getSellPrice(sold_amount, sellReserve, buyReserve)
-            expect(price[0]).to.be.eql(BigNumber.from(Math.floor(floatPrice))) 
+            expect(price[0]).to.be.eql(BigNumber.from(Math.floor(floatPrice)))
           })
         })
 
@@ -570,9 +564,7 @@ describe('NiftyswapExchange20', () => {
             addLiquidityData,
             { gasLimit: 50000000 }
           )
-          await expect(tx1).to.be.rejectedWith(
-            RevertError('NE20#32')
-          )
+          await expect(tx1).to.be.rejectedWith(RevertError('NE20#32'))
 
           const tx2 = operatorERC1155Contract.functions.safeBatchTransferFrom(
             operatorAddress,
@@ -582,9 +574,7 @@ describe('NiftyswapExchange20', () => {
             addLiquidityData,
             { gasLimit: 50000000 }
           )
-          await expect(tx2).to.be.rejectedWith(
-            RevertError('NE20#32')
-          )
+          await expect(tx2).to.be.rejectedWith(RevertError('NE20#32'))
 
           const tx3 = operatorERC1155Contract.functions.safeBatchTransferFrom(
             operatorAddress,
@@ -594,9 +584,7 @@ describe('NiftyswapExchange20', () => {
             addLiquidityData,
             { gasLimit: 50000000 }
           )
-          await expect(tx3).to.be.rejectedWith(
-            RevertError('NE20#32')
-          )
+          await expect(tx3).to.be.rejectedWith(RevertError('NE20#32'))
         })
 
         context('When liquidity was added', () => {
@@ -790,7 +778,11 @@ describe('NiftyswapExchange20', () => {
               let prefixMetadataContract: ERC1155MetadataPrefix
 
               beforeEach(async () => {
-                prefixMetadataContract = (await erc1155MetadataPrefixAbstract.deploy(ownerWallet, ["", true, ownerWallet.address])) as ERC1155MetadataPrefix
+                prefixMetadataContract = (await erc1155MetadataPrefixAbstract.deploy(ownerWallet, [
+                  '',
+                  true,
+                  ownerWallet.address,
+                ])) as ERC1155MetadataPrefix
                 await niftyswapFactoryContract.setMetadataContract(prefixMetadataContract.address)
               })
 
@@ -800,7 +792,7 @@ describe('NiftyswapExchange20', () => {
               })
 
               it('should return prefixed `id@address` of token', async () => {
-                await prefixMetadataContract.functions.setUriPrefix("https://sequence.app/")
+                await prefixMetadataContract.functions.setUriPrefix('https://sequence.app/')
                 const uri = (await niftyswapExchangeContract.functions.uri(1))[0]
                 expect(uri).to.be.eql(`https://sequence.app/1@${niftyswapExchangeContract.address.toLowerCase()}`)
               })
@@ -812,9 +804,13 @@ describe('NiftyswapExchange20', () => {
               })
 
               it('should change metadata implementation', async () => {
-                const prefixMetadataContract2 = (await erc1155MetadataPrefixAbstract.deploy(ownerWallet, ["", false, ownerWallet.address])) as ERC1155MetadataPrefix
+                const prefixMetadataContract2 = (await erc1155MetadataPrefixAbstract.deploy(ownerWallet, [
+                  '',
+                  false,
+                  ownerWallet.address,
+                ])) as ERC1155MetadataPrefix
                 await niftyswapFactoryContract.setMetadataContract(prefixMetadataContract2.address)
-                await prefixMetadataContract2.functions.setUriPrefix("https://v2.sequence.app/")
+                await prefixMetadataContract2.functions.setUriPrefix('https://v2.sequence.app/')
                 const uri = (await niftyswapExchangeContract.functions.uri(25666))[0]
                 expect(uri).to.be.eql(`https://v2.sequence.app/25666`)
               })
@@ -960,10 +956,7 @@ describe('NiftyswapExchange20', () => {
         const nTokenTypesToRemove = 30
 
         const tokenAmountToRemove = BigNumber.from(75)
-        const currencyAmountToRemove = BigNumber.from(10)
-          .pow(18)
-          .mul(299)
-          .div(4)
+        const currencyAmountToRemove = BigNumber.from(10).pow(18).mul(299).div(4)
 
         const typesToRemove = new Array(nTokenTypesToRemove).fill('').map((a, i) => getBig(i))
 
@@ -1004,7 +997,7 @@ describe('NiftyswapExchange20', () => {
             const types = [BigNumber.from(1)]
             const currencyAmountToAdd = [BigNumber.from(25000)]
             const tokenAmountToAdd = [BigNumber.from(100)]
-  
+
             await operatorERC1155Contract.functions.safeBatchTransferFrom(
               operatorAddress,
               niftyswapExchangeContract.address,
@@ -1015,14 +1008,16 @@ describe('NiftyswapExchange20', () => {
             )
 
             // Add a single unit of liquidity
-            await operatorERC1155Contract.connect(userWallet).functions.safeBatchTransferFrom(
-              userAddress,
-              niftyswapExchangeContract.address,
-              types,
-              [1],
-              getAddLiquidityData([BigNumber.from(250)], deadline),
-              { gasLimit: 50000000 }
-            )
+            await operatorERC1155Contract
+              .connect(userWallet)
+              .functions.safeBatchTransferFrom(
+                userAddress,
+                niftyswapExchangeContract.address,
+                types,
+                [1],
+                getAddLiquidityData([BigNumber.from(250)], deadline),
+                { gasLimit: 50000000 }
+              )
 
             let userTokenBalance = await userERC1155Contract.functions.balanceOf(userAddress, types[0])
             let userCurrencyBalance = await userCurrencyContract.functions.balanceOf(userAddress)
@@ -1045,14 +1040,16 @@ describe('NiftyswapExchange20', () => {
             userCurrencyBalance = await userCurrencyContract.functions.balanceOf(userAddress)
 
             // Withdraw liquidity, it should return 0 tokens but more than 250 currency
-            await niftyswapExchangeContract.connect(userWallet).functions.safeBatchTransferFrom(
-              userAddress,
-              niftyswapExchangeContract.address,
-              types,
-              [250],
-              getRemoveLiquidityData([BigNumber.from(250)], [BigNumber.from(0)], deadline),
-              { gasLimit: 8000000 }
-            )
+            await niftyswapExchangeContract
+              .connect(userWallet)
+              .functions.safeBatchTransferFrom(
+                userAddress,
+                niftyswapExchangeContract.address,
+                types,
+                [250],
+                getRemoveLiquidityData([BigNumber.from(250)], [BigNumber.from(0)], deadline),
+                { gasLimit: 8000000 }
+              )
 
             const newUserCurrencyBalance = await userCurrencyContract.functions.balanceOf(userAddress)
             const newUserTokenBalance = await userERC1155Contract.functions.balanceOf(userAddress, types[0])
@@ -1079,7 +1076,7 @@ describe('NiftyswapExchange20', () => {
             const types = [BigNumber.from(1)]
             const currencyAmountToAdd = [BigNumber.from(1250)]
             const tokenAmountToAdd = [BigNumber.from(5)]
-  
+
             await operatorERC1155Contract.functions.safeBatchTransferFrom(
               operatorAddress,
               niftyswapExchangeContract.address,
@@ -1090,14 +1087,16 @@ describe('NiftyswapExchange20', () => {
             )
 
             // Add a single unit of liquidity
-            await operatorERC1155Contract.connect(userWallet).functions.safeBatchTransferFrom(
-              userAddress,
-              niftyswapExchangeContract.address,
-              types,
-              [1],
-              getAddLiquidityData([BigNumber.from(250)], deadline),
-              { gasLimit: 50000000 }
-            )
+            await operatorERC1155Contract
+              .connect(userWallet)
+              .functions.safeBatchTransferFrom(
+                userAddress,
+                niftyswapExchangeContract.address,
+                types,
+                [1],
+                getAddLiquidityData([BigNumber.from(250)], deadline),
+                { gasLimit: 50000000 }
+              )
 
             let userTokenBalance = await userERC1155Contract.functions.balanceOf(userAddress, types[0])
             let userCurrencyBalance = await userCurrencyContract.functions.balanceOf(userAddress)
@@ -1120,14 +1119,16 @@ describe('NiftyswapExchange20', () => {
             userCurrencyBalance = await userCurrencyContract.functions.balanceOf(userAddress)
 
             // // Withdraw liquidity, it should return 0 tokens but more than 250 currency
-            await niftyswapExchangeContract.connect(userWallet).functions.safeBatchTransferFrom(
-              userAddress,
-              niftyswapExchangeContract.address,
-              types,
-              [250],
-              getRemoveLiquidityData([BigNumber.from(250)], [BigNumber.from(0)], deadline),
-              { gasLimit: 8000000 }
-            )
+            await niftyswapExchangeContract
+              .connect(userWallet)
+              .functions.safeBatchTransferFrom(
+                userAddress,
+                niftyswapExchangeContract.address,
+                types,
+                [250],
+                getRemoveLiquidityData([BigNumber.from(250)], [BigNumber.from(0)], deadline),
+                { gasLimit: 8000000 }
+              )
 
             const newUserCurrencyBalance = await userCurrencyContract.functions.balanceOf(userAddress)
             const newUserTokenBalance = await userERC1155Contract.functions.balanceOf(userAddress, types[0])
@@ -1154,7 +1155,7 @@ describe('NiftyswapExchange20', () => {
             const types = [BigNumber.from(1)]
             const currencyAmountToAdd = [BigNumber.from(25000)]
             const tokenAmountToAdd = [BigNumber.from(100)]
-  
+
             await operatorERC1155Contract.functions.safeBatchTransferFrom(
               operatorAddress,
               niftyswapExchangeContract.address,
@@ -1165,14 +1166,16 @@ describe('NiftyswapExchange20', () => {
             )
 
             // Add a single unit of liquidity
-            await operatorERC1155Contract.connect(userWallet).functions.safeBatchTransferFrom(
-              userAddress,
-              niftyswapExchangeContract.address,
-              types,
-              [2],
-              getAddLiquidityData([BigNumber.from(500)], deadline),
-              { gasLimit: 50000000 }
-            )
+            await operatorERC1155Contract
+              .connect(userWallet)
+              .functions.safeBatchTransferFrom(
+                userAddress,
+                niftyswapExchangeContract.address,
+                types,
+                [2],
+                getAddLiquidityData([BigNumber.from(500)], deadline),
+                { gasLimit: 50000000 }
+              )
 
             let userTokenBalance = await userERC1155Contract.functions.balanceOf(userAddress, types[0])
             let userCurrencyBalance = await userCurrencyContract.functions.balanceOf(userAddress)
@@ -1196,14 +1199,16 @@ describe('NiftyswapExchange20', () => {
             userCurrencyBalance = await userCurrencyContract.functions.balanceOf(userAddress)
 
             // Withdraw liquidity, it should return 0 tokens but more than 250 currency
-            await niftyswapExchangeContract.connect(userWallet).functions.safeBatchTransferFrom(
-              userAddress,
-              niftyswapExchangeContract.address,
-              types,
-              [500],
-              getRemoveLiquidityData([BigNumber.from(250)], [BigNumber.from(0)], deadline),
-              { gasLimit: 8000000 }
-            )
+            await niftyswapExchangeContract
+              .connect(userWallet)
+              .functions.safeBatchTransferFrom(
+                userAddress,
+                niftyswapExchangeContract.address,
+                types,
+                [500],
+                getRemoveLiquidityData([BigNumber.from(250)], [BigNumber.from(0)], deadline),
+                { gasLimit: 8000000 }
+              )
 
             const newUserCurrencyBalance = await userCurrencyContract.functions.balanceOf(userAddress)
             const newUserTokenBalance = await userERC1155Contract.functions.balanceOf(userAddress, types[0])
@@ -1278,9 +1283,7 @@ describe('NiftyswapExchange20', () => {
               removeLiquidityData,
               { gasLimit: 8000000 }
             )
-            await expect(tx1).to.be.rejectedWith(
-              RevertError('NE20#32')
-            )
+            await expect(tx1).to.be.rejectedWith(RevertError('NE20#32'))
 
             const tx2 = operatorExchangeContract.functions.safeBatchTransferFrom(
               operatorAddress,
@@ -1290,9 +1293,7 @@ describe('NiftyswapExchange20', () => {
               removeLiquidityData,
               { gasLimit: 8000000 }
             )
-            await expect(tx2).to.be.rejectedWith(
-              RevertError('NE20#32')
-            )
+            await expect(tx2).to.be.rejectedWith(RevertError('NE20#32'))
 
             const tx3 = operatorExchangeContract.functions.safeBatchTransferFrom(
               operatorAddress,
@@ -1302,9 +1303,7 @@ describe('NiftyswapExchange20', () => {
               removeLiquidityData,
               { gasLimit: 8000000 }
             )
-            await expect(tx3).to.be.rejectedWith(
-              RevertError('NE20#32')
-            )
+            await expect(tx3).to.be.rejectedWith(RevertError('NE20#32'))
           })
 
           it('should REVERT if arrays are not the same length', async () => {
@@ -1619,9 +1618,7 @@ describe('NiftyswapExchange20', () => {
 
             it('should update currency balances', async () => {
               const expectedVal = currencyAmountToAdd.mul(nTokenTypes).sub(currencyAmountToRemove.mul(nTokenTypes))
-              const exchangeBalance = await userCurrencyContract.functions.balanceOf(
-                niftyswapExchangeContract.address,
-              )
+              const exchangeBalance = await userCurrencyContract.functions.balanceOf(niftyswapExchangeContract.address)
               const operatorBalance = await userCurrencyContract.functions.balanceOf(operatorAddress)
 
               expect(exchangeBalance[0]).to.be.eql(expectedVal)
@@ -1687,14 +1684,16 @@ describe('NiftyswapExchange20', () => {
             { gasLimit: 30000000 }
           )
 
-          const allcosts = (await niftyswapExchangeContract.functions.getPrice_tokenToCurrency(types, tokensAmountsToSell))
+          const allcosts = await niftyswapExchangeContract.functions.getPrice_tokenToCurrency(types, tokensAmountsToSell)
           cost = allcosts[0].reduce((acc: BigNumber, a: BigNumber) => acc.add(a)).sub(extraFee)
 
-          // Expected royalty 
-          const tokenReserve = (await ownerERC1155Contract.balanceOf(niftyswapExchangeContract.address, 0))
+          // Expected royalty
+          const tokenReserve = await ownerERC1155Contract.balanceOf(niftyswapExchangeContract.address, 0)
           const currencyReserve = (await niftyswapExchangeContract.functions.getCurrencyReserves([0]))[0][0]
-          preRoyaltyCost = (await niftyswapExchangeContract.functions.getSellPrice(tokenAmountToSell, tokenReserve, currencyReserve))[0]
-          expectedRoyalty = (preRoyaltyCost.mul(royaltyFee)).div(10000).mul(nTokenTypes)
+          preRoyaltyCost = (
+            await niftyswapExchangeContract.functions.getSellPrice(tokenAmountToSell, tokenReserve, currencyReserve)
+          )[0]
+          expectedRoyalty = preRoyaltyCost.mul(royaltyFee).div(10000).mul(nTokenTypes)
 
           // Sell
           sellTokenData = getSellTokenData20(userAddress, cost, deadline, extraFeeRecipients, extraFeeArray)
@@ -1735,7 +1734,13 @@ describe('NiftyswapExchange20', () => {
         it('should fail if deadline is passed', async () => {
           let timestamp = Math.floor(Date.now() / 1000) - 1
           const price = (await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]))[0]
-          let sellTokenData = getSellTokenData20(userAddress, price[0].mul(nTokenTypes), timestamp, extraFeeRecipients, extraFeeArray)
+          let sellTokenData = getSellTokenData20(
+            userAddress,
+            price[0].mul(nTokenTypes),
+            timestamp,
+            extraFeeRecipients,
+            extraFeeArray
+          )
 
           const tx = userERC1155Contract.functions.safeBatchTransferFrom(
             userAddress,
@@ -1786,9 +1791,7 @@ describe('NiftyswapExchange20', () => {
             sellTokenData,
             { gasLimit: 8000000 }
           )
-          await expect(tx1).to.be.rejectedWith(
-            RevertError('NE20#32')
-          )
+          await expect(tx1).to.be.rejectedWith(RevertError('NE20#32'))
 
           const tx2 = userERC1155Contract.functions.safeBatchTransferFrom(
             userAddress,
@@ -1798,9 +1801,7 @@ describe('NiftyswapExchange20', () => {
             sellTokenData,
             { gasLimit: 8000000 }
           )
-          await expect(tx2).to.be.rejectedWith(
-            RevertError('NE20#32')
-          )
+          await expect(tx2).to.be.rejectedWith(RevertError('NE20#32'))
 
           const tx3 = userERC1155Contract.functions.safeBatchTransferFrom(
             userAddress,
@@ -1810,9 +1811,7 @@ describe('NiftyswapExchange20', () => {
             sellTokenData,
             { gasLimit: 8000000 }
           )
-          await expect(tx3).to.be.rejectedWith(
-            RevertError('NE20#32')
-          )
+          await expect(tx3).to.be.rejectedWith(RevertError('NE20#32'))
         })
 
         it('should REVERT if arrays are not the same length', async () => {
@@ -1863,7 +1862,7 @@ describe('NiftyswapExchange20', () => {
             sellTokenData,
             { gasLimit: 8000000 }
           )
-          await expect(tx).to.be.rejectedWith(RevertError("NE20#8"))
+          await expect(tx).to.be.rejectedWith(RevertError('NE20#8'))
         })
 
         describe('When trade is successful', async () => {
@@ -1901,20 +1900,22 @@ describe('NiftyswapExchange20', () => {
             const reserves = await niftyswapExchangeContract.functions.getCurrencyReserves(types)
             for (let i = 0; i < types.length; i++) {
               // Extra fee and royalty aren't going to the reserve
-              expect(reserves[0][i]).to.be.eql(currencyAmountToAdd.sub((cost.add(extraFee).add(expectedRoyalty)).div(nTokenTypes)))
+              expect(reserves[0][i]).to.be.eql(currencyAmountToAdd.sub(cost.add(extraFee).add(expectedRoyalty).div(nTokenTypes)))
             }
           })
 
           it('should have token sell price adjusted', async () => {
-            const newCost: BigNumber = (await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]))[0][0]
-        
+            const newCost: BigNumber = (
+              await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell])
+            )[0][0]
+
             const soldAmountWithFee = tokenAmountToSell.mul(LP_FEE_MULTIPLIER)
-            const currencyReserve = currencyAmountToAdd.sub((cost.add(extraFee).add(expectedRoyalty)).div(nTokenTypes))
+            const currencyReserve = currencyAmountToAdd.sub(cost.add(extraFee).add(expectedRoyalty).div(nTokenTypes))
             let numerator = soldAmountWithFee.mul(currencyReserve)
             let tokenReserveWithFee = tokenAmountToAdd.add(tokenAmountToSell).mul(1000)
             let denominator = tokenReserveWithFee.add(soldAmountWithFee)
             const newPreRoyaltyCost = numerator.div(denominator)
-            const newRoyalty = (newPreRoyaltyCost.mul(royaltyFee)).div(10000)
+            const newRoyalty = newPreRoyaltyCost.mul(royaltyFee).div(10000)
 
             expect(newCost).to.be.eql(newPreRoyaltyCost.sub(newRoyalty))
           })
@@ -1923,7 +1924,15 @@ describe('NiftyswapExchange20', () => {
             let filterFromOperatorContract: ethers.ethers.EventFilter
 
             // Get event filter to get internal tx event
-            filterFromOperatorContract = niftyswapExchangeContract.filters.CurrencyPurchase(null, null, null, null, null, null, null)
+            filterFromOperatorContract = niftyswapExchangeContract.filters.CurrencyPurchase(
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            )
 
             // Get logs from internal transaction event
             // @ts-ignore (https://github.com/ethers-io/ethers.js/issues/204#issuecomment-427059031)
@@ -1931,28 +1940,32 @@ describe('NiftyswapExchange20', () => {
             let logs = await operatorProvider.getLogs(filterFromOperatorContract)
             expect(logs[0].topics[0]).to.be.eql(
               niftyswapExchangeContract.interface.getEventTopic(
-                niftyswapExchangeContract.interface.events['CurrencyPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])']
+                niftyswapExchangeContract.interface.events[
+                  'CurrencyPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])'
+                ]
               )
             )
           })
 
           describe('CurrencyPurchase Event', () => {
-            let args;
+            let args
 
             beforeEach(async () => {
               const eventTopicHash = niftyswapExchangeContract.interface.getEventTopic(
-                niftyswapExchangeContract.interface.events['CurrencyPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])']
+                niftyswapExchangeContract.interface.events[
+                  'CurrencyPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])'
+                ]
               )
               const receipt = await tx.wait(1)
               const log = receipt.logs.find(a => a['topics'][0] === eventTopicHash)
               args = exchangeIface.parseLog(log).args
             })
-            
-            it('should have buyer address as `buyer` field', async () => {  
+
+            it('should have buyer address as `buyer` field', async () => {
               expect(args.buyer).to.be.eql(userAddress)
             })
-    
-            it('should have recipient address as `recipient` field', async () => {  
+
+            it('should have recipient address as `recipient` field', async () => {
               expect(args.recipient).to.be.eql(userAddress)
             })
 
@@ -1962,26 +1975,26 @@ describe('NiftyswapExchange20', () => {
               }
             })
 
-            it('should have tokensSoldAmounts as `tokensSoldAmounts` field', async () => {  
+            it('should have tokensSoldAmounts as `tokensSoldAmounts` field', async () => {
               for (let i = 0; i < types.length; i++) {
                 expect(args.tokensSoldAmounts[i]).to.be.eql(tokensAmountsToSell[i])
               }
             })
 
-            it('should have currencyBoughtAmounts as `currencyBoughtAmounts` field', async () => {  
-              const costPer = (cost.add(extraFee)).div(types.length)
+            it('should have currencyBoughtAmounts as `currencyBoughtAmounts` field', async () => {
+              const costPer = cost.add(extraFee).div(types.length)
               for (let i = 0; i < types.length; i++) {
                 expect(args.currencyBoughtAmounts[i]).to.be.eql(costPer)
               }
             })
 
-            it('should have extraFeeRecipients as `extraFeeRecipients` field', async () => {  
+            it('should have extraFeeRecipients as `extraFeeRecipients` field', async () => {
               for (let i = 0; i < types.length; i++) {
                 expect(args.extraFeeRecipients[i]).to.be.eql(extraFeeRecipients[i])
               }
             })
 
-            it('should have extraFeeAmounts as `extraFeeAmounts` field', async () => {  
+            it('should have extraFeeAmounts as `extraFeeAmounts` field', async () => {
               for (let i = 0; i < types.length; i++) {
                 expect(args.extraFeeAmounts[i]).to.be.eql(extraFeeArray[i])
               }
@@ -1989,10 +2002,9 @@ describe('NiftyswapExchange20', () => {
           })
 
           describe('Royalties Fees', () => {
-
             it('Royalty amount should be correct', async () => {
               const royalties = await niftyswapExchangeContract.functions.getRoyalties(randomAddress)
-              expect(royalties[0]).to.be.eql(expectedRoyalty)  
+              expect(royalties[0]).to.be.eql(expectedRoyalty)
               // Ignore extra fee
               expect(royalties[0]).to.be.eql(preRoyaltyCost.mul(nTokenTypes).sub(cost.add(extraFee)))
             })
@@ -2006,11 +2018,11 @@ describe('NiftyswapExchange20', () => {
               let tx = userExchangeContract.functions.sendRoyalties(randomAddress)
               await expect(tx).to.be.fulfilled
             })
-            
+
             context('when sendRoyalties() is successful', () => {
               let preWithdrawExchangeBalance
-              beforeEach(async function() {
-                preWithdrawExchangeBalance = (await ownerCurrencyContract.functions.balanceOf(userExchangeContract.address))[0] 
+              beforeEach(async function () {
+                preWithdrawExchangeBalance = (await ownerCurrencyContract.functions.balanceOf(userExchangeContract.address))[0]
                 await userExchangeContract.functions.sendRoyalties(randomAddress)
               })
 
@@ -2034,7 +2046,7 @@ describe('NiftyswapExchange20', () => {
           describe('Extra Fees', () => {
             it('Extra amount should be correct', async () => {
               const royalties = await niftyswapExchangeContract.functions.getRoyalties(extraFeeRecipient)
-              expect(royalties[0]).to.be.eql(extraFee)  
+              expect(royalties[0]).to.be.eql(extraFee)
             })
 
             it('Should allow royalty recipient to withdraw', async () => {
@@ -2046,11 +2058,11 @@ describe('NiftyswapExchange20', () => {
               let tx = userExchangeContract.functions.sendRoyalties(extraFeeRecipient)
               await expect(tx).to.be.fulfilled
             })
-            
+
             context('when sendRoyalties() is successful', () => {
               let preWithdrawExchangeBalance
-              beforeEach(async function() {
-                preWithdrawExchangeBalance = (await ownerCurrencyContract.functions.balanceOf(userExchangeContract.address))[0] 
+              beforeEach(async function () {
+                preWithdrawExchangeBalance = (await ownerCurrencyContract.functions.balanceOf(userExchangeContract.address))[0]
                 await userExchangeContract.functions.sendRoyalties(extraFeeRecipient)
               })
 
@@ -2070,7 +2082,6 @@ describe('NiftyswapExchange20', () => {
               })
             })
           })
-
         })
       })
 
@@ -2094,13 +2105,15 @@ describe('NiftyswapExchange20', () => {
           )
 
           // Sell
-          const allcosts = (await niftyswapExchangeContract.functions.getPrice_currencyToToken(types, tokensAmountsToBuy))
+          const allcosts = await niftyswapExchangeContract.functions.getPrice_currencyToToken(types, tokensAmountsToBuy)
           cost = allcosts[0].reduce((acc: BigNumber, a: BigNumber) => acc.add(a)).add(extraFee)
 
-          // Expected royalty 
-          const tokenReserve = (await ownerERC1155Contract.balanceOf(niftyswapExchangeContract.address, 0))
+          // Expected royalty
+          const tokenReserve = await ownerERC1155Contract.balanceOf(niftyswapExchangeContract.address, 0)
           const currencyReserve = (await niftyswapExchangeContract.functions.getCurrencyReserves([0]))[0][0]
-          preRoyaltyCost = (await niftyswapExchangeContract.functions.getBuyPrice(tokenAmountToBuy, currencyReserve, tokenReserve))[0]
+          preRoyaltyCost = (
+            await niftyswapExchangeContract.functions.getBuyPrice(tokenAmountToBuy, currencyReserve, tokenReserve)
+          )[0]
           expectedRoyalty = preRoyaltyCost.mul(royaltyFee).div(10000).mul(nTokenTypes)
         })
 
@@ -2148,9 +2161,7 @@ describe('NiftyswapExchange20', () => {
             extraFeeArray,
             { gasLimit: 8000000 }
           )
-          await expect(tx1).to.be.rejectedWith(
-            RevertError('NE20#32')
-          )
+          await expect(tx1).to.be.rejectedWith(RevertError('NE20#32'))
 
           // Tokens to buy
           const tx2 = userExchangeContract.functions.buyTokens(
@@ -2163,9 +2174,7 @@ describe('NiftyswapExchange20', () => {
             extraFeeArray,
             { gasLimit: 8000000 }
           )
-          await expect(tx2).to.be.rejectedWith(
-            RevertError('NE20#32')
-          )
+          await expect(tx2).to.be.rejectedWith(RevertError('NE20#32'))
 
           // Tokens to buy
           const tx3 = userExchangeContract.functions.buyTokens(
@@ -2178,9 +2187,7 @@ describe('NiftyswapExchange20', () => {
             extraFeeArray,
             { gasLimit: 8000000 }
           )
-          await expect(tx3).to.be.rejectedWith(
-            RevertError('NE20#32')
-          )
+          await expect(tx3).to.be.rejectedWith(RevertError('NE20#32'))
         })
 
         it('should REVERT if arrays are not the same length', async () => {
@@ -2240,7 +2247,7 @@ describe('NiftyswapExchange20', () => {
         })
 
         describe('When trade is successful', async () => {
-          let tx; 
+          let tx
 
           beforeEach(async () => {
             tx = await userExchangeContract.functions.buyTokens(
@@ -2276,20 +2283,20 @@ describe('NiftyswapExchange20', () => {
           it('should update the currency per token reserve', async () => {
             const reserves = await niftyswapExchangeContract.functions.getCurrencyReserves(types)
             for (let i = 0; i < types.length; i++) {
-              expect(reserves[0][i]).to.be.eql(currencyAmountToAdd.add((cost.sub(expectedRoyalty).sub(extraFee)).div(nTokenTypes)))
+              expect(reserves[0][i]).to.be.eql(currencyAmountToAdd.add(cost.sub(expectedRoyalty).sub(extraFee).div(nTokenTypes)))
             }
           })
 
           it('should have token buy price adjusted', async () => {
             const newCost = (await niftyswapExchangeContract.functions.getPrice_currencyToToken([0], [tokenAmountToBuy]))[0]
 
-            let currencyReserve = currencyAmountToAdd.add((cost.sub(expectedRoyalty).sub(extraFee)).div(nTokenTypes))
+            let currencyReserve = currencyAmountToAdd.add(cost.sub(expectedRoyalty).sub(extraFee).div(nTokenTypes))
             let tokenReserve = tokenAmountToAdd.sub(tokenAmountToBuy)
 
             let numerator = currencyReserve.mul(tokenAmountToBuy).mul(1000)
             let denominator = tokenReserve.sub(tokenAmountToBuy).mul(LP_FEE_MULTIPLIER)
             const newPreRoyaltyCost = numerator.div(denominator).add(1)
-            const newRoyalty = (newPreRoyaltyCost.mul(royaltyFee)).div(10000)
+            const newRoyalty = newPreRoyaltyCost.mul(royaltyFee).div(10000)
 
             expect(newCost[0]).to.be.eql(newPreRoyaltyCost.add(newRoyalty))
           })
@@ -2298,7 +2305,15 @@ describe('NiftyswapExchange20', () => {
             let filterFromOperatorContract: ethers.ethers.EventFilter
 
             // Get event filter to get internal tx event
-            filterFromOperatorContract = niftyswapExchangeContract.filters.TokensPurchase(null, null, null, null, null, null, null)
+            filterFromOperatorContract = niftyswapExchangeContract.filters.TokensPurchase(
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            )
 
             // Get logs from internal transaction event
             // @ts-ignore (https://github.com/ethers-io/ethers.js/issues/204#issuecomment-427059031)
@@ -2306,28 +2321,32 @@ describe('NiftyswapExchange20', () => {
             let logs = await operatorProvider.getLogs(filterFromOperatorContract)
             expect(logs[0].topics[0]).to.be.eql(
               niftyswapExchangeContract.interface.getEventTopic(
-                niftyswapExchangeContract.interface.events['TokensPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])']
+                niftyswapExchangeContract.interface.events[
+                  'TokensPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])'
+                ]
               )
             )
           })
 
           describe('TokensPurchase Event', () => {
-            let args;
+            let args
 
             beforeEach(async () => {
               const eventTopicHash = niftyswapExchangeContract.interface.getEventTopic(
-                niftyswapExchangeContract.interface.events['TokensPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])']
+                niftyswapExchangeContract.interface.events[
+                  'TokensPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])'
+                ]
               )
               const receipt = await tx.wait(1)
               const log = receipt.logs.find(a => a['topics'][0] === eventTopicHash)
               args = exchangeIface.parseLog(log).args
             })
-            
-            it('should have buyer address as `buyer` field', async () => {  
+
+            it('should have buyer address as `buyer` field', async () => {
               expect(args.buyer).to.be.eql(userAddress)
             })
-    
-            it('should have recipient address as `recipient` field', async () => {  
+
+            it('should have recipient address as `recipient` field', async () => {
               expect(args.recipient).to.be.eql(userAddress)
             })
 
@@ -2337,26 +2356,26 @@ describe('NiftyswapExchange20', () => {
               }
             })
 
-            it('should have tokensBoughtAmounts as `tokensBoughtAmounts` field', async () => {  
+            it('should have tokensBoughtAmounts as `tokensBoughtAmounts` field', async () => {
               for (let i = 0; i < types.length; i++) {
                 expect(args.tokensBoughtAmounts[i]).to.be.eql(tokensAmountsToBuy[i])
               }
             })
 
-            it('should have currencySoldAmounts as `currencySoldAmounts` field', async () => {  
-              const costPer = (cost.sub(extraFee)).div(types.length)
+            it('should have currencySoldAmounts as `currencySoldAmounts` field', async () => {
+              const costPer = cost.sub(extraFee).div(types.length)
               for (let i = 0; i < types.length; i++) {
                 expect(args.currencySoldAmounts[i]).to.be.eql(costPer)
               }
             })
 
-            it('should have extraFeeRecipients as `extraFeeRecipients` field', async () => {  
+            it('should have extraFeeRecipients as `extraFeeRecipients` field', async () => {
               for (let i = 0; i < types.length; i++) {
                 expect(args.extraFeeRecipients[i]).to.be.eql(extraFeeRecipients[i])
               }
             })
 
-            it('should have extraFeeAmounts as `extraFeeAmounts` field', async () => {  
+            it('should have extraFeeAmounts as `extraFeeAmounts` field', async () => {
               for (let i = 0; i < types.length; i++) {
                 expect(args.extraFeeAmounts[i]).to.be.eql(extraFeeArray[i])
               }
@@ -2366,7 +2385,7 @@ describe('NiftyswapExchange20', () => {
           describe('Royalties Fees', () => {
             it('Royalty amount should be correct', async () => {
               const royalties = await niftyswapExchangeContract.functions.getRoyalties(randomAddress)
-              expect(royalties[0]).to.be.eql(expectedRoyalty)  
+              expect(royalties[0]).to.be.eql(expectedRoyalty)
               expect(royalties[0]).to.be.eql(cost.sub(preRoyaltyCost.mul(nTokenTypes)).sub(extraFee))
             })
 
@@ -2379,11 +2398,11 @@ describe('NiftyswapExchange20', () => {
               let tx = userExchangeContract.functions.sendRoyalties(randomAddress)
               await expect(tx).to.be.fulfilled
             })
-            
+
             context('when sendRoyalties() is successful', () => {
               let preWithdrawExchangeBalance
-              beforeEach(async function() {
-                preWithdrawExchangeBalance = (await ownerCurrencyContract.functions.balanceOf(userExchangeContract.address))[0] 
+              beforeEach(async function () {
+                preWithdrawExchangeBalance = (await ownerCurrencyContract.functions.balanceOf(userExchangeContract.address))[0]
                 await userExchangeContract.functions.sendRoyalties(randomAddress)
               })
 
@@ -2407,7 +2426,7 @@ describe('NiftyswapExchange20', () => {
           describe('Extra Fees', () => {
             it('Extra amount should be correct', async () => {
               const royalties = await niftyswapExchangeContract.functions.getRoyalties(extraFeeRecipient)
-              expect(royalties[0]).to.be.eql(extraFee)  
+              expect(royalties[0]).to.be.eql(extraFee)
             })
 
             it('Should allow royalty recipient to withdraw', async () => {
@@ -2419,11 +2438,11 @@ describe('NiftyswapExchange20', () => {
               let tx = userExchangeContract.functions.sendRoyalties(extraFeeRecipient)
               await expect(tx).to.be.fulfilled
             })
-            
+
             context('when sendRoyalties() is successful', () => {
               let preWithdrawExchangeBalance
-              beforeEach(async function() {
-                preWithdrawExchangeBalance = (await ownerCurrencyContract.functions.balanceOf(userExchangeContract.address))[0] 
+              beforeEach(async function () {
+                preWithdrawExchangeBalance = (await ownerCurrencyContract.functions.balanceOf(userExchangeContract.address))[0]
                 await userExchangeContract.functions.sendRoyalties(extraFeeRecipient)
               })
 
@@ -2471,9 +2490,7 @@ describe('NiftyswapExchange20', () => {
             expect(userBalance[0]).to.be.eql(BigNumber.from(nTokensPerType))
           }
 
-          const exchangeCurrencyBalance = await userCurrencyContract.functions.balanceOf(
-            niftyswapExchangeContract.address,
-          )
+          const exchangeCurrencyBalance = await userCurrencyContract.functions.balanceOf(niftyswapExchangeContract.address)
           const randomCurrencyBalance = await userCurrencyContract.functions.balanceOf(randomWallet.address)
           const userCurrencyBalance = await userCurrencyContract.functions.balanceOf(userAddress)
 
@@ -2506,9 +2523,7 @@ describe('NiftyswapExchange20', () => {
             expect(userBalance[0]).to.be.eql(BigNumber.from(nTokensPerType).add(tokenAmountToBuy))
           }
 
-          const exchangeCurrencyBalance = await userCurrencyContract.functions.balanceOf(
-            niftyswapExchangeContract.address,
-          )
+          const exchangeCurrencyBalance = await userCurrencyContract.functions.balanceOf(niftyswapExchangeContract.address)
           const userCurrencyBalance = await userCurrencyContract.functions.balanceOf(userAddress)
 
           expect(exchangeCurrencyBalance[0]).to.be.eql(currencyAmountToAdd.mul(nTokenTypes).add(cost))
@@ -2516,9 +2531,9 @@ describe('NiftyswapExchange20', () => {
         })
       })
 
-      describe('ERC-2981 Token', () => {       
+      describe('ERC-2981 Token', () => {
         // Only run for ERC-2981 tokens
-        before(async function() {
+        before(async function () {
           if (!(condition[1] == 3 || condition[1] == 4)) {
             this.test!.parent!.pending = true
             this.skip()
@@ -2550,7 +2565,9 @@ describe('NiftyswapExchange20', () => {
           const tokenAmountToBuy = BigNumber.from(10)
           const tokenAmountToAdd = BigNumber.from(50)
           const idsTobuy: number[] = [666, 777, 888]
-          const tokensAmountsToMint: BigNumber[] = new Array(idsTobuy.length).fill('').map((a, i) => tokenAmountToBuy.add(tokenAmountToAdd))
+          const tokensAmountsToMint: BigNumber[] = new Array(idsTobuy.length)
+            .fill('')
+            .map((a, i) => tokenAmountToBuy.add(tokenAmountToAdd))
           const tokensAmountsToAdd: BigNumber[] = new Array(idsTobuy.length).fill('').map((a, i) => tokenAmountToAdd)
           const tokensAmountsToBuy: BigNumber[] = new Array(idsTobuy.length).fill('').map((a, i) => tokenAmountToBuy)
 
@@ -2559,18 +2576,21 @@ describe('NiftyswapExchange20', () => {
 
           const royaltyFee = 200
           const royaltyFee666 = 1000
-          
+
           let expectedRoyalty: BigNumber
           let expectedRoyalty666: BigNumber
           let cost
-          
+
           beforeEach(async () => {
             await ownerERC1155Contract.functions.batchMintMock(operatorAddress, idsTobuy, tokensAmountsToMint, [])
             await ownerERC1155Contract.functions.batchMintMock(userAddress, idsTobuy, tokensAmountsToMint, [])
 
-            const addLiquidityData: string = getAddLiquidityData([currencyAmountToAdd, currencyAmountToAdd, currencyAmountToAdd], deadline)
+            const addLiquidityData: string = getAddLiquidityData(
+              [currencyAmountToAdd, currencyAmountToAdd, currencyAmountToAdd],
+              deadline
+            )
 
-            // Add liquidity 
+            // Add liquidity
             await operatorERC1155Contract.functions.safeBatchTransferFrom(
               operatorAddress,
               niftyswapExchangeContract.address,
@@ -2587,15 +2607,17 @@ describe('NiftyswapExchange20', () => {
             await (ownerERC1155Contract as ERC1155RoyaltyMock).functions.set666FeeRecipient(recipient666)
 
             // Calculate expected royalties
-            const token_reserve = (await ownerERC1155Contract.balanceOf(niftyswapExchangeContract.address, idsTobuy[0]))
+            const token_reserve = await ownerERC1155Contract.balanceOf(niftyswapExchangeContract.address, idsTobuy[0])
             const currency_reserve = (await niftyswapExchangeContract.functions.getCurrencyReserves([idsTobuy[0]]))[0][0]
-            const preRoyaltyCost = (await niftyswapExchangeContract.functions.getBuyPrice(tokenAmountToBuy, currency_reserve, token_reserve))[0]
+            const preRoyaltyCost = (
+              await niftyswapExchangeContract.functions.getBuyPrice(tokenAmountToBuy, currency_reserve, token_reserve)
+            )[0]
 
             expectedRoyalty = preRoyaltyCost.mul(royaltyFee).div(10000).mul(2)
             expectedRoyalty666 = preRoyaltyCost.mul(royaltyFee666).div(10000)
-            
+
             // Calculate cost
-            const allcosts = (await niftyswapExchangeContract.functions.getPrice_currencyToToken(idsTobuy, tokensAmountsToBuy))
+            const allcosts = await niftyswapExchangeContract.functions.getPrice_currencyToToken(idsTobuy, tokensAmountsToBuy)
             cost = allcosts[0].reduce((acc: BigNumber, a: BigNumber) => acc.add(a)).add(extraFee)
 
             // Buy tokens
@@ -2613,21 +2635,21 @@ describe('NiftyswapExchange20', () => {
 
           it('Royalty amount for first recipient should be correct', async () => {
             const royalties = await niftyswapExchangeContract.functions.getRoyalties(recipient1)
-            expect(royalties[0]).to.be.eql(expectedRoyalty)  
+            expect(royalties[0]).to.be.eql(expectedRoyalty)
           })
 
           it('Royalty amount for 2nd recipient should be correct', async () => {
             const royalties666 = await niftyswapExchangeContract.functions.getRoyalties(recipient666)
-            expect(royalties666[0]).to.be.eql(expectedRoyalty666)  
+            expect(royalties666[0]).to.be.eql(expectedRoyalty666)
 
             const royalties = await niftyswapExchangeContract.functions.getRoyalties(recipient1)
-            expect(royalties[0].div(2)).to.be.eql(royalties666[0].div(royaltyFee666 / royaltyFee))  
+            expect(royalties[0].div(2)).to.be.eql(royalties666[0].div(royaltyFee666 / royaltyFee))
           })
-                    
+
           context('when sendRoyalties() is successful', () => {
             let preWithdrawExchangeBalance
-            beforeEach(async function() {
-              preWithdrawExchangeBalance = (await ownerCurrencyContract.functions.balanceOf(userExchangeContract.address))[0] 
+            beforeEach(async function () {
+              preWithdrawExchangeBalance = (await ownerCurrencyContract.functions.balanceOf(userExchangeContract.address))[0]
               await userExchangeContract.functions.sendRoyalties(recipient1)
               await userExchangeContract.functions.sendRoyalties(recipient666)
             })
@@ -2656,7 +2678,7 @@ describe('NiftyswapExchange20', () => {
 
       describe('Edge cases', () => {
         it('Pool can not go to zero token in reserve', async () => {
-          const minBaseCurrency = BigNumber.from(10**3)
+          const minBaseCurrency = BigNumber.from(10 ** 3)
           const currencyAmountsToAdd: BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => minBaseCurrency)
           const tokenAmountsToAdd: BigNumber[] = new Array(nTokenTypes).fill('').map((a, i) => BigNumber.from(1))
           const addLiquidityData: string = getAddLiquidityData(currencyAmountsToAdd, deadline)
@@ -2718,12 +2740,16 @@ describe('NiftyswapExchange20', () => {
 
           // Buy 31622 tokens, to leave a ratio of 10**18 : 1, testing with 1 pool
           let amount_to_buy = BigNumber.from(31622)
-          let cost = (await niftyswapExchangeContract.functions.getPrice_currencyToToken([types[0]], [amount_to_buy]))[0][0].add(extraFee)
-          
-          // Expected royalty 
-          const token_reserve = (await ownerERC1155Contract.balanceOf(niftyswapExchangeContract.address, types[0]))
+          let cost = (await niftyswapExchangeContract.functions.getPrice_currencyToToken([types[0]], [amount_to_buy]))[0][0].add(
+            extraFee
+          )
+
+          // Expected royalty
+          const token_reserve = await ownerERC1155Contract.balanceOf(niftyswapExchangeContract.address, types[0])
           const currency_reserve = (await niftyswapExchangeContract.functions.getCurrencyReserves([types[0]]))[0][0]
-          const preRoyaltyCost = (await niftyswapExchangeContract.functions.getBuyPrice(amount_to_buy, currency_reserve, token_reserve))[0]
+          const preRoyaltyCost = (
+            await niftyswapExchangeContract.functions.getBuyPrice(amount_to_buy, currency_reserve, token_reserve)
+          )[0]
           const expectedRoyalty = preRoyaltyCost.mul(royaltyFee).div(10000)
 
           // Perform the puirchase
@@ -2739,7 +2765,7 @@ describe('NiftyswapExchange20', () => {
           )
           await expect(tx).to.be.fulfilled
 
-          const new_token_reserve = (await ownerERC1155Contract.balanceOf(niftyswapExchangeContract.address, types[0]))
+          const new_token_reserve = await ownerERC1155Contract.balanceOf(niftyswapExchangeContract.address, types[0])
           const new_currency_reserve = (await niftyswapExchangeContract.functions.getCurrencyReserves([types[0]]))[0][0]
 
           // Pool should have more than 10**18 currency and 1 token

@@ -49,13 +49,7 @@ export class AbstractContract {
     links?: { [name: string]: Promise<AbstractContract> },
     artifactName: string = 'UntitledContract'
   ): Promise<AbstractContract> {
-    return new AbstractContract(
-      buildArtifact.abi,
-      buildArtifact.bytecode,
-      buildArtifact.networks,
-      links,
-      artifactName
-    )
+    return new AbstractContract(buildArtifact.abi, buildArtifact.bytecode, buildArtifact.networks, links, artifactName)
   }
 
   public static async getNetworkID(wallet: ethers.Wallet): Promise<number> {
@@ -103,14 +97,8 @@ export class AbstractContract {
     }
 
     const networkId = (await wallet.provider.getNetwork()).chainId
-    const bytecode = (await this.links)
-      ? await this.generateLinkedBytecode(networkId)
-      : this.bytecode
-    const contractFactory = new ethers.ContractFactory(
-      this.abi,
-      bytecode,
-      wallet
-    )
+    const bytecode = (await this.links) ? await this.generateLinkedBytecode(networkId) : this.bytecode
+    const contractFactory = new ethers.ContractFactory(this.abi, bytecode, wallet)
     return contractFactory.deploy(...(args || []))
   }
 
@@ -120,21 +108,14 @@ export class AbstractContract {
    * @param address Address of deployed instance to connect to
    * @returns Contract instance
    */
-  public async connect(
-    signer: ethers.Signer,
-    address: string
-  ): Promise<ethers.Contract> {
+  public async connect(signer: ethers.Signer, address: string): Promise<ethers.Contract> {
     return new ethers.Contract(address, this.abi, signer)
   }
 
   public getDeployedAddress(networkId: number): string {
     const info = this.networks ? this.networks[networkId] : null
     if (!info) {
-      throw new Error(
-        `Abstract contract ${
-          this.contractName
-        } not deployed on network ${networkId}`
-      )
+      throw new Error(`Abstract contract ${this.contractName} not deployed on network ${networkId}`)
     }
     return info.address
   }

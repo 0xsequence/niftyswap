@@ -15,12 +15,7 @@ import {
 
 import * as utils from './utils'
 
-import {
-  ERC1155Mock,
-  ERC1155PackedBalanceMock,
-  NiftyswapExchange,
-  NiftyswapFactory
-} from 'src/gen/typechain'
+import { ERC1155Mock, ERC1155PackedBalanceMock, NiftyswapExchange, NiftyswapFactory } from 'src/gen/typechain'
 
 import { abi as exchangeABI } from '@0xsequence/niftyswap/artifacts/contracts/exchange/NiftyswapExchange.sol/NiftyswapExchange.json'
 import { web3 } from 'hardhat'
@@ -36,9 +31,7 @@ const { wallet: operatorWallet, provider: operatorProvider, signer: operatorSign
 const getBig = (id: number) => BigNumber.from(id)
 
 describe('NiftyswapExchange', () => {
-  const MAXVAL = BigNumber.from(2)
-    .pow(256)
-    .sub(1) // 2**256 - 1
+  const MAXVAL = BigNumber.from(2).pow(256).sub(1) // 2**256 - 1
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
   let ownerAddress: string
@@ -271,9 +264,7 @@ describe('NiftyswapExchange', () => {
   describe('_currencyToToken() function', () => {
     //Liquidity
     let tokenAmountToAdd = BigNumber.from(500)
-    let currencyAmountToAdd = BigNumber.from(10)
-      .pow(18)
-      .mul(500)
+    let currencyAmountToAdd = BigNumber.from(10).pow(18).mul(500)
     let currencyAmountsToAdd: ethers.BigNumber[] = []
     let tokenAmountsToAdd: ethers.BigNumber[] = []
     let addLiquidityData: string

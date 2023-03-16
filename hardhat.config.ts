@@ -1,7 +1,7 @@
 import { HardhatUserConfig } from 'hardhat/config'
 
 import '@nomiclabs/hardhat-truffle5'
-import "@nomiclabs/hardhat-ethers"
+import '@nomiclabs/hardhat-ethers'
 import 'hardhat-gas-reporter'
 import '@tenderly/hardhat-tenderly'
 
@@ -32,7 +32,7 @@ const config: HardhatUserConfig = {
     },
     hardhat: {
       blockGasLimit: 0xfffffffffff,
-      gasPrice: 20000000000,
+      gasPrice: 20000000000
     }
   },
   gasReporter: {

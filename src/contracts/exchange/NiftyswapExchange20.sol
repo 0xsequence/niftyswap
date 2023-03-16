@@ -904,7 +904,7 @@ contract NiftyswapExchange20 is
     /**
      * @notice Prevents receiving Ether or calls to unsuported methods
      */
-    fallback() external { // solhint-disable-line payable-fallback
+    fallback() external {
         revert("NE20#29"); // NiftyswapExchange20:UNSUPPORTED_METHOD
     }
 

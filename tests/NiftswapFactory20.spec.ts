@@ -4,11 +4,7 @@ import { AbstractContract, BigNumber, expect, HIGH_GAS_LIMIT, RevertError } from
 
 import * as utils from './utils'
 
-import {
-  ERC20TokenMock,
-  ERC1155PackedBalanceMock,
-  NiftyswapFactory20
-} from 'src/gen/typechain'
+import { ERC20TokenMock, ERC1155PackedBalanceMock, NiftyswapFactory20 } from 'src/gen/typechain'
 
 import { web3 } from 'hardhat'
 
@@ -45,7 +41,7 @@ describe('NiftyswapFactory20', () => {
   let niftyswapFactoryContract: NiftyswapFactory20
 
   // LP param
-  const LP_FEE = 10                       // 1%
+  const LP_FEE = 10 // 1%
 
   // Token Param
   let types: number[] = []
@@ -149,10 +145,9 @@ describe('NiftyswapFactory20', () => {
           99
         )
 
-        const pair_exchanges = (await niftyswapFactoryContract.functions.getPairExchanges(
-          ownerERC1155Contract.address,
-          ownerBaseTokenContract.address
-        ))[0]
+        const pair_exchanges = (
+          await niftyswapFactoryContract.functions.getPairExchanges(ownerERC1155Contract.address, ownerBaseTokenContract.address)
+        )[0]
 
         await expect(pair_exchanges[0]).to.be.eql(exchange_0[0])
         await expect(pair_exchanges[1]).to.be.eql(exchange_1[0])
@@ -163,15 +158,26 @@ describe('NiftyswapFactory20', () => {
 
   describe('createExchange() function', () => {
     it('should REVERT if Token is 0x0', async () => {
-      const tx = niftyswapFactoryContract.functions.createExchange(ZERO_ADDRESS, ownerBaseTokenContract.address, LP_FEE, 0, HIGH_GAS_LIMIT,)
+      const tx = niftyswapFactoryContract.functions.createExchange(
+        ZERO_ADDRESS,
+        ownerBaseTokenContract.address,
+        LP_FEE,
+        0,
+        HIGH_GAS_LIMIT
+      )
       await expect(tx).to.be.rejectedWith(RevertError('NE20#1'))
     })
 
     it('should REVERT if Base Token is 0x0', async () => {
-      const tx = niftyswapFactoryContract.functions.createExchange(ownerERC1155Contract.address, ZERO_ADDRESS, LP_FEE, 0, HIGH_GAS_LIMIT,)
+      const tx = niftyswapFactoryContract.functions.createExchange(
+        ownerERC1155Contract.address,
+        ZERO_ADDRESS,
+        LP_FEE,
+        0,
+        HIGH_GAS_LIMIT
+      )
       await expect(tx).to.be.rejectedWith(RevertError('NE20#1'))
     })
-
 
     it('should REVERT if LP fee is above 1000', async () => {
       const tx = niftyswapFactoryContract.functions.createExchange(
@@ -179,9 +185,9 @@ describe('NiftyswapFactory20', () => {
         ownerBaseTokenContract.address,
         1001,
         0,
-        {gasLimit: 5000000}
+        { gasLimit: 5000000 }
       )
-      await expect(tx).to.be.rejectedWith(RevertError("NE20#2"))
+      await expect(tx).to.be.rejectedWith(RevertError('NE20#2'))
     })
 
     it("should PASS if exchange doesn't exist yet", async () => {
@@ -228,7 +234,7 @@ describe('NiftyswapFactory20', () => {
           ownerBaseTokenContract.address,
           LP_FEE,
           0,
-          HIGH_GAS_LIMIT,
+          HIGH_GAS_LIMIT
         )
         await expect(tx).to.be.rejectedWith(RevertError('NF20#1'))
       })

@@ -15,12 +15,7 @@ import {
 
 import * as utils from './utils'
 
-import {
-  ERC1155Mock,
-  ERC1155PackedBalanceMock,
-  NiftyswapExchange,
-  NiftyswapFactory
-} from 'src/gen/typechain'
+import { ERC1155Mock, ERC1155PackedBalanceMock, NiftyswapExchange, NiftyswapFactory } from 'src/gen/typechain'
 
 import { abi as exchangeABI } from '@0xsequence/niftyswap/artifacts/contracts/exchange/NiftyswapExchange.sol/NiftyswapExchange.json'
 import { BigNumber } from 'ethers'
@@ -72,9 +67,7 @@ describe('NiftyswapExchange', () => {
 
   // Add liquidity data
   const tokenAmountToAdd = BigNumber.from(300)
-  const currencyAmountToAdd = BigNumber.from(10)
-    .pow(18)
-    .mul(299)
+  const currencyAmountToAdd = BigNumber.from(10).pow(18).mul(299)
 
   // Transactions parameters
   const TX_PARAM = { gasLimit: 5000000 }
@@ -106,7 +99,7 @@ describe('NiftyswapExchange', () => {
 
   let erc1155_error_prefix
 
-  conditions.forEach(function(condition) {
+  conditions.forEach(function (condition) {
     context(condition[0] as string, () => {
       // deploy before each test, to reset state of contract
       beforeEach(async () => {
@@ -821,10 +814,7 @@ describe('NiftyswapExchange', () => {
         const nTokenTypesToRemove = 30
 
         const tokenAmountToRemove = BigNumber.from(75)
-        const currencyAmountToRemove = BigNumber.from(10)
-          .pow(18)
-          .mul(299)
-          .div(4)
+        const currencyAmountToRemove = BigNumber.from(10).pow(18).mul(299).div(4)
 
         const typesToRemove = new Array(nTokenTypesToRemove).fill('').map((a, i) => getBig(i))
 
@@ -1340,14 +1330,16 @@ describe('NiftyswapExchange', () => {
             let operatorAddressTokenBalance = await userERC1155Contract.functions.balanceOf(operatorAddress, types[0])
             let operatorAddressCurrencyBalance = await userCurrencyContract.functions.balanceOf(operatorAddress, currencyID)
 
-            await niftyswapExchangeContract.connect(operatorWallet).functions.safeBatchTransferFrom(
-              operatorAddress,
-              niftyswapExchangeContract.address,
-              types,
-              [BigNumber.from(10000000)],
-              getRemoveLiquidityData([BigNumber.from(BigNumber.from(1))], [BigNumber.from(0)], deadline),
-              { gasLimit: 8000000 }
-            )
+            await niftyswapExchangeContract
+              .connect(operatorWallet)
+              .functions.safeBatchTransferFrom(
+                operatorAddress,
+                niftyswapExchangeContract.address,
+                types,
+                [BigNumber.from(10000000)],
+                getRemoveLiquidityData([BigNumber.from(BigNumber.from(1))], [BigNumber.from(0)], deadline),
+                { gasLimit: 8000000 }
+              )
 
             const newOperatorAddressCurrencyBalance = await userCurrencyContract.functions.balanceOf(operatorAddress, currencyID)
             const newOperatorAddressTokenBalance = await userERC1155Contract.functions.balanceOf(operatorAddress, types[0])
@@ -1357,7 +1349,6 @@ describe('NiftyswapExchange', () => {
 
             expect(diffOperatorToken).to.be.eql(BigNumber.from(0))
             expect(diffOperatorCurrency).to.be.eql(BigNumber.from(19953926))
-
           })
         })
       })
@@ -1957,7 +1948,7 @@ describe('NiftyswapExchange', () => {
           )
 
           // Trying to buy the only tokn will fail as it will cause a division by 0
-          const tx = niftyswapExchangeContract.functions.getPrice_currencyToToken([types[0]], [1]);
+          const tx = niftyswapExchangeContract.functions.getPrice_currencyToToken([types[0]], [1])
           await expect(tx).to.be.rejectedWith(CallError())
         })
 

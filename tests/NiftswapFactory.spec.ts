@@ -4,11 +4,7 @@ import { AbstractContract, BigNumber, expect, HIGH_GAS_LIMIT, RevertError } from
 
 import * as utils from './utils'
 
-import {
-  ERC1155Mock,
-  ERC1155PackedBalanceMock,
-  NiftyswapFactory
-} from 'src/gen/typechain'
+import { ERC1155Mock, ERC1155PackedBalanceMock, NiftyswapFactory } from 'src/gen/typechain'
 
 import { web3 } from 'hardhat'
 
@@ -122,12 +118,22 @@ describe('NiftyswapFactory', () => {
     beforeEach(async () => {})
 
     it('should REVERT if Token is 0x0', async () => {
-      const tx = niftyswapFactoryContract.functions.createExchange(ZERO_ADDRESS, ownerBaseTokenContract.address, baseTokenID, HIGH_GAS_LIMIT,)
+      const tx = niftyswapFactoryContract.functions.createExchange(
+        ZERO_ADDRESS,
+        ownerBaseTokenContract.address,
+        baseTokenID,
+        HIGH_GAS_LIMIT
+      )
       await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange#constructor:INVALID_INPUT'))
     })
 
     it('should REVERT if Base Token is 0x0', async () => {
-      const tx = niftyswapFactoryContract.functions.createExchange(ownerERC1155Contract.address, ZERO_ADDRESS, baseTokenID, HIGH_GAS_LIMIT,)
+      const tx = niftyswapFactoryContract.functions.createExchange(
+        ownerERC1155Contract.address,
+        ZERO_ADDRESS,
+        baseTokenID,
+        HIGH_GAS_LIMIT
+      )
       await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange#constructor:INVALID_INPUT'))
     })
 
@@ -189,7 +195,7 @@ describe('NiftyswapFactory', () => {
           ownerERC1155Contract.address,
           ownerBaseTokenContract.address,
           baseTokenID,
-          HIGH_GAS_LIMIT,
+          HIGH_GAS_LIMIT
         )
         await expect(tx).to.be.rejectedWith(RevertError('NiftyswapFactory#createExchange: EXCHANGE_ALREADY_CREATED'))
       })

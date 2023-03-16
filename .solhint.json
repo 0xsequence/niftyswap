@@ -16,6 +16,7 @@
     "ordering": "off",
     "no-unused-vars": "off",
     "no-inline-assembly": "off",
+    "payable-fallback": "off",
     "visibility-modifier-order": "off",
     "compiler-version": ["error", "^0.8.0"],
     "func-visibility": ["warn", {"ignoreConstructors":true}],
