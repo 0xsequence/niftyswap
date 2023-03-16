@@ -12,7 +12,7 @@ interface NetworkMapping {
 
 interface BuildArtifact {
   readonly contractName: string
-  readonly abi: any[]
+  readonly abi: any[] // eslint-disable-line @typescript-eslint/no-explicit-any
   readonly bytecode: string
   readonly networks?: NetworkMapping
 }
@@ -47,7 +47,7 @@ export class AbstractContract {
   public static async fromBuildArtifact(
     buildArtifact: BuildArtifact,
     links?: { [name: string]: Promise<AbstractContract> },
-    artifactName: string = 'UntitledContract'
+    artifactName = 'UntitledContract'
   ): Promise<AbstractContract> {
     return new AbstractContract(buildArtifact.abi, buildArtifact.bytecode, buildArtifact.networks, links, artifactName)
   }
@@ -92,6 +92,7 @@ export class AbstractContract {
    * @returns New contract instance
    */
   public async deploy(wallet: ethers.Wallet, args?: any[]): Promise<ethers.Contract> {
+    // eslint-disable-line @typescript-eslint/no-explicit-any
     if (!wallet.provider) {
       throw new Error('Signer requires provider')
     }

@@ -7,12 +7,16 @@ export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 import { BuyTokensObj, SellTokensObj, AddLiquidityObj, RemoveLiquidityObj, SellTokensObj20 } from 'src/typings/tx-types'
 
 // createTestWallet creates a new wallet
-export const createTestWallet = (web3: any, addressIndex: number = 0) => {
+export const createTestWallet = (web3, addressIndex = 0) => {
   const provider = new Web3DebugProvider(web3.currentProvider)
 
-  const wallet = ethers.Wallet.fromMnemonic(process.env.npm_package_config_mnemonic!, `m/44'/60'/0'/0/${addressIndex}`).connect(
-    provider
-  )
+  const { npm_package_config_mnemonic } = process.env
+  if (!npm_package_config_mnemonic) {
+    console.error('Missing npm_package_config_mnemonic')
+    process.exit(1)
+  }
+
+  const wallet = ethers.Wallet.fromMnemonic(npm_package_config_mnemonic, `m/44'/60'/0'/0/${addressIndex}`).connect(provider)
 
   const signer = provider.getSigner(addressIndex)
 
@@ -177,7 +181,7 @@ export class Web3DebugProvider extends ethers.providers.JsonRpcProvider {
     this.reqCounter++
 
     return new Promise((resolve, reject) => {
-      let request = {
+      const request = {
         method: method,
         params: params,
         id: this.reqCounter,
@@ -192,8 +196,7 @@ export class Web3DebugProvider extends ethers.providers.JsonRpcProvider {
         }
 
         if (result.error) {
-          // @TODO: not any
-          let error: any = new Error(result.error.message)
+          const error = new Error(result.error.message)
           error.code = result.error.code
           error.data = result.error.data
           reject(error)
@@ -205,7 +208,7 @@ export class Web3DebugProvider extends ethers.providers.JsonRpcProvider {
     })
   }
 
-  getPastRequest(reverseIndex: number = 0): JSONRPCRequest {
+  getPastRequest(reverseIndex = 0): JSONRPCRequest {
     if (this.reqLog.length === 0) {
       return { jsonrpc: '2.0', id: 0, method: null, params: null }
     }
