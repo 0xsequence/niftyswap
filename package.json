@@ -18,6 +18,8 @@
     "test:ganache": "hardhat --network ganache test tests/index.spec.ts",
     "test:gas-report": "REPORT_GAS=true yarn test",
     "test:benchmark": "hardhat --network ganache test tests/index.bench.ts",
+    "test:forge": "forge test -vv",
+    "test:forge:coverage": "forge coverage --report summary",
     "lint": "yarn lint:ts && yarn lint:sol",
     "lint:fix": "yarn lint:ts:fix && yarn lint:sol:fix",
     "lint:sol": "solhint \"./src/contracts/**/*.sol\"",
