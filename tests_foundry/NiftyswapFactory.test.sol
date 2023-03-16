@@ -39,9 +39,9 @@ contract NiftyswapFactoryTest is Test {
     }
 
     function test_createExchange_revertOnZeroAddr() external {
-        vm.expectRevert('NiftyswapExchange#constructor:INVALID_INPUT');
+        vm.expectRevert("NiftyswapExchange#constructor:INVALID_INPUT");
         factory.createExchange(address(0), erc1155B, BASE_TOKEN_ID);
-        vm.expectRevert('NiftyswapExchange#constructor:INVALID_INPUT');
+        vm.expectRevert("NiftyswapExchange#constructor:INVALID_INPUT");
         factory.createExchange(erc1155A, address(0), BASE_TOKEN_ID);
     }
 
@@ -68,7 +68,6 @@ contract NiftyswapFactoryTest is Test {
     //
     // Helpers
     //
-
     function createExchange() private {
         factory.createExchange(erc1155A, erc1155B, BASE_TOKEN_ID);
     }
@@ -77,11 +76,11 @@ contract NiftyswapFactoryTest is Test {
      * Skip a test.
      */
     modifier skipTest() {
+        // solhint-disable-next-line no-console
         console.log("Test skipped");
         if (false) {
             // Required for compiler
             _;
         }
     }
-
 }

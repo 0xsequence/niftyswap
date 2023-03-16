@@ -9,7 +9,9 @@ import {Test, Vm, console} from "forge-std/Test.sol";
 
 contract NiftyswapFactory20Test is Test {
     // Events can't be imported
-    event NewExchange(address indexed token, address indexed currency, uint256 indexed salt, uint256 lpFee, address exchange);
+    event NewExchange(
+        address indexed token, address indexed currency, uint256 indexed salt, uint256 lpFee, address exchange
+    );
 
     uint256 private constant LP_FEE = 420;
     uint256 private constant INSTANCE_ID = 69;
@@ -27,7 +29,6 @@ contract NiftyswapFactory20Test is Test {
     //
     // createExchange
     //
-
     function test_createExchange_happyPath() external {
         // Happy path
         vm.expectEmit(true, true, true, false);
@@ -46,9 +47,9 @@ contract NiftyswapFactory20Test is Test {
     }
 
     function test_createExchange_revertOnZeroAddr() external {
-        vm.expectRevert('NE20#1');
+        vm.expectRevert("NE20#1");
         factory.createExchange(address(0), erc1155, LP_FEE, INSTANCE_ID);
-        vm.expectRevert('NE20#1');
+        vm.expectRevert("NE20#1");
         factory.createExchange(erc20, address(0), LP_FEE, INSTANCE_ID);
     }
 
@@ -72,14 +73,13 @@ contract NiftyswapFactory20Test is Test {
     }
 
     function test_createExchange_invalidLpFee() external {
-        vm.expectRevert('NE20#2');
+        vm.expectRevert("NE20#2");
         factory.createExchange(erc1155, erc20, 1001, INSTANCE_ID);
     }
 
     //
     // getPairExchanges
     //
-
     function test_getPairExchanges_returnsArray() external {
         factory.createExchange(erc1155, erc20, 200, 1);
         factory.createExchange(erc1155, erc20, 50, 99);
@@ -99,7 +99,6 @@ contract NiftyswapFactory20Test is Test {
     //
     // Helpers
     //
-
     function createExchange() private {
         factory.createExchange(erc1155, erc20, LP_FEE, INSTANCE_ID);
     }
@@ -108,11 +107,11 @@ contract NiftyswapFactory20Test is Test {
      * Skip a test.
      */
     modifier skipTest() {
+        // solhint-disable-next-line no-console
         console.log("Test skipped");
         if (false) {
             // Required for compiler
             _;
         }
     }
-
 }

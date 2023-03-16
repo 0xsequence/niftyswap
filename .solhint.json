@@ -1,5 +1,5 @@
 {
-  "extends": "solhint:recommended",
+  "extends": ["solhint:recommended"],
   "rules": {
     "quotes": "off",
     "const-name-snakecase": "off",
