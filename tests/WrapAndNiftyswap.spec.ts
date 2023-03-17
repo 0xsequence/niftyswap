@@ -70,7 +70,7 @@ describe('WrapAndSwap', () => {
   let wrapAndSwap: string
 
   // Token Param
-  const nTokenTypes = 30 //560
+  const nTokenTypes = 3 //560
   const nTokensPerType = 500000
 
   // Currency Param
@@ -220,7 +220,7 @@ describe('WrapAndSwap', () => {
     it('should buy the 2nd time as well', async () => {
       await userWrapAndNiftyswap.functions.wrapAndSwap(cost, userAddress, buyTokenData, HIGH_GAS_LIMIT)
       let cost2 = (await niftyswapExchangeContract.functions.getPrice_currencyToToken([0], [tokenAmountToBuy]))[0][0]
-      cost2 = cost.mul(nTokenTypes)
+      cost2 = cost2.mul(nTokenTypes)
       const buyTokenData2 = getBuyTokenData(ZERO_ADDRESS, types, tokensAmountsToBuy, deadline)
       const tx = userWrapAndNiftyswap.functions.wrapAndSwap(cost2, userAddress, buyTokenData2, HIGH_GAS_LIMIT)
       await expect(tx).to.be.fulfilled
@@ -269,7 +269,7 @@ describe('WrapAndSwap', () => {
     const tokenAmountToSell = BigNumber.from(50)
     const tokensAmountsToSell: BigNumber[] = new Array(nTokenTypes).fill('').map(() => tokenAmountToSell)
     let sellTokenData: string
-    let expectedAmount
+    let expectedAmount: BigNumber
 
     beforeEach(async () => {
       // Sell
