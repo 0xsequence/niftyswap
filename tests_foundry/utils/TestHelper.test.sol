@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {INiftyswapExchange} from "src/contracts/interfaces/INiftyswapExchange.sol";
-import {ERC1155Mock} from "src/contracts/mocks/ERC1155Mock.sol";
+import {IERC1155} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
 
 import {Constants} from "./Constants.test.sol";
 import {Test} from "forge-std/Test.sol";
@@ -18,7 +18,7 @@ contract TestHelper is Test, Constants {
     {
         balances = new uint256[](types.length);
         for (uint256 i; i < types.length; i++) {
-            balances[i] = ERC1155Mock(erc1155).balanceOf(owner, types[i]);
+            balances[i] = IERC1155(erc1155).balanceOf(owner, types[i]);
         }
         return balances;
     }
@@ -31,6 +31,15 @@ contract TestHelper is Test, Constants {
             total += amounts[i];
         }
         return total;
+    }
+
+    /**
+     * Compare first and second balances.
+     */
+    function assertSame(uint256[] memory first, uint256[] memory second) internal {
+        for (uint256 i; i < first.length; i++) {
+            assertEq(second[i], first[i]);
+        }
     }
 
     /**
@@ -51,7 +60,6 @@ contract TestHelper is Test, Constants {
     //
     // Niftyswap data encodings
     //
-
     function encodeAddLiquidity(uint256[] memory maxCurrency, uint256 deadline)
         internal
         pure

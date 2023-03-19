@@ -238,7 +238,7 @@ describe('NiftyswapExchange', () => {
           const addLiquidityData1 = getAddLiquidityData([BigNumber.from(1000000001)], deadline)
           const tokenAmountsToAdd1 = [BigNumber.from(2)]
 
-          // After 2nd deposit
+          // 1st deposit
           await operatorERC1155Contract.functions.safeBatchTransferFrom(
             operatorAddress,
             niftyswapExchangeContract.address,
@@ -254,7 +254,7 @@ describe('NiftyswapExchange', () => {
           const addLiquidityData2 = getAddLiquidityData([BigNumber.from(1000000001)], deadline)
           const tokenAmountsToAdd2 = [BigNumber.from(1)] // 1 less
 
-          // After 2nd deposit
+          // 2nd deposit
           await operatorERC1155Contract.functions.safeBatchTransferFrom(
             operatorAddress,
             niftyswapExchangeContract.address,
@@ -302,7 +302,7 @@ describe('NiftyswapExchange', () => {
           expect(liquidity_supply2[0]).to.be.eql(BigNumber.from(1500000001)) // Should be 1500000001.5
         })
 
-        it('should REVERT if trying to crease currency/currency pool', async () => {
+        it('should REVERT if trying to create currency/currency pool', async () => {
           await niftyswapFactoryContract.functions.createExchange(
             ownerERC1155Contract.address,
             ownerERC1155Contract.address,
@@ -557,7 +557,7 @@ describe('NiftyswapExchange', () => {
             // After 1st deposit
             const prePrices = await niftyswapExchangeContract.functions.getPrice_currencyToToken(types, ones)
 
-            // After 2nd deposit
+            // 2nd deposit
             await operatorERC1155Contract.functions.safeBatchTransferFrom(
               operatorAddress,
               niftyswapExchangeContract.address,

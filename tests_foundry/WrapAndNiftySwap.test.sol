@@ -9,7 +9,7 @@ import {ERC20WrapperMock} from "src/contracts/mocks/ERC20WrapperMock.sol";
 import {ERC1155Mock} from "src/contracts/mocks/ERC1155Mock.sol";
 
 import {TestHelper} from "./utils/TestHelper.test.sol";
-import {Vm, console} from "forge-std/Test.sol";
+import {console} from "forge-std/Test.sol";
 
 contract WrapAndNiftySwapTest is TestHelper {
     // Events can't be imported
