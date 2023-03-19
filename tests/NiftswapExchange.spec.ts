@@ -94,7 +94,7 @@ describe('NiftyswapExchange', () => {
     ['Same Token Contract', 3]
   ]
 
-  let erc1155_error_prefix
+  let erc1155_error_prefix: string
 
   conditions.forEach(function (condition) {
     context(condition[0] as string, () => {

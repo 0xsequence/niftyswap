@@ -7,18 +7,17 @@ import {NiftyswapFactory} from "src/contracts/exchange/NiftyswapFactory.sol";
 import {ERC20TokenMock} from "src/contracts/mocks/ERC20TokenMock.sol";
 import {ERC20WrapperMock} from "src/contracts/mocks/ERC20WrapperMock.sol";
 import {ERC1155Mock} from "src/contracts/mocks/ERC1155Mock.sol";
-import {Constants} from "./utils/Constants.test.sol";
 
-import {Test, Vm, console} from "forge-std/Test.sol";
+import {TestHelper} from "./utils/TestHelper.test.sol";
+import {Vm, console} from "forge-std/Test.sol";
 
-contract WrapAndNiftySwapTest is Test, Constants {
+contract WrapAndNiftySwapTest is TestHelper {
     // Events can't be imported
     event NewExchange(
         address indexed token, address indexed currency, uint256 indexed salt, uint256 lpFee, address exchange
     );
 
     uint256 private constant LP_FEE = 420;
-    uint256 private constant INSTANCE_ID = 69;
     uint256 private constant CURRENCY_ID = 2;
 
     uint256[] private TOKEN_TYPES = [1, 2, 3];
@@ -30,9 +29,6 @@ contract WrapAndNiftySwapTest is Test, Constants {
     uint256[] private TOKEN_AMTS_TO_ADD = [300, 300, 300];
 
     uint256 private constant CURRENCY_AMT = 10000000 * 10e18;
-
-    address private constant OPERATOR = address(1);
-    address private constant USER = address(2);
 
     NiftyswapFactory private factory;
     WrapAndNiftyswap private swapper;
@@ -97,8 +93,8 @@ contract WrapAndNiftySwapTest is Test, Constants {
         // Get balances
         uint256 exchangeCurrBefore = erc20WrapperMock.balanceOf(exchangeAddr, CURRENCY_ID);
         uint256 userCurrBefore = ERC20TokenMock(erc20).balanceOf(USER);
-        uint256[] memory exchangeBalBefore = getBalances(exchangeAddr, TOKEN_TYPES);
-        uint256[] memory userBalBefore = getBalances(USER, TOKEN_TYPES);
+        uint256[] memory exchangeBalBefore = getBalances(exchangeAddr, TOKEN_TYPES, erc1155);
+        uint256[] memory userBalBefore = getBalances(USER, TOKEN_TYPES, erc1155);
 
         // Encode request
         bytes memory data = encodeBuyTokens(address(0), TOKEN_TYPES, TOKENS_TO_SWAP, block.timestamp);
@@ -114,9 +110,9 @@ contract WrapAndNiftySwapTest is Test, Constants {
         assertEq(currAfter, exchangeCurrBefore + total);
         currAfter = ERC20TokenMock(erc20).balanceOf(USER);
         assertEq(currAfter, userCurrBefore - total);
-        uint256[] memory balAfter = getBalances(exchangeAddr, TOKEN_TYPES);
+        uint256[] memory balAfter = getBalances(exchangeAddr, TOKEN_TYPES, erc1155);
         assertBeforeAfterDiff(exchangeBalBefore, balAfter, TOKENS_TO_SWAP, false);
-        balAfter = getBalances(USER, TOKEN_TYPES);
+        balAfter = getBalances(USER, TOKEN_TYPES, erc1155);
         assertBeforeAfterDiff(userBalBefore, balAfter, TOKENS_TO_SWAP, true);
     }
 
@@ -141,8 +137,8 @@ contract WrapAndNiftySwapTest is Test, Constants {
         // Get balances
         uint256 exchangeCurrBefore = erc20WrapperMock.balanceOf(exchangeAddr, CURRENCY_ID);
         uint256 userCurrBefore = ERC20TokenMock(erc20).balanceOf(USER);
-        uint256[] memory exchangeBalBefore = getBalances(exchangeAddr, TOKEN_TYPES);
-        uint256[] memory userBalBefore = getBalances(USER, TOKEN_TYPES);
+        uint256[] memory exchangeBalBefore = getBalances(exchangeAddr, TOKEN_TYPES, erc1155);
+        uint256[] memory userBalBefore = getBalances(USER, TOKEN_TYPES, erc1155);
 
         // Encode request
         uint256[] memory costs = exchange.getPrice_tokenToCurrency(TOKEN_TYPES, TOKENS_TO_SWAP);
@@ -158,9 +154,9 @@ contract WrapAndNiftySwapTest is Test, Constants {
         assertEq(currAfter, exchangeCurrBefore - total);
         currAfter = ERC20TokenMock(erc20).balanceOf(USER);
         assertEq(currAfter, userCurrBefore + total);
-        uint256[] memory balAfter = getBalances(exchangeAddr, TOKEN_TYPES);
+        uint256[] memory balAfter = getBalances(exchangeAddr, TOKEN_TYPES, erc1155);
         assertBeforeAfterDiff(exchangeBalBefore, balAfter, TOKENS_TO_SWAP, true);
-        balAfter = getBalances(USER, TOKEN_TYPES);
+        balAfter = getBalances(USER, TOKEN_TYPES, erc1155);
         assertBeforeAfterDiff(userBalBefore, balAfter, TOKENS_TO_SWAP, false);
     }
 
@@ -183,60 +179,6 @@ contract WrapAndNiftySwapTest is Test, Constants {
     //
     // Helpers
     //
-
-    /**
-     * Get token balances.
-     */
-    function getBalances(address owner, uint256[] memory types) private returns (uint256[] memory balances) {
-        balances = new uint256[](types.length);
-        for (uint256 i; i < types.length; i++) {
-            balances[i] = ERC1155Mock(erc1155).balanceOf(owner, types[i]);
-        }
-        return balances;
-    }
-
-    /**
-     * Total of array values.
-     */
-    function getTotal(uint256[] memory amounts) private returns (uint256 total) {
-        for (uint256 i; i < amounts.length; i++) {
-            total += amounts[i];
-        }
-        return total;
-    }
-
-    /**
-     * Compare first and second balances.
-     */
-    function assertBeforeAfterDiff(uint256[] memory first, uint256[] memory second, uint256[] memory diff, bool add)
-        private
-    {
-        for (uint256 i; i < first.length; i++) {
-            if (add) {
-                assertEq(second[i], first[i] + diff[i]);
-            } else {
-                assertEq(second[i], first[i] - diff[i]);
-            }
-        }
-    }
-
-    function encodeAddLiquidity(uint256[] memory maxCurrency, uint256 deadline) private returns (bytes memory data) {
-        return abi.encode(ADDLIQUIDITY_SIG, INiftyswapExchange.AddLiquidityObj(maxCurrency, deadline));
-    }
-
-    function encodeBuyTokens(address recipient, uint256[] memory types, uint256[] memory amounts, uint256 deadline)
-        private
-        returns (bytes memory data)
-    {
-        return abi.encode(BUYTOKENS_SIG, INiftyswapExchange.BuyTokensObj(recipient, types, amounts, deadline));
-    }
-
-    function encodeSellTokens(address recipient, uint256 amount, uint256 deadline)
-        private
-        returns (bytes memory data)
-    {
-        return abi.encode(SELLTOKENS_SIG, INiftyswapExchange.SellTokensObj(recipient, amount, deadline));
-    }
 
     /**
      * Skip a test.

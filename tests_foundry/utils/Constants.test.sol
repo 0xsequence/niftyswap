@@ -7,4 +7,7 @@ contract Constants {
     bytes4 public constant ADDLIQUIDITY_SIG = 0x82da2b73;
     bytes4 public constant REMOVELIQUIDITY_SIG = 0x5c0bf259;
     bytes4 public constant DEPOSIT_SIG = 0xc8c323f9;
+
+    address internal constant OPERATOR = address(1);
+    address internal constant USER = address(2);
 }
