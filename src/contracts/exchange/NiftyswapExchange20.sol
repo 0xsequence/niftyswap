@@ -598,7 +598,7 @@ contract NiftyswapExchange20 is
     {
         // Input validation
         // solhint-disable-next-line not-rely-on-time
-        require(_deadline > block.timestamp, "NE20#15"); // NiftyswapExchange20#_removeLiquidity: DEADLINE_EXCEEDED
+        require(_deadline >= block.timestamp, "NE20#15"); // NiftyswapExchange20#_removeLiquidity: DEADLINE_EXCEEDED
 
         // Initialize variables
         uint256 nTokens = _tokenIds.length; // Number of Token IDs to deposit
