@@ -68,6 +68,14 @@ contract TestHelper is Test, Constants {
         return abi.encode(ADDLIQUIDITY_SIG, INiftyswapExchange.AddLiquidityObj(maxCurrency, deadline));
     }
 
+    function encodeRemoveLiquidity(uint256[] memory minCurrency, uint256[] memory minToken, uint256 deadline)
+        internal
+        pure
+        returns (bytes memory data)
+    {
+        return abi.encode(REMOVELIQUIDITY_SIG, INiftyswapExchange.RemoveLiquidityObj(minCurrency, minToken, deadline));
+    }
+
     function encodeBuyTokens(address recipient, uint256[] memory types, uint256[] memory amounts, uint256 deadline)
         internal
         pure

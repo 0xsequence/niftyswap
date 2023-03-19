@@ -1864,9 +1864,6 @@ describe('NiftyswapExchange', () => {
           cost = cost.mul(nTokenTypes)
           buyTokenData = getBuyTokenData(randomWallet.address, types, tokensAmountsToBuy, deadline)
 
-          {
-            gasLimit: 8000000
-          }
           const tx = userCurrencyContract.functions.safeTransferFrom(
             userAddress,
             niftyswapExchangeContract.address,

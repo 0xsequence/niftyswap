@@ -13,6 +13,8 @@ import {TestHelper} from "./utils/TestHelper.test.sol";
 import {console} from "forge-std/Test.sol";
 import {stdError} from "forge-std/StdError.sol";
 
+interface IERC1155Exchange is INiftyswapExchange, IERC1155 {}
+
 contract NiftyswapExchangeTest is TestHelper {
     // Events can't be imported
     // IERC1155
@@ -34,11 +36,11 @@ contract NiftyswapExchangeTest is TestHelper {
 
     // Liquidity
     uint256[] private CURRENCIES_PER_TYPE = [299 * 10e18, 299 * 10e18, 299 * 10e18];
-    uint256[] private TOKEN_AMTSToAdd = [300, 300, 300];
+    uint256[] private TOKEN_AMTS_TO_ADD = [300, 300, 300];
     uint256 private constant CURRENCY_AMT = 10000000 * 10e18;
 
     NiftyswapFactory private factory;
-    INiftyswapExchange private exchange;
+    IERC1155Exchange private exchange;
     address private exchangeAddr;
     ERC1155Mock private erc1155AMock; // Token
     ERC1155Mock private erc1155BMock; // Currency
@@ -54,7 +56,7 @@ contract NiftyswapExchangeTest is TestHelper {
 
         factory.createExchange(erc1155A, erc1155B, CURRENCY_ID);
         exchangeAddr = factory.tokensToExchange(erc1155A, erc1155B, CURRENCY_ID);
-        exchange = INiftyswapExchange(exchangeAddr);
+        exchange = IERC1155Exchange(exchangeAddr);
 
         // Mint tokens
         erc1155AMock.batchMintMock(OPERATOR, TOKEN_TYPES, CURRENCIES_PER_TYPE, "");
@@ -309,7 +311,6 @@ contract NiftyswapExchangeTest is TestHelper {
         erc1155AMock.safeBatchTransferFrom(
             OPERATOR, exchangeAddr, types2, tokens2, encodeAddLiquidity(currencies1, block.timestamp)
         );
-
         vm.stopPrank();
     }
 
@@ -334,8 +335,150 @@ contract NiftyswapExchangeTest is TestHelper {
     //TODO Max currency exceeded
 
     //
+    // Remove liquidity
+    //
+    function test_removeLiquidity_noLiquidity() external {
+        uint256[] memory currencies = new uint256[](1);
+        currencies[0] = 1000000001;
+        uint256[] memory types = new uint256[](1);
+        types[0] = 1;
+        uint256[] memory tokens = new uint256[](1);
+        tokens[0] = 2;
+
+        vm.prank(OPERATOR);
+        vm.expectRevert(stdError.arithmeticError);
+        exchange.safeBatchTransferFrom(
+            OPERATOR, exchangeAddr, types, tokens, encodeRemoveLiquidity(currencies, tokens, block.timestamp)
+        );
+    }
+
+    function test_removeLiquidity_zeroRemoveLiquidity() external {
+        uint256[] memory currencies = new uint256[](1);
+        currencies[0] = 1000000001;
+        uint256[] memory types = new uint256[](1);
+        types[0] = 1;
+        uint256[] memory liquidity = new uint256[](1);
+        //Implicit: liquidity[0] = 0;
+        uint256[] memory tokens = new uint256[](1);
+        tokens[0] = 1;
+
+        vm.prank(OPERATOR);
+        vm.expectRevert("NiftyswapExchange#_removeLiquidity: NULL_TOTAL_LIQUIDITY");
+        exchange.safeBatchTransferFrom(
+            OPERATOR, exchangeAddr, types, liquidity, encodeRemoveLiquidity(currencies, tokens, block.timestamp)
+        );
+    }
+
+    function test_removeLiquidity_happyPath() external withLiquidity {
+        uint256 typeId = 1;
+        uint256[] memory currencies = new uint256[](1);
+        currencies[0] = 1;
+        uint256[] memory types = new uint256[](1);
+        types[0] = typeId;
+        uint256[] memory liquidity = new uint256[](1);
+        liquidity[0] = exchange.balanceOf(OPERATOR, typeId);
+        uint256[] memory tokens = new uint256[](1);
+        tokens[0] = 1;
+
+        vm.prank(OPERATOR);
+        exchange.safeBatchTransferFrom(
+            OPERATOR, exchangeAddr, types, liquidity, encodeRemoveLiquidity(currencies, tokens, block.timestamp)
+        );
+
+        //TODO Check balances
+    }
+
+    function test_removeLiquidity_insufficientCurrency() external withLiquidity {
+        uint256[] memory currencies = new uint256[](1);
+        currencies[0] = 1000000002; // Too much
+        uint256[] memory types = new uint256[](1);
+        types[0] = 1;
+        uint256[] memory tokens = new uint256[](1);
+        tokens[0] = 75;
+
+        vm.prank(OPERATOR);
+        vm.expectRevert("NiftyswapExchange#_removeLiquidity: INSUFFICIENT_CURRENCY_AMOUNT");
+        exchange.safeBatchTransferFrom(
+            OPERATOR, exchangeAddr, types, tokens, encodeRemoveLiquidity(currencies, tokens, block.timestamp)
+        );
+    }
+
+    function test_removeLiquidity_insufficientTokens() external withLiquidity {
+        uint256[] memory currencies = new uint256[](1);
+        currencies[0] = 10;
+        uint256[] memory types = new uint256[](1);
+        types[0] = 1;
+        uint256[] memory tokens = new uint256[](1);
+        tokens[0] = 3000; // Too much
+
+        vm.prank(OPERATOR);
+        vm.expectRevert("NiftyswapExchange#_removeLiquidity: INSUFFICIENT_TOKENS");
+        exchange.safeBatchTransferFrom(
+            OPERATOR, exchangeAddr, types, tokens, encodeRemoveLiquidity(currencies, tokens, block.timestamp)
+        );
+    }
+
+    function test_removeLiquidity_duplicateIds() external withLiquidity {
+        uint256[] memory currencies = new uint256[](2);
+        currencies[0] = 10;
+        currencies[1] = 10;
+        uint256[] memory types = new uint256[](2);
+        types[0] = 1;
+        types[1] = 1; // Same
+        uint256[] memory tokens = new uint256[](2);
+        tokens[0] = 10;
+        tokens[0] = 10;
+
+        vm.prank(OPERATOR);
+        vm.expectRevert("NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS");
+        exchange.safeBatchTransferFrom(
+            OPERATOR, exchangeAddr, types, tokens, encodeRemoveLiquidity(currencies, tokens, block.timestamp)
+        );
+    }
+
+    function test_removeLiquidity_badLengths() external withLiquidity {
+        uint256[] memory currencies1 = new uint256[](1);
+        currencies1[0] = 1000000001;
+        uint256[] memory currencies2 = new uint256[](2);
+        currencies2[0] = 1000000001;
+        currencies2[1] = 1000000001;
+        uint256[] memory types1 = new uint256[](1);
+        types1[0] = 1;
+        uint256[] memory types2 = new uint256[](2);
+        types2[0] = 1;
+        types2[1] = 2;
+        uint256[] memory tokens1 = new uint256[](1);
+        tokens1[0] = 2;
+        uint256[] memory tokens2 = new uint256[](2);
+        tokens2[0] = 2;
+        tokens2[1] = 2;
+
+        vm.startPrank(OPERATOR);
+        vm.expectRevert("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH");
+        exchange.safeBatchTransferFrom(
+            OPERATOR, exchangeAddr, types1, tokens2, encodeRemoveLiquidity(currencies2, tokens2, block.timestamp)
+        );
+        vm.expectRevert("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH");
+        exchange.safeBatchTransferFrom(
+            OPERATOR, exchangeAddr, types2, tokens1, encodeRemoveLiquidity(currencies2, tokens2, block.timestamp)
+        );
+        vm.stopPrank();
+    }
+
+    //
     // Helpers
     //
+    modifier withLiquidity() {
+        vm.prank(OPERATOR);
+        erc1155AMock.safeBatchTransferFrom(
+            OPERATOR,
+            exchangeAddr,
+            TOKEN_TYPES,
+            TOKEN_AMTS_TO_ADD,
+            encodeAddLiquidity(CURRENCIES_PER_TYPE, block.timestamp)
+        );
+        _;
+    }
 
     /**
      * Skip a test.
