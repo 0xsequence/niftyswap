@@ -488,7 +488,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
     {
         // Input validation
         // solhint-disable-next-line not-rely-on-time
-        require(_deadline >= block.timestamp, "NiftyswapExchange#_removeLiquidity: DEADLINE_EXCEEDED");
+        require(_deadline > block.timestamp, "NiftyswapExchange#_removeLiquidity: DEADLINE_EXCEEDED");
 
         // Initialize variables
         uint256 nTokens = _tokenIds.length; // Number of Token IDs to deposit

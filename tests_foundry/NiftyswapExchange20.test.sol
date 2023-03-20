@@ -310,7 +310,7 @@ contract NiftyswapExchange20Test is Niftyswap20TestHelper {
         vm.prank(OPERATOR);
         vm.expectRevert(stdError.arithmeticError);
         exchange.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types, tokens, encodeRemoveLiquidity(currencies, tokens, block.timestamp)
+            OPERATOR, exchangeAddr, types, tokens, encodeRemoveLiquidity(currencies, tokens, block.timestamp + 1)
         );
     }
 
@@ -327,7 +327,7 @@ contract NiftyswapExchange20Test is Niftyswap20TestHelper {
         vm.prank(OPERATOR);
         vm.expectRevert("NE20#16");
         exchange.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types, liquidity, encodeRemoveLiquidity(currencies, tokens, block.timestamp)
+            OPERATOR, exchangeAddr, types, liquidity, encodeRemoveLiquidity(currencies, tokens, block.timestamp + 1)
         );
     }
 
@@ -344,7 +344,7 @@ contract NiftyswapExchange20Test is Niftyswap20TestHelper {
 
         vm.prank(OPERATOR);
         exchange.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types, liquidity, encodeRemoveLiquidity(currencies, tokens, block.timestamp)
+            OPERATOR, exchangeAddr, types, liquidity, encodeRemoveLiquidity(currencies, tokens, block.timestamp + 1)
         );
 
         //TODO Check balances
@@ -361,7 +361,7 @@ contract NiftyswapExchange20Test is Niftyswap20TestHelper {
         vm.prank(OPERATOR);
         vm.expectRevert("NE20#17");
         exchange.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types, tokens, encodeRemoveLiquidity(currencies, tokens, block.timestamp)
+            OPERATOR, exchangeAddr, types, tokens, encodeRemoveLiquidity(currencies, tokens, block.timestamp + 1)
         );
     }
 
@@ -376,7 +376,7 @@ contract NiftyswapExchange20Test is Niftyswap20TestHelper {
         vm.prank(OPERATOR);
         vm.expectRevert("NE20#18");
         exchange.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types, tokens, encodeRemoveLiquidity(currencies, tokens, block.timestamp)
+            OPERATOR, exchangeAddr, types, tokens, encodeRemoveLiquidity(currencies, tokens, block.timestamp + 1)
         );
     }
 
@@ -394,7 +394,7 @@ contract NiftyswapExchange20Test is Niftyswap20TestHelper {
         vm.prank(OPERATOR);
         vm.expectRevert("NE20#32");
         exchange.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types, tokens, encodeRemoveLiquidity(currencies, tokens, block.timestamp)
+            OPERATOR, exchangeAddr, types, tokens, encodeRemoveLiquidity(currencies, tokens, block.timestamp + 1)
         );
     }
 
@@ -418,11 +418,11 @@ contract NiftyswapExchange20Test is Niftyswap20TestHelper {
         vm.startPrank(OPERATOR);
         vm.expectRevert("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH");
         exchange.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types1, tokens2, encodeRemoveLiquidity(currencies2, tokens2, block.timestamp)
+            OPERATOR, exchangeAddr, types1, tokens2, encodeRemoveLiquidity(currencies2, tokens2, block.timestamp + 1)
         );
         vm.expectRevert("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH");
         exchange.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types2, tokens1, encodeRemoveLiquidity(currencies2, tokens2, block.timestamp)
+            OPERATOR, exchangeAddr, types2, tokens1, encodeRemoveLiquidity(currencies2, tokens2, block.timestamp + 1)
         );
         vm.stopPrank();
     }
