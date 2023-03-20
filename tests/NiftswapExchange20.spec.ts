@@ -181,7 +181,7 @@ describe('NiftyswapExchange20', () => {
         } else {
           LP_FEE = 10 // 1%
         }
-        LP_FEE_MULTIPLIER = 1000 - LP_FEE // 1%
+        LP_FEE_MULTIPLIER = 1000 - LP_FEE
 
         // Create exchange contract for the ERC-20/1155 token
         await niftyswapFactoryContract.functions.createExchange(

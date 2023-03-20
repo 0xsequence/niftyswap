@@ -8,10 +8,10 @@ import {ERC20TokenMock} from "src/contracts/mocks/ERC20TokenMock.sol";
 import {ERC20WrapperMock} from "src/contracts/mocks/ERC20WrapperMock.sol";
 import {ERC1155Mock} from "src/contracts/mocks/ERC1155Mock.sol";
 
-import {TestHelper} from "./utils/TestHelper.test.sol";
+import {NiftyswapTestHelper} from "./utils/NiftyswapTestHelper.test.sol";
 import {console} from "forge-std/Test.sol";
 
-contract WrapAndNiftySwapTest is TestHelper {
+contract WrapAndNiftySwapTest is NiftyswapTestHelper {
     // Events can't be imported
     event NewExchange(
         address indexed token, address indexed currency, uint256 indexed salt, uint256 lpFee, address exchange
