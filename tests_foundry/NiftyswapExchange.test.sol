@@ -466,6 +466,249 @@ contract NiftyswapExchangeTest is TestHelper {
     }
 
     //
+    // Sell
+    //
+    function test_tokenToCurrency_happyPath() external withLiquidity {
+        // Data
+        uint256[] memory types = new uint256[](1);
+        types[0] = 1;
+        uint256[] memory sellAmounts = new uint256[](1);
+        sellAmounts[0] = 10;
+        uint256[] memory prices = exchange.getPrice_tokenToCurrency(types, sellAmounts);
+
+        // Before bals
+        uint256 exchangeCurrBefore = erc1155BMock.balanceOf(exchangeAddr, CURRENCY_ID);
+        uint256 userCurrBefore = erc1155BMock.balanceOf(USER, CURRENCY_ID);
+        uint256[] memory exchangeBalBefore = getBalances(exchangeAddr, types, erc1155A);
+        uint256[] memory userBalBefore = getBalances(USER, types, erc1155A);
+
+        // Run it
+        vm.prank(USER);
+        //TODO Check emit
+        erc1155AMock.safeBatchTransferFrom(
+            USER, exchangeAddr, types, sellAmounts, encodeSellTokens(USER, prices[0], block.timestamp)
+        );
+
+        // Check balances
+        uint256 currAfter = erc1155BMock.balanceOf(exchangeAddr, CURRENCY_ID);
+        assertEq(currAfter, exchangeCurrBefore - prices[0]);
+        currAfter = erc1155BMock.balanceOf(USER, CURRENCY_ID);
+        assertEq(currAfter, userCurrBefore + prices[0]);
+        uint256[] memory balAfter = getBalances(exchangeAddr, types, erc1155A);
+        assertBeforeAfterDiff(exchangeBalBefore, balAfter, sellAmounts, true);
+        balAfter = getBalances(USER, types, erc1155A);
+        assertBeforeAfterDiff(userBalBefore, balAfter, sellAmounts, false);
+    }
+
+    function test_tokenToCurrency_zeroTokens() external withLiquidity {
+        uint256[] memory types = new uint256[](1);
+        types[0] = 1;
+        uint256[] memory sellAmounts = new uint256[](1);
+        sellAmounts[0] = 0;
+        uint256[] memory prices = exchange.getPrice_tokenToCurrency(types, sellAmounts);
+
+        vm.prank(USER);
+        vm.expectRevert("NiftyswapExchange#_tokenToCurrency: NULL_TOKENS_SOLD");
+        erc1155AMock.safeBatchTransferFrom(
+            USER, exchangeAddr, types, sellAmounts, encodeSellTokens(USER, prices[0], block.timestamp)
+        );
+    }
+
+    function test_tokenToCurrency_notEnoughTokens() external withLiquidity {
+        uint256 typeId = 1;
+        uint256 bal = erc1155AMock.balanceOf(USER, typeId);
+        uint256[] memory types = new uint256[](1);
+        types[0] = typeId;
+        uint256[] memory sellAmounts = new uint256[](1);
+        sellAmounts[0] = bal + 1;
+        uint256[] memory prices = exchange.getPrice_tokenToCurrency(types, sellAmounts);
+
+        vm.prank(USER);
+        vm.expectRevert(stdError.arithmeticError);
+        erc1155AMock.safeBatchTransferFrom(
+            USER, exchangeAddr, types, sellAmounts, encodeSellTokens(USER, prices[0], block.timestamp)
+        );
+    }
+
+    function test_tokenToCurrency_pastDeadline() external withLiquidity {
+        uint256[] memory types = new uint256[](1);
+        types[0] = 1;
+        uint256[] memory sellAmounts = new uint256[](1);
+        sellAmounts[0] = 10;
+        uint256[] memory prices = exchange.getPrice_tokenToCurrency(types, sellAmounts);
+
+        vm.prank(USER);
+        vm.expectRevert("NiftyswapExchange#_tokenToCurrency: DEADLINE_EXCEEDED");
+        erc1155AMock.safeBatchTransferFrom(
+            USER, exchangeAddr, types, sellAmounts, encodeSellTokens(USER, prices[0], block.timestamp - 1)
+        );
+    }
+
+    function test_tokenToCurrency_costTooHigh() external withLiquidity {
+        uint256[] memory types = new uint256[](1);
+        types[0] = 1;
+        uint256[] memory sellAmounts = new uint256[](1);
+        sellAmounts[0] = 10;
+        uint256[] memory prices = exchange.getPrice_tokenToCurrency(types, sellAmounts);
+        prices[0] += 1; // Too high
+
+        vm.prank(USER);
+        vm.expectRevert("NiftyswapExchange#_tokenToCurrency: INSUFFICIENT_CURRENCY_AMOUNT");
+        erc1155AMock.safeBatchTransferFrom(
+            USER, exchangeAddr, types, sellAmounts, encodeSellTokens(USER, prices[0], block.timestamp)
+        );
+    }
+
+    function test_tokenToCurrency_duplicateIds() external withLiquidity {
+        uint256[] memory types = new uint256[](2);
+        types[0] = 1;
+        types[1] = 1; //Same
+        uint256[] memory sellAmounts = new uint256[](2);
+        sellAmounts[0] = 10;
+        sellAmounts[1] = 10;
+        uint256[] memory prices = exchange.getPrice_tokenToCurrency(types, sellAmounts);
+
+        vm.prank(USER);
+        vm.expectRevert("NiftyswapExchange#_tokenToCurrency: DEADLINE_EXCEEDED");
+        erc1155AMock.safeBatchTransferFrom(
+            USER, exchangeAddr, types, sellAmounts, encodeSellTokens(USER, prices[0], block.timestamp - 1)
+        );
+    }
+
+    function test_tokenToCurrency_badArrayLengths() external withLiquidity {
+        uint256[] memory sellAmounts1 = new uint256[](1);
+        sellAmounts1[0] = 10;
+        uint256[] memory sellAmounts2 = new uint256[](2);
+        sellAmounts2[0] = 10;
+        sellAmounts2[1] = 10;
+        uint256[] memory types1 = new uint256[](1);
+        types1[0] = 1;
+        uint256[] memory prices = exchange.getPrice_tokenToCurrency(types1, sellAmounts1);
+
+        vm.startPrank(USER);
+        vm.expectRevert("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH");
+        erc1155AMock.safeBatchTransferFrom(
+            USER, exchangeAddr, types1, sellAmounts2, encodeSellTokens(USER, prices[0], block.timestamp - 1)
+        );
+        vm.stopPrank();
+    }
+
+    //
+    // Buy
+    //
+    function test_currencyToToken_happyPath() external withLiquidity {
+        // Data
+        uint256[] memory types = new uint256[](1);
+        types[0] = 1;
+        uint256[] memory tokens = new uint256[](1);
+        tokens[0] = 10;
+        uint256[] memory prices = exchange.getPrice_currencyToToken(types, tokens);
+
+        // Before bals
+        uint256 exchangeCurrBefore = erc1155BMock.balanceOf(exchangeAddr, CURRENCY_ID);
+        uint256 userCurrBefore = erc1155BMock.balanceOf(USER, CURRENCY_ID);
+        uint256[] memory exchangeBalBefore = getBalances(exchangeAddr, types, erc1155A);
+        uint256[] memory userBalBefore = getBalances(USER, types, erc1155A);
+
+        // Run it
+        vm.prank(USER);
+        //TODO Check emit
+        erc1155BMock.safeTransferFrom(
+            USER, exchangeAddr, CURRENCY_ID, prices[0], encodeBuyTokens(USER, types, tokens, block.timestamp)
+        );
+
+        // Check balances
+        uint256 currAfter = erc1155BMock.balanceOf(exchangeAddr, CURRENCY_ID);
+        assertEq(currAfter, exchangeCurrBefore + prices[0]);
+        currAfter = erc1155BMock.balanceOf(USER, CURRENCY_ID);
+        assertEq(currAfter, userCurrBefore - prices[0]);
+        uint256[] memory balAfter = getBalances(exchangeAddr, types, erc1155A);
+        assertBeforeAfterDiff(exchangeBalBefore, balAfter, tokens, false);
+        balAfter = getBalances(USER, types, erc1155A);
+        assertBeforeAfterDiff(userBalBefore, balAfter, tokens, true);
+    }
+
+    function test_currencyToToken_zeroTokens() external withLiquidity {
+        uint256[] memory types = new uint256[](1);
+        types[0] = 1;
+        uint256[] memory tokens = new uint256[](1);
+        tokens[0] = 0;
+        uint256[] memory prices = exchange.getPrice_currencyToToken(types, tokens);
+
+        vm.prank(USER);
+        vm.expectRevert("NiftyswapExchange#_currencyToToken: NULL_TOKENS_BOUGHT");
+        erc1155BMock.safeTransferFrom(
+            USER, exchangeAddr, CURRENCY_ID, prices[0], encodeBuyTokens(USER, types, tokens, block.timestamp)
+        );
+    }
+
+    function test_currencyToToken_notEnoughTokens() external withLiquidity {
+        uint256 typeId = 1;
+        uint256 bal = erc1155BMock.balanceOf(USER, CURRENCY_ID);
+        uint256[] memory types = new uint256[](1);
+        types[0] = typeId;
+        uint256[] memory tokens = new uint256[](1);
+        tokens[0] = 10;
+        uint256[] memory prices = exchange.getPrice_currencyToToken(types, tokens);
+        tokens[0] = bal + 1;
+
+        vm.prank(USER);
+        vm.expectRevert(stdError.arithmeticError);
+        erc1155BMock.safeTransferFrom(
+            USER, exchangeAddr, CURRENCY_ID, prices[0], encodeBuyTokens(USER, types, tokens, block.timestamp)
+        );
+    }
+
+    function test_currencyToToken_pastDeadline() external withLiquidity {
+        uint256[] memory types = new uint256[](1);
+        types[0] = 1;
+        uint256[] memory tokens = new uint256[](1);
+        tokens[0] = 10;
+        uint256[] memory prices = exchange.getPrice_currencyToToken(types, tokens);
+
+        vm.prank(USER);
+        vm.expectRevert("NiftyswapExchange#_currencyToToken: DEADLINE_EXCEEDED");
+        erc1155BMock.safeTransferFrom(
+            USER, exchangeAddr, CURRENCY_ID, prices[0], encodeBuyTokens(USER, types, tokens, block.timestamp - 1)
+        );
+    }
+
+    function test_currencyToToken_costTooLow() external withLiquidity {
+        uint256[] memory types = new uint256[](1);
+        types[0] = 1;
+        uint256[] memory tokens = new uint256[](1);
+        tokens[0] = 10;
+        uint256[] memory prices = exchange.getPrice_currencyToToken(types, tokens);
+        prices[0] -= 1; // Too low
+
+        vm.prank(USER);
+        vm.expectRevert(stdError.arithmeticError);
+        erc1155BMock.safeTransferFrom(
+            USER, exchangeAddr, CURRENCY_ID, prices[0], encodeBuyTokens(USER, types, tokens, block.timestamp)
+        );
+    }
+
+    function test_currencyToToken_duplicateIds() external withLiquidity {
+        uint256[] memory types = new uint256[](2);
+        types[0] = 1;
+        types[1] = 1; //Same
+        uint256[] memory tokens = new uint256[](2);
+        tokens[0] = 10;
+        tokens[1] = 10;
+        uint256[] memory prices = exchange.getPrice_currencyToToken(types, tokens);
+
+        vm.prank(USER);
+        vm.expectRevert("NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS");
+        erc1155BMock.safeTransferFrom(
+            USER, exchangeAddr, CURRENCY_ID, prices[0], encodeBuyTokens(USER, types, tokens, block.timestamp)
+        );
+    }
+
+    //TODO Bad lengths
+
+    //TODO Edge cases
+
+    //
     // Helpers
     //
     modifier withLiquidity() {
