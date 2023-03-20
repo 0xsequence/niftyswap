@@ -152,6 +152,7 @@ jobs:
             */*/node_modules
           key: ${{ runner.os }}-lerna-${{ hashFiles('**/package.json', '**/yarn.lock') }}
       - run: yarn build
+      - run: yarn format:ts
       - run: git diff --exit-code
 
   # coverage:
