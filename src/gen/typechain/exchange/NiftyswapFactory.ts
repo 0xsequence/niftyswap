@@ -11,103 +11,70 @@ import type {
   Overrides,
   PopulatedTransaction,
   Signer,
-  utils,
-} from "ethers";
-import type {
-  FunctionFragment,
-  Result,
-  EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-  PromiseOrValue,
-} from "../common";
+  utils
+} from 'ethers'
+import type { FunctionFragment, Result, EventFragment } from '@ethersproject/abi'
+import type { Listener, Provider } from '@ethersproject/providers'
+import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from '../common'
 
 export interface NiftyswapFactoryInterface extends utils.Interface {
   functions: {
-    "createExchange(address,address,uint256)": FunctionFragment;
-    "tokensToExchange(address,address,uint256)": FunctionFragment;
-  };
+    'createExchange(address,address,uint256)': FunctionFragment
+    'tokensToExchange(address,address,uint256)': FunctionFragment
+  }
 
-  getFunction(
-    nameOrSignatureOrTopic: "createExchange" | "tokensToExchange"
-  ): FunctionFragment;
+  getFunction(nameOrSignatureOrTopic: 'createExchange' | 'tokensToExchange'): FunctionFragment
 
   encodeFunctionData(
-    functionFragment: "createExchange",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
-  ): string;
+    functionFragment: 'createExchange',
+    values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string
   encodeFunctionData(
-    functionFragment: "tokensToExchange",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>
-    ]
-  ): string;
+    functionFragment: 'tokensToExchange',
+    values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string
 
-  decodeFunctionResult(
-    functionFragment: "createExchange",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "tokensToExchange",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: 'createExchange', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'tokensToExchange', data: BytesLike): Result
 
   events: {
-    "NewExchange(address,address,uint256,address)": EventFragment;
-  };
+    'NewExchange(address,address,uint256,address)': EventFragment
+  }
 
-  getEvent(nameOrSignatureOrTopic: "NewExchange"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'NewExchange'): EventFragment
 }
 
 export interface NewExchangeEventObject {
-  token: string;
-  currency: string;
-  currencyID: BigNumber;
-  exchange: string;
+  token: string
+  currency: string
+  currencyID: BigNumber
+  exchange: string
 }
-export type NewExchangeEvent = TypedEvent<
-  [string, string, BigNumber, string],
-  NewExchangeEventObject
->;
+export type NewExchangeEvent = TypedEvent<[string, string, BigNumber, string], NewExchangeEventObject>
 
-export type NewExchangeEventFilter = TypedEventFilter<NewExchangeEvent>;
+export type NewExchangeEventFilter = TypedEventFilter<NewExchangeEvent>
 
 export interface NiftyswapFactory extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this
+  attach(addressOrName: string): this
+  deployed(): Promise<this>
 
-  interface: NiftyswapFactoryInterface;
+  interface: NiftyswapFactoryInterface
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TEvent>>
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>
+  listeners(eventName?: string): Array<Listener>
+  removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this
+  removeAllListeners(eventName?: string): this
+  off: OnEvent<this>
+  on: OnEvent<this>
+  once: OnEvent<this>
+  removeListener: OnEvent<this>
 
   functions: {
     createExchange(
@@ -115,29 +82,29 @@ export interface NiftyswapFactory extends BaseContract {
       _currency: PromiseOrValue<string>,
       _currencyID: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    ): Promise<ContractTransaction>
 
     tokensToExchange(
       arg0: PromiseOrValue<string>,
       arg1: PromiseOrValue<string>,
       arg2: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<[string]>;
-  };
+    ): Promise<[string]>
+  }
 
   createExchange(
     _token: PromiseOrValue<string>,
     _currency: PromiseOrValue<string>,
     _currencyID: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  ): Promise<ContractTransaction>
 
   tokensToExchange(
     arg0: PromiseOrValue<string>,
     arg1: PromiseOrValue<string>,
     arg2: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
-  ): Promise<string>;
+  ): Promise<string>
 
   callStatic: {
     createExchange(
@@ -145,30 +112,30 @@ export interface NiftyswapFactory extends BaseContract {
       _currency: PromiseOrValue<string>,
       _currencyID: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<void>
 
     tokensToExchange(
       arg0: PromiseOrValue<string>,
       arg1: PromiseOrValue<string>,
       arg2: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<string>;
-  };
+    ): Promise<string>
+  }
 
   filters: {
-    "NewExchange(address,address,uint256,address)"(
+    'NewExchange(address,address,uint256,address)'(
       token?: PromiseOrValue<string> | null,
       currency?: PromiseOrValue<string> | null,
       currencyID?: PromiseOrValue<BigNumberish> | null,
       exchange?: null
-    ): NewExchangeEventFilter;
+    ): NewExchangeEventFilter
     NewExchange(
       token?: PromiseOrValue<string> | null,
       currency?: PromiseOrValue<string> | null,
       currencyID?: PromiseOrValue<BigNumberish> | null,
       exchange?: null
-    ): NewExchangeEventFilter;
-  };
+    ): NewExchangeEventFilter
+  }
 
   estimateGas: {
     createExchange(
@@ -176,15 +143,15 @@ export interface NiftyswapFactory extends BaseContract {
       _currency: PromiseOrValue<string>,
       _currencyID: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
     tokensToExchange(
       arg0: PromiseOrValue<string>,
       arg1: PromiseOrValue<string>,
       arg2: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
-  };
+    ): Promise<BigNumber>
+  }
 
   populateTransaction: {
     createExchange(
@@ -192,13 +159,13 @@ export interface NiftyswapFactory extends BaseContract {
       _currency: PromiseOrValue<string>,
       _currencyID: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    ): Promise<PopulatedTransaction>
 
     tokensToExchange(
       arg0: PromiseOrValue<string>,
       arg1: PromiseOrValue<string>,
       arg2: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-  };
+    ): Promise<PopulatedTransaction>
+  }
 }

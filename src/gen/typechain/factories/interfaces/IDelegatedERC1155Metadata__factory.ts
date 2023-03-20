@@ -2,42 +2,32 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
-import type {
-  IDelegatedERC1155Metadata,
-  IDelegatedERC1155MetadataInterface,
-} from "../../interfaces/IDelegatedERC1155Metadata";
+import { Contract, Signer, utils } from 'ethers'
+import type { Provider } from '@ethersproject/providers'
+import type { IDelegatedERC1155Metadata, IDelegatedERC1155MetadataInterface } from '../../interfaces/IDelegatedERC1155Metadata'
 
 const _abi = [
   {
     inputs: [],
-    name: "metadataProvider",
+    name: 'metadataProvider',
     outputs: [
       {
-        internalType: "contract IERC1155Metadata",
-        name: "",
-        type: "address",
-      },
+        internalType: 'contract IERC1155Metadata',
+        name: '',
+        type: 'address'
+      }
     ],
-    stateMutability: "view",
-    type: "function",
-  },
-] as const;
+    stateMutability: 'view',
+    type: 'function'
+  }
+] as const
 
 export class IDelegatedERC1155Metadata__factory {
-  static readonly abi = _abi;
+  static readonly abi = _abi
   static createInterface(): IDelegatedERC1155MetadataInterface {
-    return new utils.Interface(_abi) as IDelegatedERC1155MetadataInterface;
+    return new utils.Interface(_abi) as IDelegatedERC1155MetadataInterface
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): IDelegatedERC1155Metadata {
-    return new Contract(
-      address,
-      _abi,
-      signerOrProvider
-    ) as IDelegatedERC1155Metadata;
+  static connect(address: string, signerOrProvider: Signer | Provider): IDelegatedERC1155Metadata {
+    return new Contract(address, _abi, signerOrProvider) as IDelegatedERC1155Metadata
   }
 }

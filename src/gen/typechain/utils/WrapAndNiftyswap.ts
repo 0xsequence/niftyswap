@@ -11,45 +11,39 @@ import type {
   Overrides,
   PopulatedTransaction,
   Signer,
-  utils,
-} from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-  PromiseOrValue,
-} from "../common";
+  utils
+} from 'ethers'
+import type { FunctionFragment, Result } from '@ethersproject/abi'
+import type { Listener, Provider } from '@ethersproject/providers'
+import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from '../common'
 
 export interface WrapAndNiftyswapInterface extends utils.Interface {
   functions: {
-    "erc1155()": FunctionFragment;
-    "erc20()": FunctionFragment;
-    "exchange()": FunctionFragment;
-    "onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)": FunctionFragment;
-    "onERC1155Received(address,address,uint256,uint256,bytes)": FunctionFragment;
-    "tokenWrapper()": FunctionFragment;
-    "wrapAndSwap(uint256,address,bytes)": FunctionFragment;
-  };
+    'erc1155()': FunctionFragment
+    'erc20()': FunctionFragment
+    'exchange()': FunctionFragment
+    'onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)': FunctionFragment
+    'onERC1155Received(address,address,uint256,uint256,bytes)': FunctionFragment
+    'tokenWrapper()': FunctionFragment
+    'wrapAndSwap(uint256,address,bytes)': FunctionFragment
+  }
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "erc1155"
-      | "erc20"
-      | "exchange"
-      | "onERC1155BatchReceived"
-      | "onERC1155Received"
-      | "tokenWrapper"
-      | "wrapAndSwap"
-  ): FunctionFragment;
+      | 'erc1155'
+      | 'erc20'
+      | 'exchange'
+      | 'onERC1155BatchReceived'
+      | 'onERC1155Received'
+      | 'tokenWrapper'
+      | 'wrapAndSwap'
+  ): FunctionFragment
 
-  encodeFunctionData(functionFragment: "erc1155", values?: undefined): string;
-  encodeFunctionData(functionFragment: "erc20", values?: undefined): string;
-  encodeFunctionData(functionFragment: "exchange", values?: undefined): string;
+  encodeFunctionData(functionFragment: 'erc1155', values?: undefined): string
+  encodeFunctionData(functionFragment: 'erc20', values?: undefined): string
+  encodeFunctionData(functionFragment: 'exchange', values?: undefined): string
   encodeFunctionData(
-    functionFragment: "onERC1155BatchReceived",
+    functionFragment: 'onERC1155BatchReceived',
     values: [
       PromiseOrValue<string>,
       PromiseOrValue<string>,
@@ -57,9 +51,9 @@ export interface WrapAndNiftyswapInterface extends utils.Interface {
       PromiseOrValue<BigNumberish>[],
       PromiseOrValue<BytesLike>
     ]
-  ): string;
+  ): string
   encodeFunctionData(
-    functionFragment: "onERC1155Received",
+    functionFragment: 'onERC1155Received',
     values: [
       PromiseOrValue<string>,
       PromiseOrValue<string>,
@@ -67,75 +61,52 @@ export interface WrapAndNiftyswapInterface extends utils.Interface {
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BytesLike>
     ]
-  ): string;
+  ): string
+  encodeFunctionData(functionFragment: 'tokenWrapper', values?: undefined): string
   encodeFunctionData(
-    functionFragment: "tokenWrapper",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "wrapAndSwap",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BytesLike>
-    ]
-  ): string;
+    functionFragment: 'wrapAndSwap',
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<string>, PromiseOrValue<BytesLike>]
+  ): string
 
-  decodeFunctionResult(functionFragment: "erc1155", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "erc20", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "exchange", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "onERC1155BatchReceived",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "onERC1155Received",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "tokenWrapper",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "wrapAndSwap",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: 'erc1155', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'erc20', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'exchange', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'onERC1155BatchReceived', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'onERC1155Received', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'tokenWrapper', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'wrapAndSwap', data: BytesLike): Result
 
-  events: {};
+  events: {}
 }
 
 export interface WrapAndNiftyswap extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this
+  attach(addressOrName: string): this
+  deployed(): Promise<this>
 
-  interface: WrapAndNiftyswapInterface;
+  interface: WrapAndNiftyswapInterface
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TEvent>>
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>
+  listeners(eventName?: string): Array<Listener>
+  removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this
+  removeAllListeners(eventName?: string): this
+  off: OnEvent<this>
+  on: OnEvent<this>
+  once: OnEvent<this>
+  removeListener: OnEvent<this>
 
   functions: {
-    erc1155(overrides?: CallOverrides): Promise<[string]>;
+    erc1155(overrides?: CallOverrides): Promise<[string]>
 
-    erc20(overrides?: CallOverrides): Promise<[string]>;
+    erc20(overrides?: CallOverrides): Promise<[string]>
 
-    exchange(overrides?: CallOverrides): Promise<[string]>;
+    exchange(overrides?: CallOverrides): Promise<[string]>
 
     onERC1155BatchReceived(
       arg0: PromiseOrValue<string>,
@@ -144,7 +115,7 @@ export interface WrapAndNiftyswap extends BaseContract {
       _amounts: PromiseOrValue<BigNumberish>[],
       _niftyswapOrder: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    ): Promise<ContractTransaction>
 
     onERC1155Received(
       arg0: PromiseOrValue<string>,
@@ -153,23 +124,23 @@ export interface WrapAndNiftyswap extends BaseContract {
       arg3: PromiseOrValue<BigNumberish>,
       arg4: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    ): Promise<ContractTransaction>
 
-    tokenWrapper(overrides?: CallOverrides): Promise<[string]>;
+    tokenWrapper(overrides?: CallOverrides): Promise<[string]>
 
     wrapAndSwap(
       _maxAmount: PromiseOrValue<BigNumberish>,
       _recipient: PromiseOrValue<string>,
       _niftyswapOrder: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-  };
+    ): Promise<ContractTransaction>
+  }
 
-  erc1155(overrides?: CallOverrides): Promise<string>;
+  erc1155(overrides?: CallOverrides): Promise<string>
 
-  erc20(overrides?: CallOverrides): Promise<string>;
+  erc20(overrides?: CallOverrides): Promise<string>
 
-  exchange(overrides?: CallOverrides): Promise<string>;
+  exchange(overrides?: CallOverrides): Promise<string>
 
   onERC1155BatchReceived(
     arg0: PromiseOrValue<string>,
@@ -178,7 +149,7 @@ export interface WrapAndNiftyswap extends BaseContract {
     _amounts: PromiseOrValue<BigNumberish>[],
     _niftyswapOrder: PromiseOrValue<BytesLike>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  ): Promise<ContractTransaction>
 
   onERC1155Received(
     arg0: PromiseOrValue<string>,
@@ -187,23 +158,23 @@ export interface WrapAndNiftyswap extends BaseContract {
     arg3: PromiseOrValue<BigNumberish>,
     arg4: PromiseOrValue<BytesLike>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  ): Promise<ContractTransaction>
 
-  tokenWrapper(overrides?: CallOverrides): Promise<string>;
+  tokenWrapper(overrides?: CallOverrides): Promise<string>
 
   wrapAndSwap(
     _maxAmount: PromiseOrValue<BigNumberish>,
     _recipient: PromiseOrValue<string>,
     _niftyswapOrder: PromiseOrValue<BytesLike>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  ): Promise<ContractTransaction>
 
   callStatic: {
-    erc1155(overrides?: CallOverrides): Promise<string>;
+    erc1155(overrides?: CallOverrides): Promise<string>
 
-    erc20(overrides?: CallOverrides): Promise<string>;
+    erc20(overrides?: CallOverrides): Promise<string>
 
-    exchange(overrides?: CallOverrides): Promise<string>;
+    exchange(overrides?: CallOverrides): Promise<string>
 
     onERC1155BatchReceived(
       arg0: PromiseOrValue<string>,
@@ -212,7 +183,7 @@ export interface WrapAndNiftyswap extends BaseContract {
       _amounts: PromiseOrValue<BigNumberish>[],
       _niftyswapOrder: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
-    ): Promise<string>;
+    ): Promise<string>
 
     onERC1155Received(
       arg0: PromiseOrValue<string>,
@@ -221,26 +192,26 @@ export interface WrapAndNiftyswap extends BaseContract {
       arg3: PromiseOrValue<BigNumberish>,
       arg4: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
-    ): Promise<string>;
+    ): Promise<string>
 
-    tokenWrapper(overrides?: CallOverrides): Promise<string>;
+    tokenWrapper(overrides?: CallOverrides): Promise<string>
 
     wrapAndSwap(
       _maxAmount: PromiseOrValue<BigNumberish>,
       _recipient: PromiseOrValue<string>,
       _niftyswapOrder: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
-    ): Promise<void>;
-  };
+    ): Promise<void>
+  }
 
-  filters: {};
+  filters: {}
 
   estimateGas: {
-    erc1155(overrides?: CallOverrides): Promise<BigNumber>;
+    erc1155(overrides?: CallOverrides): Promise<BigNumber>
 
-    erc20(overrides?: CallOverrides): Promise<BigNumber>;
+    erc20(overrides?: CallOverrides): Promise<BigNumber>
 
-    exchange(overrides?: CallOverrides): Promise<BigNumber>;
+    exchange(overrides?: CallOverrides): Promise<BigNumber>
 
     onERC1155BatchReceived(
       arg0: PromiseOrValue<string>,
@@ -249,7 +220,7 @@ export interface WrapAndNiftyswap extends BaseContract {
       _amounts: PromiseOrValue<BigNumberish>[],
       _niftyswapOrder: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
     onERC1155Received(
       arg0: PromiseOrValue<string>,
@@ -258,24 +229,24 @@ export interface WrapAndNiftyswap extends BaseContract {
       arg3: PromiseOrValue<BigNumberish>,
       arg4: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
-    tokenWrapper(overrides?: CallOverrides): Promise<BigNumber>;
+    tokenWrapper(overrides?: CallOverrides): Promise<BigNumber>
 
     wrapAndSwap(
       _maxAmount: PromiseOrValue<BigNumberish>,
       _recipient: PromiseOrValue<string>,
       _niftyswapOrder: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-  };
+    ): Promise<BigNumber>
+  }
 
   populateTransaction: {
-    erc1155(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    erc1155(overrides?: CallOverrides): Promise<PopulatedTransaction>
 
-    erc20(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    erc20(overrides?: CallOverrides): Promise<PopulatedTransaction>
 
-    exchange(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    exchange(overrides?: CallOverrides): Promise<PopulatedTransaction>
 
     onERC1155BatchReceived(
       arg0: PromiseOrValue<string>,
@@ -284,7 +255,7 @@ export interface WrapAndNiftyswap extends BaseContract {
       _amounts: PromiseOrValue<BigNumberish>[],
       _niftyswapOrder: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    ): Promise<PopulatedTransaction>
 
     onERC1155Received(
       arg0: PromiseOrValue<string>,
@@ -293,15 +264,15 @@ export interface WrapAndNiftyswap extends BaseContract {
       arg3: PromiseOrValue<BigNumberish>,
       arg4: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    ): Promise<PopulatedTransaction>
 
-    tokenWrapper(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    tokenWrapper(overrides?: CallOverrides): Promise<PopulatedTransaction>
 
     wrapAndSwap(
       _maxAmount: PromiseOrValue<BigNumberish>,
       _recipient: PromiseOrValue<string>,
       _niftyswapOrder: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-  };
+    ): Promise<PopulatedTransaction>
+  }
 }

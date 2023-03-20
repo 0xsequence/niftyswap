@@ -11,11 +11,11 @@ contract ERC1155MetadataPrefix is IERC1155Metadata, Ownable {
 
     bool internal immutable includeAddress;
 
-  constructor(string memory _prefix, bool _includeAddress, address _admin) Ownable(_admin) {
-    emit URIPrefixChanged(_prefix);
-    uriPrefix = _prefix;
-    includeAddress = _includeAddress;
-  }
+    constructor(string memory _prefix, bool _includeAddress, address _admin) Ownable(_admin) {
+        emit URIPrefixChanged(_prefix);
+        uriPrefix = _prefix;
+        includeAddress = _includeAddress;
+    }
 
     function setUriPrefix(string calldata _uriPrefix) external onlyOwner {
         emit URIPrefixChanged(_uriPrefix);

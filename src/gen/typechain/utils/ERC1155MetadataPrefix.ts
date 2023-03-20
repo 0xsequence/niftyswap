@@ -11,309 +11,209 @@ import type {
   Overrides,
   PopulatedTransaction,
   Signer,
-  utils,
-} from "ethers";
-import type {
-  FunctionFragment,
-  Result,
-  EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-  PromiseOrValue,
-} from "../common";
+  utils
+} from 'ethers'
+import type { FunctionFragment, Result, EventFragment } from '@ethersproject/abi'
+import type { Listener, Provider } from '@ethersproject/providers'
+import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from '../common'
 
 export interface ERC1155MetadataPrefixInterface extends utils.Interface {
   functions: {
-    "_addressToString(address)": FunctionFragment;
-    "_bytesToString(bytes)": FunctionFragment;
-    "getOwner()": FunctionFragment;
-    "setUriPrefix(string)": FunctionFragment;
-    "transferOwnership(address)": FunctionFragment;
-    "uri(uint256)": FunctionFragment;
-    "uriPrefix()": FunctionFragment;
-  };
+    '_addressToString(address)': FunctionFragment
+    '_bytesToString(bytes)': FunctionFragment
+    'getOwner()': FunctionFragment
+    'setUriPrefix(string)': FunctionFragment
+    'transferOwnership(address)': FunctionFragment
+    'uri(uint256)': FunctionFragment
+    'uriPrefix()': FunctionFragment
+  }
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "_addressToString"
-      | "_bytesToString"
-      | "getOwner"
-      | "setUriPrefix"
-      | "transferOwnership"
-      | "uri"
-      | "uriPrefix"
-  ): FunctionFragment;
+      | '_addressToString'
+      | '_bytesToString'
+      | 'getOwner'
+      | 'setUriPrefix'
+      | 'transferOwnership'
+      | 'uri'
+      | 'uriPrefix'
+  ): FunctionFragment
 
-  encodeFunctionData(
-    functionFragment: "_addressToString",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "_bytesToString",
-    values: [PromiseOrValue<BytesLike>]
-  ): string;
-  encodeFunctionData(functionFragment: "getOwner", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "setUriPrefix",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "uri",
-    values: [PromiseOrValue<BigNumberish>]
-  ): string;
-  encodeFunctionData(functionFragment: "uriPrefix", values?: undefined): string;
+  encodeFunctionData(functionFragment: '_addressToString', values: [PromiseOrValue<string>]): string
+  encodeFunctionData(functionFragment: '_bytesToString', values: [PromiseOrValue<BytesLike>]): string
+  encodeFunctionData(functionFragment: 'getOwner', values?: undefined): string
+  encodeFunctionData(functionFragment: 'setUriPrefix', values: [PromiseOrValue<string>]): string
+  encodeFunctionData(functionFragment: 'transferOwnership', values: [PromiseOrValue<string>]): string
+  encodeFunctionData(functionFragment: 'uri', values: [PromiseOrValue<BigNumberish>]): string
+  encodeFunctionData(functionFragment: 'uriPrefix', values?: undefined): string
 
-  decodeFunctionResult(
-    functionFragment: "_addressToString",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "_bytesToString",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getOwner", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "setUriPrefix",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "uri", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "uriPrefix", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: '_addressToString', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: '_bytesToString', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getOwner', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'setUriPrefix', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'transferOwnership', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'uri', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'uriPrefix', data: BytesLike): Result
 
   events: {
-    "OwnershipTransferred(address,address)": EventFragment;
-    "URIPrefixChanged(string)": EventFragment;
-  };
+    'OwnershipTransferred(address,address)': EventFragment
+    'URIPrefixChanged(string)': EventFragment
+  }
 
-  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "URIPrefixChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'OwnershipTransferred'): EventFragment
+  getEvent(nameOrSignatureOrTopic: 'URIPrefixChanged'): EventFragment
 }
 
 export interface OwnershipTransferredEventObject {
-  previousOwner: string;
-  newOwner: string;
+  previousOwner: string
+  newOwner: string
 }
-export type OwnershipTransferredEvent = TypedEvent<
-  [string, string],
-  OwnershipTransferredEventObject
->;
+export type OwnershipTransferredEvent = TypedEvent<[string, string], OwnershipTransferredEventObject>
 
-export type OwnershipTransferredEventFilter =
-  TypedEventFilter<OwnershipTransferredEvent>;
+export type OwnershipTransferredEventFilter = TypedEventFilter<OwnershipTransferredEvent>
 
 export interface URIPrefixChangedEventObject {
-  _uriPrefix: string;
+  _uriPrefix: string
 }
-export type URIPrefixChangedEvent = TypedEvent<
-  [string],
-  URIPrefixChangedEventObject
->;
+export type URIPrefixChangedEvent = TypedEvent<[string], URIPrefixChangedEventObject>
 
-export type URIPrefixChangedEventFilter =
-  TypedEventFilter<URIPrefixChangedEvent>;
+export type URIPrefixChangedEventFilter = TypedEventFilter<URIPrefixChangedEvent>
 
 export interface ERC1155MetadataPrefix extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this
+  attach(addressOrName: string): this
+  deployed(): Promise<this>
 
-  interface: ERC1155MetadataPrefixInterface;
+  interface: ERC1155MetadataPrefixInterface
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TEvent>>
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>
+  listeners(eventName?: string): Array<Listener>
+  removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this
+  removeAllListeners(eventName?: string): this
+  off: OnEvent<this>
+  on: OnEvent<this>
+  once: OnEvent<this>
+  removeListener: OnEvent<this>
 
   functions: {
-    _addressToString(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    _addressToString(account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[string]>
 
-    _bytesToString(
-      data: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    _bytesToString(data: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<[string]>
 
-    getOwner(overrides?: CallOverrides): Promise<[string]>;
+    getOwner(overrides?: CallOverrides): Promise<[string]>
 
     setUriPrefix(
       _uriPrefix: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    ): Promise<ContractTransaction>
 
     transferOwnership(
       _newOwner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    ): Promise<ContractTransaction>
 
-    uri(
-      _id: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    uri(_id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<[string]>
 
-    uriPrefix(overrides?: CallOverrides): Promise<[string]>;
-  };
+    uriPrefix(overrides?: CallOverrides): Promise<[string]>
+  }
 
-  _addressToString(
-    account: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  _addressToString(account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<string>
 
-  _bytesToString(
-    data: PromiseOrValue<BytesLike>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  _bytesToString(data: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<string>
 
-  getOwner(overrides?: CallOverrides): Promise<string>;
+  getOwner(overrides?: CallOverrides): Promise<string>
 
   setUriPrefix(
     _uriPrefix: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  ): Promise<ContractTransaction>
 
   transferOwnership(
     _newOwner: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  ): Promise<ContractTransaction>
 
-  uri(
-    _id: PromiseOrValue<BigNumberish>,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  uri(_id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>
 
-  uriPrefix(overrides?: CallOverrides): Promise<string>;
+  uriPrefix(overrides?: CallOverrides): Promise<string>
 
   callStatic: {
-    _addressToString(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    _addressToString(account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<string>
 
-    _bytesToString(
-      data: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    _bytesToString(data: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<string>
 
-    getOwner(overrides?: CallOverrides): Promise<string>;
+    getOwner(overrides?: CallOverrides): Promise<string>
 
-    setUriPrefix(
-      _uriPrefix: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    setUriPrefix(_uriPrefix: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>
 
-    transferOwnership(
-      _newOwner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    transferOwnership(_newOwner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>
 
-    uri(
-      _id: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    uri(_id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<string>
 
-    uriPrefix(overrides?: CallOverrides): Promise<string>;
-  };
+    uriPrefix(overrides?: CallOverrides): Promise<string>
+  }
 
   filters: {
-    "OwnershipTransferred(address,address)"(
+    'OwnershipTransferred(address,address)'(
       previousOwner?: PromiseOrValue<string> | null,
       newOwner?: PromiseOrValue<string> | null
-    ): OwnershipTransferredEventFilter;
+    ): OwnershipTransferredEventFilter
     OwnershipTransferred(
       previousOwner?: PromiseOrValue<string> | null,
       newOwner?: PromiseOrValue<string> | null
-    ): OwnershipTransferredEventFilter;
+    ): OwnershipTransferredEventFilter
 
-    "URIPrefixChanged(string)"(_uriPrefix?: null): URIPrefixChangedEventFilter;
-    URIPrefixChanged(_uriPrefix?: null): URIPrefixChangedEventFilter;
-  };
+    'URIPrefixChanged(string)'(_uriPrefix?: null): URIPrefixChangedEventFilter
+    URIPrefixChanged(_uriPrefix?: null): URIPrefixChangedEventFilter
+  }
 
   estimateGas: {
-    _addressToString(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    _addressToString(account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>
 
-    _bytesToString(
-      data: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    _bytesToString(data: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<BigNumber>
 
-    getOwner(overrides?: CallOverrides): Promise<BigNumber>;
+    getOwner(overrides?: CallOverrides): Promise<BigNumber>
 
     setUriPrefix(
       _uriPrefix: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
     transferOwnership(
       _newOwner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
-    uri(
-      _id: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    uri(_id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<BigNumber>
 
-    uriPrefix(overrides?: CallOverrides): Promise<BigNumber>;
-  };
+    uriPrefix(overrides?: CallOverrides): Promise<BigNumber>
+  }
 
   populateTransaction: {
-    _addressToString(
-      account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    _addressToString(account: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>
 
-    _bytesToString(
-      data: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    _bytesToString(data: PromiseOrValue<BytesLike>, overrides?: CallOverrides): Promise<PopulatedTransaction>
 
-    getOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    getOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>
 
     setUriPrefix(
       _uriPrefix: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    ): Promise<PopulatedTransaction>
 
     transferOwnership(
       _newOwner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    ): Promise<PopulatedTransaction>
 
-    uri(
-      _id: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    uri(_id: PromiseOrValue<BigNumberish>, overrides?: CallOverrides): Promise<PopulatedTransaction>
 
-    uriPrefix(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-  };
+    uriPrefix(overrides?: CallOverrides): Promise<PopulatedTransaction>
+  }
 }

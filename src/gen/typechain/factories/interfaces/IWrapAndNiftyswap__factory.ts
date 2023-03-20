@@ -2,126 +2,120 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
-import type {
-  IWrapAndNiftyswap,
-  IWrapAndNiftyswapInterface,
-} from "../../interfaces/IWrapAndNiftyswap";
+import { Contract, Signer, utils } from 'ethers'
+import type { Provider } from '@ethersproject/providers'
+import type { IWrapAndNiftyswap, IWrapAndNiftyswapInterface } from '../../interfaces/IWrapAndNiftyswap'
 
 const _abi = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "",
-        type: "address",
+        internalType: 'address',
+        name: '',
+        type: 'address'
       },
       {
-        internalType: "address",
-        name: "_from",
-        type: "address",
+        internalType: 'address',
+        name: '_from',
+        type: 'address'
       },
       {
-        internalType: "uint256[]",
-        name: "_ids",
-        type: "uint256[]",
+        internalType: 'uint256[]',
+        name: '_ids',
+        type: 'uint256[]'
       },
       {
-        internalType: "uint256[]",
-        name: "_amounts",
-        type: "uint256[]",
+        internalType: 'uint256[]',
+        name: '_amounts',
+        type: 'uint256[]'
       },
       {
-        internalType: "bytes",
-        name: "_data",
-        type: "bytes",
-      },
+        internalType: 'bytes',
+        name: '_data',
+        type: 'bytes'
+      }
     ],
-    name: "onERC1155BatchReceived",
+    name: 'onERC1155BatchReceived',
     outputs: [
       {
-        internalType: "bytes4",
-        name: "",
-        type: "bytes4",
-      },
+        internalType: 'bytes4',
+        name: '',
+        type: 'bytes4'
+      }
     ],
-    stateMutability: "nonpayable",
-    type: "function",
+    stateMutability: 'nonpayable',
+    type: 'function'
   },
   {
     inputs: [
       {
-        internalType: "address",
-        name: "_operator",
-        type: "address",
+        internalType: 'address',
+        name: '_operator',
+        type: 'address'
       },
       {
-        internalType: "address",
-        name: "_from",
-        type: "address",
+        internalType: 'address',
+        name: '_from',
+        type: 'address'
       },
       {
-        internalType: "uint256",
-        name: "_id",
-        type: "uint256",
+        internalType: 'uint256',
+        name: '_id',
+        type: 'uint256'
       },
       {
-        internalType: "uint256",
-        name: "_amount",
-        type: "uint256",
+        internalType: 'uint256',
+        name: '_amount',
+        type: 'uint256'
       },
       {
-        internalType: "bytes",
-        name: "_data",
-        type: "bytes",
-      },
+        internalType: 'bytes',
+        name: '_data',
+        type: 'bytes'
+      }
     ],
-    name: "onERC1155Received",
+    name: 'onERC1155Received',
     outputs: [
       {
-        internalType: "bytes4",
-        name: "",
-        type: "bytes4",
-      },
+        internalType: 'bytes4',
+        name: '',
+        type: 'bytes4'
+      }
     ],
-    stateMutability: "nonpayable",
-    type: "function",
+    stateMutability: 'nonpayable',
+    type: 'function'
   },
   {
     inputs: [
       {
-        internalType: "uint256",
-        name: "_maxAmount",
-        type: "uint256",
+        internalType: 'uint256',
+        name: '_maxAmount',
+        type: 'uint256'
       },
       {
-        internalType: "address",
-        name: "_recipient",
-        type: "address",
+        internalType: 'address',
+        name: '_recipient',
+        type: 'address'
       },
       {
-        internalType: "bytes",
-        name: "_niftyswapOrder",
-        type: "bytes",
-      },
+        internalType: 'bytes',
+        name: '_niftyswapOrder',
+        type: 'bytes'
+      }
     ],
-    name: "wrapAndSwap",
+    name: 'wrapAndSwap',
     outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-] as const;
+    stateMutability: 'nonpayable',
+    type: 'function'
+  }
+] as const
 
 export class IWrapAndNiftyswap__factory {
-  static readonly abi = _abi;
+  static readonly abi = _abi
   static createInterface(): IWrapAndNiftyswapInterface {
-    return new utils.Interface(_abi) as IWrapAndNiftyswapInterface;
+    return new utils.Interface(_abi) as IWrapAndNiftyswapInterface
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): IWrapAndNiftyswap {
-    return new Contract(address, _abi, signerOrProvider) as IWrapAndNiftyswap;
+  static connect(address: string, signerOrProvider: Signer | Provider): IWrapAndNiftyswap {
+    return new Contract(address, _abi, signerOrProvider) as IWrapAndNiftyswap
   }
 }

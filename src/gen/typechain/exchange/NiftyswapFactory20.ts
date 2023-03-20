@@ -11,179 +11,114 @@ import type {
   Overrides,
   PopulatedTransaction,
   Signer,
-  utils,
-} from "ethers";
-import type {
-  FunctionFragment,
-  Result,
-  EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-  PromiseOrValue,
-} from "../common";
+  utils
+} from 'ethers'
+import type { FunctionFragment, Result, EventFragment } from '@ethersproject/abi'
+import type { Listener, Provider } from '@ethersproject/providers'
+import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from '../common'
 
 export interface NiftyswapFactory20Interface extends utils.Interface {
   functions: {
-    "createExchange(address,address,uint256,uint256)": FunctionFragment;
-    "getOwner()": FunctionFragment;
-    "getPairExchanges(address,address)": FunctionFragment;
-    "metadataProvider()": FunctionFragment;
-    "setMetadataContract(address)": FunctionFragment;
-    "tokensToExchange(address,address,uint256,uint256)": FunctionFragment;
-    "transferOwnership(address)": FunctionFragment;
-  };
+    'createExchange(address,address,uint256,uint256)': FunctionFragment
+    'getOwner()': FunctionFragment
+    'getPairExchanges(address,address)': FunctionFragment
+    'metadataProvider()': FunctionFragment
+    'setMetadataContract(address)': FunctionFragment
+    'tokensToExchange(address,address,uint256,uint256)': FunctionFragment
+    'transferOwnership(address)': FunctionFragment
+  }
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "createExchange"
-      | "getOwner"
-      | "getPairExchanges"
-      | "metadataProvider"
-      | "setMetadataContract"
-      | "tokensToExchange"
-      | "transferOwnership"
-  ): FunctionFragment;
+      | 'createExchange'
+      | 'getOwner'
+      | 'getPairExchanges'
+      | 'metadataProvider'
+      | 'setMetadataContract'
+      | 'tokensToExchange'
+      | 'transferOwnership'
+  ): FunctionFragment
 
   encodeFunctionData(
-    functionFragment: "createExchange",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
-  ): string;
-  encodeFunctionData(functionFragment: "getOwner", values?: undefined): string;
+    functionFragment: 'createExchange',
+    values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+  ): string
+  encodeFunctionData(functionFragment: 'getOwner', values?: undefined): string
+  encodeFunctionData(functionFragment: 'getPairExchanges', values: [PromiseOrValue<string>, PromiseOrValue<string>]): string
+  encodeFunctionData(functionFragment: 'metadataProvider', values?: undefined): string
+  encodeFunctionData(functionFragment: 'setMetadataContract', values: [PromiseOrValue<string>]): string
   encodeFunctionData(
-    functionFragment: "getPairExchanges",
-    values: [PromiseOrValue<string>, PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "metadataProvider",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setMetadataContract",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "tokensToExchange",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<string>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [PromiseOrValue<string>]
-  ): string;
+    functionFragment: 'tokensToExchange',
+    values: [PromiseOrValue<string>, PromiseOrValue<string>, PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+  ): string
+  encodeFunctionData(functionFragment: 'transferOwnership', values: [PromiseOrValue<string>]): string
 
-  decodeFunctionResult(
-    functionFragment: "createExchange",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getOwner", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getPairExchanges",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "metadataProvider",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setMetadataContract",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "tokensToExchange",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnership",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: 'createExchange', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getOwner', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getPairExchanges', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'metadataProvider', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'setMetadataContract', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'tokensToExchange', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'transferOwnership', data: BytesLike): Result
 
   events: {
-    "MetadataContractChanged(address)": EventFragment;
-    "NewExchange(address,address,uint256,uint256,address)": EventFragment;
-    "OwnershipTransferred(address,address)": EventFragment;
-  };
+    'MetadataContractChanged(address)': EventFragment
+    'NewExchange(address,address,uint256,uint256,address)': EventFragment
+    'OwnershipTransferred(address,address)': EventFragment
+  }
 
-  getEvent(nameOrSignatureOrTopic: "MetadataContractChanged"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "NewExchange"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'MetadataContractChanged'): EventFragment
+  getEvent(nameOrSignatureOrTopic: 'NewExchange'): EventFragment
+  getEvent(nameOrSignatureOrTopic: 'OwnershipTransferred'): EventFragment
 }
 
 export interface MetadataContractChangedEventObject {
-  metadataContract: string;
+  metadataContract: string
 }
-export type MetadataContractChangedEvent = TypedEvent<
-  [string],
-  MetadataContractChangedEventObject
->;
+export type MetadataContractChangedEvent = TypedEvent<[string], MetadataContractChangedEventObject>
 
-export type MetadataContractChangedEventFilter =
-  TypedEventFilter<MetadataContractChangedEvent>;
+export type MetadataContractChangedEventFilter = TypedEventFilter<MetadataContractChangedEvent>
 
 export interface NewExchangeEventObject {
-  token: string;
-  currency: string;
-  salt: BigNumber;
-  lpFee: BigNumber;
-  exchange: string;
+  token: string
+  currency: string
+  salt: BigNumber
+  lpFee: BigNumber
+  exchange: string
 }
-export type NewExchangeEvent = TypedEvent<
-  [string, string, BigNumber, BigNumber, string],
-  NewExchangeEventObject
->;
+export type NewExchangeEvent = TypedEvent<[string, string, BigNumber, BigNumber, string], NewExchangeEventObject>
 
-export type NewExchangeEventFilter = TypedEventFilter<NewExchangeEvent>;
+export type NewExchangeEventFilter = TypedEventFilter<NewExchangeEvent>
 
 export interface OwnershipTransferredEventObject {
-  previousOwner: string;
-  newOwner: string;
+  previousOwner: string
+  newOwner: string
 }
-export type OwnershipTransferredEvent = TypedEvent<
-  [string, string],
-  OwnershipTransferredEventObject
->;
+export type OwnershipTransferredEvent = TypedEvent<[string, string], OwnershipTransferredEventObject>
 
-export type OwnershipTransferredEventFilter =
-  TypedEventFilter<OwnershipTransferredEvent>;
+export type OwnershipTransferredEventFilter = TypedEventFilter<OwnershipTransferredEvent>
 
 export interface NiftyswapFactory20 extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this
+  attach(addressOrName: string): this
+  deployed(): Promise<this>
 
-  interface: NiftyswapFactory20Interface;
+  interface: NiftyswapFactory20Interface
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TEvent>>
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>
+  listeners(eventName?: string): Array<Listener>
+  removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this
+  removeAllListeners(eventName?: string): this
+  off: OnEvent<this>
+  on: OnEvent<this>
+  once: OnEvent<this>
+  removeListener: OnEvent<this>
 
   functions: {
     createExchange(
@@ -192,22 +127,22 @@ export interface NiftyswapFactory20 extends BaseContract {
       _lpFee: PromiseOrValue<BigNumberish>,
       _instance: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    ): Promise<ContractTransaction>
 
-    getOwner(overrides?: CallOverrides): Promise<[string]>;
+    getOwner(overrides?: CallOverrides): Promise<[string]>
 
     getPairExchanges(
       _token: PromiseOrValue<string>,
       _currency: PromiseOrValue<string>,
       overrides?: CallOverrides
-    ): Promise<[string[]]>;
+    ): Promise<[string[]]>
 
-    metadataProvider(overrides?: CallOverrides): Promise<[string]>;
+    metadataProvider(overrides?: CallOverrides): Promise<[string]>
 
     setMetadataContract(
       _contract: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    ): Promise<ContractTransaction>
 
     tokensToExchange(
       arg0: PromiseOrValue<string>,
@@ -215,13 +150,13 @@ export interface NiftyswapFactory20 extends BaseContract {
       arg2: PromiseOrValue<BigNumberish>,
       arg3: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<[string]>;
+    ): Promise<[string]>
 
     transferOwnership(
       _newOwner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-  };
+    ): Promise<ContractTransaction>
+  }
 
   createExchange(
     _token: PromiseOrValue<string>,
@@ -229,22 +164,22 @@ export interface NiftyswapFactory20 extends BaseContract {
     _lpFee: PromiseOrValue<BigNumberish>,
     _instance: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  ): Promise<ContractTransaction>
 
-  getOwner(overrides?: CallOverrides): Promise<string>;
+  getOwner(overrides?: CallOverrides): Promise<string>
 
   getPairExchanges(
     _token: PromiseOrValue<string>,
     _currency: PromiseOrValue<string>,
     overrides?: CallOverrides
-  ): Promise<string[]>;
+  ): Promise<string[]>
 
-  metadataProvider(overrides?: CallOverrides): Promise<string>;
+  metadataProvider(overrides?: CallOverrides): Promise<string>
 
   setMetadataContract(
     _contract: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  ): Promise<ContractTransaction>
 
   tokensToExchange(
     arg0: PromiseOrValue<string>,
@@ -252,12 +187,12 @@ export interface NiftyswapFactory20 extends BaseContract {
     arg2: PromiseOrValue<BigNumberish>,
     arg3: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
-  ): Promise<string>;
+  ): Promise<string>
 
   transferOwnership(
     _newOwner: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  ): Promise<ContractTransaction>
 
   callStatic: {
     createExchange(
@@ -266,22 +201,19 @@ export interface NiftyswapFactory20 extends BaseContract {
       _lpFee: PromiseOrValue<BigNumberish>,
       _instance: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<void>
 
-    getOwner(overrides?: CallOverrides): Promise<string>;
+    getOwner(overrides?: CallOverrides): Promise<string>
 
     getPairExchanges(
       _token: PromiseOrValue<string>,
       _currency: PromiseOrValue<string>,
       overrides?: CallOverrides
-    ): Promise<string[]>;
+    ): Promise<string[]>
 
-    metadataProvider(overrides?: CallOverrides): Promise<string>;
+    metadataProvider(overrides?: CallOverrides): Promise<string>
 
-    setMetadataContract(
-      _contract: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    setMetadataContract(_contract: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>
 
     tokensToExchange(
       arg0: PromiseOrValue<string>,
@@ -289,46 +221,39 @@ export interface NiftyswapFactory20 extends BaseContract {
       arg2: PromiseOrValue<BigNumberish>,
       arg3: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<string>;
+    ): Promise<string>
 
-    transferOwnership(
-      _newOwner: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-  };
+    transferOwnership(_newOwner: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>
+  }
 
   filters: {
-    "MetadataContractChanged(address)"(
-      metadataContract?: PromiseOrValue<string> | null
-    ): MetadataContractChangedEventFilter;
-    MetadataContractChanged(
-      metadataContract?: PromiseOrValue<string> | null
-    ): MetadataContractChangedEventFilter;
+    'MetadataContractChanged(address)'(metadataContract?: PromiseOrValue<string> | null): MetadataContractChangedEventFilter
+    MetadataContractChanged(metadataContract?: PromiseOrValue<string> | null): MetadataContractChangedEventFilter
 
-    "NewExchange(address,address,uint256,uint256,address)"(
+    'NewExchange(address,address,uint256,uint256,address)'(
       token?: PromiseOrValue<string> | null,
       currency?: PromiseOrValue<string> | null,
       salt?: PromiseOrValue<BigNumberish> | null,
       lpFee?: null,
       exchange?: null
-    ): NewExchangeEventFilter;
+    ): NewExchangeEventFilter
     NewExchange(
       token?: PromiseOrValue<string> | null,
       currency?: PromiseOrValue<string> | null,
       salt?: PromiseOrValue<BigNumberish> | null,
       lpFee?: null,
       exchange?: null
-    ): NewExchangeEventFilter;
+    ): NewExchangeEventFilter
 
-    "OwnershipTransferred(address,address)"(
+    'OwnershipTransferred(address,address)'(
       previousOwner?: PromiseOrValue<string> | null,
       newOwner?: PromiseOrValue<string> | null
-    ): OwnershipTransferredEventFilter;
+    ): OwnershipTransferredEventFilter
     OwnershipTransferred(
       previousOwner?: PromiseOrValue<string> | null,
       newOwner?: PromiseOrValue<string> | null
-    ): OwnershipTransferredEventFilter;
-  };
+    ): OwnershipTransferredEventFilter
+  }
 
   estimateGas: {
     createExchange(
@@ -337,22 +262,22 @@ export interface NiftyswapFactory20 extends BaseContract {
       _lpFee: PromiseOrValue<BigNumberish>,
       _instance: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
-    getOwner(overrides?: CallOverrides): Promise<BigNumber>;
+    getOwner(overrides?: CallOverrides): Promise<BigNumber>
 
     getPairExchanges(
       _token: PromiseOrValue<string>,
       _currency: PromiseOrValue<string>,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
-    metadataProvider(overrides?: CallOverrides): Promise<BigNumber>;
+    metadataProvider(overrides?: CallOverrides): Promise<BigNumber>
 
     setMetadataContract(
       _contract: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
     tokensToExchange(
       arg0: PromiseOrValue<string>,
@@ -360,13 +285,13 @@ export interface NiftyswapFactory20 extends BaseContract {
       arg2: PromiseOrValue<BigNumberish>,
       arg3: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
     transferOwnership(
       _newOwner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-  };
+    ): Promise<BigNumber>
+  }
 
   populateTransaction: {
     createExchange(
@@ -375,22 +300,22 @@ export interface NiftyswapFactory20 extends BaseContract {
       _lpFee: PromiseOrValue<BigNumberish>,
       _instance: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    ): Promise<PopulatedTransaction>
 
-    getOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    getOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>
 
     getPairExchanges(
       _token: PromiseOrValue<string>,
       _currency: PromiseOrValue<string>,
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    ): Promise<PopulatedTransaction>
 
-    metadataProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    metadataProvider(overrides?: CallOverrides): Promise<PopulatedTransaction>
 
     setMetadataContract(
       _contract: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    ): Promise<PopulatedTransaction>
 
     tokensToExchange(
       arg0: PromiseOrValue<string>,
@@ -398,11 +323,11 @@ export interface NiftyswapFactory20 extends BaseContract {
       arg2: PromiseOrValue<BigNumberish>,
       arg3: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    ): Promise<PopulatedTransaction>
 
     transferOwnership(
       _newOwner: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-  };
+    ): Promise<PopulatedTransaction>
+  }
 }

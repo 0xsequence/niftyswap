@@ -10,140 +10,111 @@ import type {
   Overrides,
   PopulatedTransaction,
   Signer,
-  utils,
-} from "ethers";
-import type {
-  FunctionFragment,
-  Result,
-  EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-  PromiseOrValue,
-} from "../common";
+  utils
+} from 'ethers'
+import type { FunctionFragment, Result, EventFragment } from '@ethersproject/abi'
+import type { Listener, Provider } from '@ethersproject/providers'
+import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from '../common'
 
 export interface DelegatedOwnableInterface extends utils.Interface {
   functions: {
-    "changeOwnableParent(address)": FunctionFragment;
-    "getOwner()": FunctionFragment;
-  };
+    'changeOwnableParent(address)': FunctionFragment
+    'getOwner()': FunctionFragment
+  }
 
-  getFunction(
-    nameOrSignatureOrTopic: "changeOwnableParent" | "getOwner"
-  ): FunctionFragment;
+  getFunction(nameOrSignatureOrTopic: 'changeOwnableParent' | 'getOwner'): FunctionFragment
 
-  encodeFunctionData(
-    functionFragment: "changeOwnableParent",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(functionFragment: "getOwner", values?: undefined): string;
+  encodeFunctionData(functionFragment: 'changeOwnableParent', values: [PromiseOrValue<string>]): string
+  encodeFunctionData(functionFragment: 'getOwner', values?: undefined): string
 
-  decodeFunctionResult(
-    functionFragment: "changeOwnableParent",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getOwner", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'changeOwnableParent', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getOwner', data: BytesLike): Result
 
   events: {
-    "ParentOwnerChanged(address,address)": EventFragment;
-  };
+    'ParentOwnerChanged(address,address)': EventFragment
+  }
 
-  getEvent(nameOrSignatureOrTopic: "ParentOwnerChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'ParentOwnerChanged'): EventFragment
 }
 
 export interface ParentOwnerChangedEventObject {
-  previousParent: string;
-  newParent: string;
+  previousParent: string
+  newParent: string
 }
-export type ParentOwnerChangedEvent = TypedEvent<
-  [string, string],
-  ParentOwnerChangedEventObject
->;
+export type ParentOwnerChangedEvent = TypedEvent<[string, string], ParentOwnerChangedEventObject>
 
-export type ParentOwnerChangedEventFilter =
-  TypedEventFilter<ParentOwnerChangedEvent>;
+export type ParentOwnerChangedEventFilter = TypedEventFilter<ParentOwnerChangedEvent>
 
 export interface DelegatedOwnable extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this
+  attach(addressOrName: string): this
+  deployed(): Promise<this>
 
-  interface: DelegatedOwnableInterface;
+  interface: DelegatedOwnableInterface
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TEvent>>
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>
+  listeners(eventName?: string): Array<Listener>
+  removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this
+  removeAllListeners(eventName?: string): this
+  off: OnEvent<this>
+  on: OnEvent<this>
+  once: OnEvent<this>
+  removeListener: OnEvent<this>
 
   functions: {
     changeOwnableParent(
       _newParent: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    ): Promise<ContractTransaction>
 
-    getOwner(overrides?: CallOverrides): Promise<[string]>;
-  };
+    getOwner(overrides?: CallOverrides): Promise<[string]>
+  }
 
   changeOwnableParent(
     _newParent: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  ): Promise<ContractTransaction>
 
-  getOwner(overrides?: CallOverrides): Promise<string>;
+  getOwner(overrides?: CallOverrides): Promise<string>
 
   callStatic: {
-    changeOwnableParent(
-      _newParent: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    changeOwnableParent(_newParent: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>
 
-    getOwner(overrides?: CallOverrides): Promise<string>;
-  };
+    getOwner(overrides?: CallOverrides): Promise<string>
+  }
 
   filters: {
-    "ParentOwnerChanged(address,address)"(
+    'ParentOwnerChanged(address,address)'(
       previousParent?: PromiseOrValue<string> | null,
       newParent?: PromiseOrValue<string> | null
-    ): ParentOwnerChangedEventFilter;
+    ): ParentOwnerChangedEventFilter
     ParentOwnerChanged(
       previousParent?: PromiseOrValue<string> | null,
       newParent?: PromiseOrValue<string> | null
-    ): ParentOwnerChangedEventFilter;
-  };
+    ): ParentOwnerChangedEventFilter
+  }
 
   estimateGas: {
     changeOwnableParent(
       _newParent: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
-    getOwner(overrides?: CallOverrides): Promise<BigNumber>;
-  };
+    getOwner(overrides?: CallOverrides): Promise<BigNumber>
+  }
 
   populateTransaction: {
     changeOwnableParent(
       _newParent: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    ): Promise<PopulatedTransaction>
 
-    getOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-  };
+    getOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>
+  }
 }

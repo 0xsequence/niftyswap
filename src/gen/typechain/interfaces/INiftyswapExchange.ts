@@ -11,119 +11,81 @@ import type {
   Overrides,
   PopulatedTransaction,
   Signer,
-  utils,
-} from "ethers";
-import type {
-  FunctionFragment,
-  Result,
-  EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-  PromiseOrValue,
-} from "../common";
+  utils
+} from 'ethers'
+import type { FunctionFragment, Result, EventFragment } from '@ethersproject/abi'
+import type { Listener, Provider } from '@ethersproject/providers'
+import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from '../common'
 
 export declare namespace INiftyswapExchange {
   export type LiquidityRemovedEventObjStruct = {
-    currencyAmount: PromiseOrValue<BigNumberish>;
-    soldTokenNumerator: PromiseOrValue<BigNumberish>;
-    boughtCurrencyNumerator: PromiseOrValue<BigNumberish>;
-    totalSupply: PromiseOrValue<BigNumberish>;
-  };
+    currencyAmount: PromiseOrValue<BigNumberish>
+    soldTokenNumerator: PromiseOrValue<BigNumberish>
+    boughtCurrencyNumerator: PromiseOrValue<BigNumberish>
+    totalSupply: PromiseOrValue<BigNumberish>
+  }
 
-  export type LiquidityRemovedEventObjStructOutput = [
-    BigNumber,
-    BigNumber,
-    BigNumber,
-    BigNumber
-  ] & {
-    currencyAmount: BigNumber;
-    soldTokenNumerator: BigNumber;
-    boughtCurrencyNumerator: BigNumber;
-    totalSupply: BigNumber;
-  };
+  export type LiquidityRemovedEventObjStructOutput = [BigNumber, BigNumber, BigNumber, BigNumber] & {
+    currencyAmount: BigNumber
+    soldTokenNumerator: BigNumber
+    boughtCurrencyNumerator: BigNumber
+    totalSupply: BigNumber
+  }
 }
 
 export interface INiftyswapExchangeInterface extends utils.Interface {
   functions: {
-    "getBuyPrice(uint256,uint256,uint256)": FunctionFragment;
-    "getCurrencyInfo()": FunctionFragment;
-    "getCurrencyReserves(uint256[])": FunctionFragment;
-    "getFactoryAddress()": FunctionFragment;
-    "getPrice_currencyToToken(uint256[],uint256[])": FunctionFragment;
-    "getPrice_tokenToCurrency(uint256[],uint256[])": FunctionFragment;
-    "getSellPrice(uint256,uint256,uint256)": FunctionFragment;
-    "getTokenAddress()": FunctionFragment;
-    "getTotalSupply(uint256[])": FunctionFragment;
-    "onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)": FunctionFragment;
-    "onERC1155Received(address,address,uint256,uint256,bytes)": FunctionFragment;
-  };
+    'getBuyPrice(uint256,uint256,uint256)': FunctionFragment
+    'getCurrencyInfo()': FunctionFragment
+    'getCurrencyReserves(uint256[])': FunctionFragment
+    'getFactoryAddress()': FunctionFragment
+    'getPrice_currencyToToken(uint256[],uint256[])': FunctionFragment
+    'getPrice_tokenToCurrency(uint256[],uint256[])': FunctionFragment
+    'getSellPrice(uint256,uint256,uint256)': FunctionFragment
+    'getTokenAddress()': FunctionFragment
+    'getTotalSupply(uint256[])': FunctionFragment
+    'onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)': FunctionFragment
+    'onERC1155Received(address,address,uint256,uint256,bytes)': FunctionFragment
+  }
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "getBuyPrice"
-      | "getCurrencyInfo"
-      | "getCurrencyReserves"
-      | "getFactoryAddress"
-      | "getPrice_currencyToToken"
-      | "getPrice_tokenToCurrency"
-      | "getSellPrice"
-      | "getTokenAddress"
-      | "getTotalSupply"
-      | "onERC1155BatchReceived"
-      | "onERC1155Received"
-  ): FunctionFragment;
+      | 'getBuyPrice'
+      | 'getCurrencyInfo'
+      | 'getCurrencyReserves'
+      | 'getFactoryAddress'
+      | 'getPrice_currencyToToken'
+      | 'getPrice_tokenToCurrency'
+      | 'getSellPrice'
+      | 'getTokenAddress'
+      | 'getTotalSupply'
+      | 'onERC1155BatchReceived'
+      | 'onERC1155Received'
+  ): FunctionFragment
 
   encodeFunctionData(
-    functionFragment: "getBuyPrice",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
-  ): string;
+    functionFragment: 'getBuyPrice',
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+  ): string
+  encodeFunctionData(functionFragment: 'getCurrencyInfo', values?: undefined): string
+  encodeFunctionData(functionFragment: 'getCurrencyReserves', values: [PromiseOrValue<BigNumberish>[]]): string
+  encodeFunctionData(functionFragment: 'getFactoryAddress', values?: undefined): string
   encodeFunctionData(
-    functionFragment: "getCurrencyInfo",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getCurrencyReserves",
-    values: [PromiseOrValue<BigNumberish>[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getFactoryAddress",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getPrice_currencyToToken",
+    functionFragment: 'getPrice_currencyToToken',
     values: [PromiseOrValue<BigNumberish>[], PromiseOrValue<BigNumberish>[]]
-  ): string;
+  ): string
   encodeFunctionData(
-    functionFragment: "getPrice_tokenToCurrency",
+    functionFragment: 'getPrice_tokenToCurrency',
     values: [PromiseOrValue<BigNumberish>[], PromiseOrValue<BigNumberish>[]]
-  ): string;
+  ): string
   encodeFunctionData(
-    functionFragment: "getSellPrice",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
-  ): string;
+    functionFragment: 'getSellPrice',
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+  ): string
+  encodeFunctionData(functionFragment: 'getTokenAddress', values?: undefined): string
+  encodeFunctionData(functionFragment: 'getTotalSupply', values: [PromiseOrValue<BigNumberish>[]]): string
   encodeFunctionData(
-    functionFragment: "getTokenAddress",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getTotalSupply",
-    values: [PromiseOrValue<BigNumberish>[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "onERC1155BatchReceived",
+    functionFragment: 'onERC1155BatchReceived',
     values: [
       PromiseOrValue<string>,
       PromiseOrValue<string>,
@@ -131,9 +93,9 @@ export interface INiftyswapExchangeInterface extends utils.Interface {
       PromiseOrValue<BigNumberish>[],
       PromiseOrValue<BytesLike>
     ]
-  ): string;
+  ): string
   encodeFunctionData(
-    functionFragment: "onERC1155Received",
+    functionFragment: 'onERC1155Received',
     values: [
       PromiseOrValue<string>,
       PromiseOrValue<string>,
@@ -141,152 +103,102 @@ export interface INiftyswapExchangeInterface extends utils.Interface {
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BytesLike>
     ]
-  ): string;
+  ): string
 
-  decodeFunctionResult(
-    functionFragment: "getBuyPrice",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getCurrencyInfo",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getCurrencyReserves",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getFactoryAddress",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getPrice_currencyToToken",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getPrice_tokenToCurrency",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getSellPrice",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getTokenAddress",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getTotalSupply",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "onERC1155BatchReceived",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "onERC1155Received",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: 'getBuyPrice', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getCurrencyInfo', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getCurrencyReserves', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getFactoryAddress', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getPrice_currencyToToken', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getPrice_tokenToCurrency', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getSellPrice', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getTokenAddress', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getTotalSupply', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'onERC1155BatchReceived', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'onERC1155Received', data: BytesLike): Result
 
   events: {
-    "CurrencyPurchase(address,address,uint256[],uint256[],uint256[])": EventFragment;
-    "LiquidityAdded(address,uint256[],uint256[],uint256[])": EventFragment;
-    "LiquidityRemoved(address,uint256[],uint256[],tuple[])": EventFragment;
-    "TokensPurchase(address,address,uint256[],uint256[],uint256[])": EventFragment;
-  };
+    'CurrencyPurchase(address,address,uint256[],uint256[],uint256[])': EventFragment
+    'LiquidityAdded(address,uint256[],uint256[],uint256[])': EventFragment
+    'LiquidityRemoved(address,uint256[],uint256[],tuple[])': EventFragment
+    'TokensPurchase(address,address,uint256[],uint256[],uint256[])': EventFragment
+  }
 
-  getEvent(nameOrSignatureOrTopic: "CurrencyPurchase"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "LiquidityAdded"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "LiquidityRemoved"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "TokensPurchase"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'CurrencyPurchase'): EventFragment
+  getEvent(nameOrSignatureOrTopic: 'LiquidityAdded'): EventFragment
+  getEvent(nameOrSignatureOrTopic: 'LiquidityRemoved'): EventFragment
+  getEvent(nameOrSignatureOrTopic: 'TokensPurchase'): EventFragment
 }
 
 export interface CurrencyPurchaseEventObject {
-  buyer: string;
-  recipient: string;
-  tokensSoldIds: BigNumber[];
-  tokensSoldAmounts: BigNumber[];
-  currencyBoughtAmounts: BigNumber[];
+  buyer: string
+  recipient: string
+  tokensSoldIds: BigNumber[]
+  tokensSoldAmounts: BigNumber[]
+  currencyBoughtAmounts: BigNumber[]
 }
 export type CurrencyPurchaseEvent = TypedEvent<
   [string, string, BigNumber[], BigNumber[], BigNumber[]],
   CurrencyPurchaseEventObject
->;
+>
 
-export type CurrencyPurchaseEventFilter =
-  TypedEventFilter<CurrencyPurchaseEvent>;
+export type CurrencyPurchaseEventFilter = TypedEventFilter<CurrencyPurchaseEvent>
 
 export interface LiquidityAddedEventObject {
-  provider: string;
-  tokenIds: BigNumber[];
-  tokenAmounts: BigNumber[];
-  currencyAmounts: BigNumber[];
+  provider: string
+  tokenIds: BigNumber[]
+  tokenAmounts: BigNumber[]
+  currencyAmounts: BigNumber[]
 }
-export type LiquidityAddedEvent = TypedEvent<
-  [string, BigNumber[], BigNumber[], BigNumber[]],
-  LiquidityAddedEventObject
->;
+export type LiquidityAddedEvent = TypedEvent<[string, BigNumber[], BigNumber[], BigNumber[]], LiquidityAddedEventObject>
 
-export type LiquidityAddedEventFilter = TypedEventFilter<LiquidityAddedEvent>;
+export type LiquidityAddedEventFilter = TypedEventFilter<LiquidityAddedEvent>
 
 export interface LiquidityRemovedEventObject {
-  provider: string;
-  tokenIds: BigNumber[];
-  tokenAmounts: BigNumber[];
-  details: INiftyswapExchange.LiquidityRemovedEventObjStructOutput[];
+  provider: string
+  tokenIds: BigNumber[]
+  tokenAmounts: BigNumber[]
+  details: INiftyswapExchange.LiquidityRemovedEventObjStructOutput[]
 }
 export type LiquidityRemovedEvent = TypedEvent<
-  [
-    string,
-    BigNumber[],
-    BigNumber[],
-    INiftyswapExchange.LiquidityRemovedEventObjStructOutput[]
-  ],
+  [string, BigNumber[], BigNumber[], INiftyswapExchange.LiquidityRemovedEventObjStructOutput[]],
   LiquidityRemovedEventObject
->;
+>
 
-export type LiquidityRemovedEventFilter =
-  TypedEventFilter<LiquidityRemovedEvent>;
+export type LiquidityRemovedEventFilter = TypedEventFilter<LiquidityRemovedEvent>
 
 export interface TokensPurchaseEventObject {
-  buyer: string;
-  recipient: string;
-  tokensBoughtIds: BigNumber[];
-  tokensBoughtAmounts: BigNumber[];
-  currencySoldAmounts: BigNumber[];
+  buyer: string
+  recipient: string
+  tokensBoughtIds: BigNumber[]
+  tokensBoughtAmounts: BigNumber[]
+  currencySoldAmounts: BigNumber[]
 }
-export type TokensPurchaseEvent = TypedEvent<
-  [string, string, BigNumber[], BigNumber[], BigNumber[]],
-  TokensPurchaseEventObject
->;
+export type TokensPurchaseEvent = TypedEvent<[string, string, BigNumber[], BigNumber[], BigNumber[]], TokensPurchaseEventObject>
 
-export type TokensPurchaseEventFilter = TypedEventFilter<TokensPurchaseEvent>;
+export type TokensPurchaseEventFilter = TypedEventFilter<TokensPurchaseEvent>
 
 export interface INiftyswapExchange extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this
+  attach(addressOrName: string): this
+  deployed(): Promise<this>
 
-  interface: INiftyswapExchangeInterface;
+  interface: INiftyswapExchangeInterface
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TEvent>>
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>
+  listeners(eventName?: string): Array<Listener>
+  removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this
+  removeAllListeners(eventName?: string): this
+  off: OnEvent<this>
+  on: OnEvent<this>
+  once: OnEvent<this>
+  removeListener: OnEvent<this>
 
   functions: {
     getBuyPrice(
@@ -294,42 +206,36 @@ export interface INiftyswapExchange extends BaseContract {
       _assetSoldReserve: PromiseOrValue<BigNumberish>,
       _assetBoughtReserve: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    ): Promise<[BigNumber]>
 
-    getCurrencyInfo(overrides?: CallOverrides): Promise<[string, BigNumber]>;
+    getCurrencyInfo(overrides?: CallOverrides): Promise<[string, BigNumber]>
 
-    getCurrencyReserves(
-      _ids: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<[BigNumber[]]>;
+    getCurrencyReserves(_ids: PromiseOrValue<BigNumberish>[], overrides?: CallOverrides): Promise<[BigNumber[]]>
 
-    getFactoryAddress(overrides?: CallOverrides): Promise<[string]>;
+    getFactoryAddress(overrides?: CallOverrides): Promise<[string]>
 
     getPrice_currencyToToken(
       _ids: PromiseOrValue<BigNumberish>[],
       _tokensBought: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
-    ): Promise<[BigNumber[]]>;
+    ): Promise<[BigNumber[]]>
 
     getPrice_tokenToCurrency(
       _ids: PromiseOrValue<BigNumberish>[],
       _tokensSold: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
-    ): Promise<[BigNumber[]]>;
+    ): Promise<[BigNumber[]]>
 
     getSellPrice(
       _assetSoldAmount: PromiseOrValue<BigNumberish>,
       _assetSoldReserve: PromiseOrValue<BigNumberish>,
       _assetBoughtReserve: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    ): Promise<[BigNumber]>
 
-    getTokenAddress(overrides?: CallOverrides): Promise<[string]>;
+    getTokenAddress(overrides?: CallOverrides): Promise<[string]>
 
-    getTotalSupply(
-      _ids: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<[BigNumber[]]>;
+    getTotalSupply(_ids: PromiseOrValue<BigNumberish>[], overrides?: CallOverrides): Promise<[BigNumber[]]>
 
     onERC1155BatchReceived(
       arg0: PromiseOrValue<string>,
@@ -338,7 +244,7 @@ export interface INiftyswapExchange extends BaseContract {
       _amounts: PromiseOrValue<BigNumberish>[],
       _data: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    ): Promise<ContractTransaction>
 
     onERC1155Received(
       _operator: PromiseOrValue<string>,
@@ -347,50 +253,44 @@ export interface INiftyswapExchange extends BaseContract {
       _amount: PromiseOrValue<BigNumberish>,
       _data: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-  };
+    ): Promise<ContractTransaction>
+  }
 
   getBuyPrice(
     _assetBoughtAmount: PromiseOrValue<BigNumberish>,
     _assetSoldReserve: PromiseOrValue<BigNumberish>,
     _assetBoughtReserve: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  ): Promise<BigNumber>
 
-  getCurrencyInfo(overrides?: CallOverrides): Promise<[string, BigNumber]>;
+  getCurrencyInfo(overrides?: CallOverrides): Promise<[string, BigNumber]>
 
-  getCurrencyReserves(
-    _ids: PromiseOrValue<BigNumberish>[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
+  getCurrencyReserves(_ids: PromiseOrValue<BigNumberish>[], overrides?: CallOverrides): Promise<BigNumber[]>
 
-  getFactoryAddress(overrides?: CallOverrides): Promise<string>;
+  getFactoryAddress(overrides?: CallOverrides): Promise<string>
 
   getPrice_currencyToToken(
     _ids: PromiseOrValue<BigNumberish>[],
     _tokensBought: PromiseOrValue<BigNumberish>[],
     overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
+  ): Promise<BigNumber[]>
 
   getPrice_tokenToCurrency(
     _ids: PromiseOrValue<BigNumberish>[],
     _tokensSold: PromiseOrValue<BigNumberish>[],
     overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
+  ): Promise<BigNumber[]>
 
   getSellPrice(
     _assetSoldAmount: PromiseOrValue<BigNumberish>,
     _assetSoldReserve: PromiseOrValue<BigNumberish>,
     _assetBoughtReserve: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  ): Promise<BigNumber>
 
-  getTokenAddress(overrides?: CallOverrides): Promise<string>;
+  getTokenAddress(overrides?: CallOverrides): Promise<string>
 
-  getTotalSupply(
-    _ids: PromiseOrValue<BigNumberish>[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
+  getTotalSupply(_ids: PromiseOrValue<BigNumberish>[], overrides?: CallOverrides): Promise<BigNumber[]>
 
   onERC1155BatchReceived(
     arg0: PromiseOrValue<string>,
@@ -399,7 +299,7 @@ export interface INiftyswapExchange extends BaseContract {
     _amounts: PromiseOrValue<BigNumberish>[],
     _data: PromiseOrValue<BytesLike>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  ): Promise<ContractTransaction>
 
   onERC1155Received(
     _operator: PromiseOrValue<string>,
@@ -408,7 +308,7 @@ export interface INiftyswapExchange extends BaseContract {
     _amount: PromiseOrValue<BigNumberish>,
     _data: PromiseOrValue<BytesLike>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  ): Promise<ContractTransaction>
 
   callStatic: {
     getBuyPrice(
@@ -416,42 +316,36 @@ export interface INiftyswapExchange extends BaseContract {
       _assetSoldReserve: PromiseOrValue<BigNumberish>,
       _assetBoughtReserve: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
-    getCurrencyInfo(overrides?: CallOverrides): Promise<[string, BigNumber]>;
+    getCurrencyInfo(overrides?: CallOverrides): Promise<[string, BigNumber]>
 
-    getCurrencyReserves(
-      _ids: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
+    getCurrencyReserves(_ids: PromiseOrValue<BigNumberish>[], overrides?: CallOverrides): Promise<BigNumber[]>
 
-    getFactoryAddress(overrides?: CallOverrides): Promise<string>;
+    getFactoryAddress(overrides?: CallOverrides): Promise<string>
 
     getPrice_currencyToToken(
       _ids: PromiseOrValue<BigNumberish>[],
       _tokensBought: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
+    ): Promise<BigNumber[]>
 
     getPrice_tokenToCurrency(
       _ids: PromiseOrValue<BigNumberish>[],
       _tokensSold: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
+    ): Promise<BigNumber[]>
 
     getSellPrice(
       _assetSoldAmount: PromiseOrValue<BigNumberish>,
       _assetSoldReserve: PromiseOrValue<BigNumberish>,
       _assetBoughtReserve: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
-    getTokenAddress(overrides?: CallOverrides): Promise<string>;
+    getTokenAddress(overrides?: CallOverrides): Promise<string>
 
-    getTotalSupply(
-      _ids: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
+    getTotalSupply(_ids: PromiseOrValue<BigNumberish>[], overrides?: CallOverrides): Promise<BigNumber[]>
 
     onERC1155BatchReceived(
       arg0: PromiseOrValue<string>,
@@ -460,7 +354,7 @@ export interface INiftyswapExchange extends BaseContract {
       _amounts: PromiseOrValue<BigNumberish>[],
       _data: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
-    ): Promise<string>;
+    ): Promise<string>
 
     onERC1155Received(
       _operator: PromiseOrValue<string>,
@@ -469,66 +363,66 @@ export interface INiftyswapExchange extends BaseContract {
       _amount: PromiseOrValue<BigNumberish>,
       _data: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
-    ): Promise<string>;
-  };
+    ): Promise<string>
+  }
 
   filters: {
-    "CurrencyPurchase(address,address,uint256[],uint256[],uint256[])"(
+    'CurrencyPurchase(address,address,uint256[],uint256[],uint256[])'(
       buyer?: PromiseOrValue<string> | null,
       recipient?: PromiseOrValue<string> | null,
       tokensSoldIds?: null,
       tokensSoldAmounts?: null,
       currencyBoughtAmounts?: null
-    ): CurrencyPurchaseEventFilter;
+    ): CurrencyPurchaseEventFilter
     CurrencyPurchase(
       buyer?: PromiseOrValue<string> | null,
       recipient?: PromiseOrValue<string> | null,
       tokensSoldIds?: null,
       tokensSoldAmounts?: null,
       currencyBoughtAmounts?: null
-    ): CurrencyPurchaseEventFilter;
+    ): CurrencyPurchaseEventFilter
 
-    "LiquidityAdded(address,uint256[],uint256[],uint256[])"(
+    'LiquidityAdded(address,uint256[],uint256[],uint256[])'(
       provider?: PromiseOrValue<string> | null,
       tokenIds?: null,
       tokenAmounts?: null,
       currencyAmounts?: null
-    ): LiquidityAddedEventFilter;
+    ): LiquidityAddedEventFilter
     LiquidityAdded(
       provider?: PromiseOrValue<string> | null,
       tokenIds?: null,
       tokenAmounts?: null,
       currencyAmounts?: null
-    ): LiquidityAddedEventFilter;
+    ): LiquidityAddedEventFilter
 
-    "LiquidityRemoved(address,uint256[],uint256[],tuple[])"(
+    'LiquidityRemoved(address,uint256[],uint256[],tuple[])'(
       provider?: PromiseOrValue<string> | null,
       tokenIds?: null,
       tokenAmounts?: null,
       details?: null
-    ): LiquidityRemovedEventFilter;
+    ): LiquidityRemovedEventFilter
     LiquidityRemoved(
       provider?: PromiseOrValue<string> | null,
       tokenIds?: null,
       tokenAmounts?: null,
       details?: null
-    ): LiquidityRemovedEventFilter;
+    ): LiquidityRemovedEventFilter
 
-    "TokensPurchase(address,address,uint256[],uint256[],uint256[])"(
+    'TokensPurchase(address,address,uint256[],uint256[],uint256[])'(
       buyer?: PromiseOrValue<string> | null,
       recipient?: PromiseOrValue<string> | null,
       tokensBoughtIds?: null,
       tokensBoughtAmounts?: null,
       currencySoldAmounts?: null
-    ): TokensPurchaseEventFilter;
+    ): TokensPurchaseEventFilter
     TokensPurchase(
       buyer?: PromiseOrValue<string> | null,
       recipient?: PromiseOrValue<string> | null,
       tokensBoughtIds?: null,
       tokensBoughtAmounts?: null,
       currencySoldAmounts?: null
-    ): TokensPurchaseEventFilter;
-  };
+    ): TokensPurchaseEventFilter
+  }
 
   estimateGas: {
     getBuyPrice(
@@ -536,42 +430,36 @@ export interface INiftyswapExchange extends BaseContract {
       _assetSoldReserve: PromiseOrValue<BigNumberish>,
       _assetBoughtReserve: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
-    getCurrencyInfo(overrides?: CallOverrides): Promise<BigNumber>;
+    getCurrencyInfo(overrides?: CallOverrides): Promise<BigNumber>
 
-    getCurrencyReserves(
-      _ids: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getCurrencyReserves(_ids: PromiseOrValue<BigNumberish>[], overrides?: CallOverrides): Promise<BigNumber>
 
-    getFactoryAddress(overrides?: CallOverrides): Promise<BigNumber>;
+    getFactoryAddress(overrides?: CallOverrides): Promise<BigNumber>
 
     getPrice_currencyToToken(
       _ids: PromiseOrValue<BigNumberish>[],
       _tokensBought: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
     getPrice_tokenToCurrency(
       _ids: PromiseOrValue<BigNumberish>[],
       _tokensSold: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
     getSellPrice(
       _assetSoldAmount: PromiseOrValue<BigNumberish>,
       _assetSoldReserve: PromiseOrValue<BigNumberish>,
       _assetBoughtReserve: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
-    getTokenAddress(overrides?: CallOverrides): Promise<BigNumber>;
+    getTokenAddress(overrides?: CallOverrides): Promise<BigNumber>
 
-    getTotalSupply(
-      _ids: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getTotalSupply(_ids: PromiseOrValue<BigNumberish>[], overrides?: CallOverrides): Promise<BigNumber>
 
     onERC1155BatchReceived(
       arg0: PromiseOrValue<string>,
@@ -580,7 +468,7 @@ export interface INiftyswapExchange extends BaseContract {
       _amounts: PromiseOrValue<BigNumberish>[],
       _data: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
     onERC1155Received(
       _operator: PromiseOrValue<string>,
@@ -589,8 +477,8 @@ export interface INiftyswapExchange extends BaseContract {
       _amount: PromiseOrValue<BigNumberish>,
       _data: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-  };
+    ): Promise<BigNumber>
+  }
 
   populateTransaction: {
     getBuyPrice(
@@ -598,42 +486,36 @@ export interface INiftyswapExchange extends BaseContract {
       _assetSoldReserve: PromiseOrValue<BigNumberish>,
       _assetBoughtReserve: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    ): Promise<PopulatedTransaction>
 
-    getCurrencyInfo(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    getCurrencyInfo(overrides?: CallOverrides): Promise<PopulatedTransaction>
 
-    getCurrencyReserves(
-      _ids: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getCurrencyReserves(_ids: PromiseOrValue<BigNumberish>[], overrides?: CallOverrides): Promise<PopulatedTransaction>
 
-    getFactoryAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    getFactoryAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>
 
     getPrice_currencyToToken(
       _ids: PromiseOrValue<BigNumberish>[],
       _tokensBought: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    ): Promise<PopulatedTransaction>
 
     getPrice_tokenToCurrency(
       _ids: PromiseOrValue<BigNumberish>[],
       _tokensSold: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    ): Promise<PopulatedTransaction>
 
     getSellPrice(
       _assetSoldAmount: PromiseOrValue<BigNumberish>,
       _assetSoldReserve: PromiseOrValue<BigNumberish>,
       _assetBoughtReserve: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    ): Promise<PopulatedTransaction>
 
-    getTokenAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    getTokenAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>
 
-    getTotalSupply(
-      _ids: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getTotalSupply(_ids: PromiseOrValue<BigNumberish>[], overrides?: CallOverrides): Promise<PopulatedTransaction>
 
     onERC1155BatchReceived(
       arg0: PromiseOrValue<string>,
@@ -642,7 +524,7 @@ export interface INiftyswapExchange extends BaseContract {
       _amounts: PromiseOrValue<BigNumberish>[],
       _data: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    ): Promise<PopulatedTransaction>
 
     onERC1155Received(
       _operator: PromiseOrValue<string>,
@@ -651,6 +533,6 @@ export interface INiftyswapExchange extends BaseContract {
       _amount: PromiseOrValue<BigNumberish>,
       _data: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-  };
+    ): Promise<PopulatedTransaction>
+  }
 }

@@ -11,93 +11,78 @@ import type {
   Overrides,
   PopulatedTransaction,
   Signer,
-  utils,
-} from "ethers";
-import type {
-  FunctionFragment,
-  Result,
-  EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-  PromiseOrValue,
-} from "../common";
+  utils
+} from 'ethers'
+import type { FunctionFragment, Result, EventFragment } from '@ethersproject/abi'
+import type { Listener, Provider } from '@ethersproject/providers'
+import type { TypedEventFilter, TypedEvent, TypedListener, OnEvent, PromiseOrValue } from '../common'
 
 export declare namespace INiftyswapExchange20 {
   export type LiquidityRemovedEventObjStruct = {
-    currencyAmount: PromiseOrValue<BigNumberish>;
-    soldTokenNumerator: PromiseOrValue<BigNumberish>;
-    boughtCurrencyNumerator: PromiseOrValue<BigNumberish>;
-    totalSupply: PromiseOrValue<BigNumberish>;
-  };
+    currencyAmount: PromiseOrValue<BigNumberish>
+    soldTokenNumerator: PromiseOrValue<BigNumberish>
+    boughtCurrencyNumerator: PromiseOrValue<BigNumberish>
+    totalSupply: PromiseOrValue<BigNumberish>
+  }
 
-  export type LiquidityRemovedEventObjStructOutput = [
-    BigNumber,
-    BigNumber,
-    BigNumber,
-    BigNumber
-  ] & {
-    currencyAmount: BigNumber;
-    soldTokenNumerator: BigNumber;
-    boughtCurrencyNumerator: BigNumber;
-    totalSupply: BigNumber;
-  };
+  export type LiquidityRemovedEventObjStructOutput = [BigNumber, BigNumber, BigNumber, BigNumber] & {
+    currencyAmount: BigNumber
+    soldTokenNumerator: BigNumber
+    boughtCurrencyNumerator: BigNumber
+    totalSupply: BigNumber
+  }
 }
 
 export interface INiftyswapExchange20Interface extends utils.Interface {
   functions: {
-    "buyTokens(uint256[],uint256[],uint256,uint256,address,address[],uint256[])": FunctionFragment;
-    "getBuyPrice(uint256,uint256,uint256)": FunctionFragment;
-    "getBuyPriceWithRoyalty(uint256,uint256,uint256,uint256)": FunctionFragment;
-    "getCurrencyInfo()": FunctionFragment;
-    "getCurrencyReserves(uint256[])": FunctionFragment;
-    "getFactoryAddress()": FunctionFragment;
-    "getGlobalRoyaltyFee()": FunctionFragment;
-    "getGlobalRoyaltyRecipient()": FunctionFragment;
-    "getLPFee()": FunctionFragment;
-    "getPrice_currencyToToken(uint256[],uint256[])": FunctionFragment;
-    "getPrice_tokenToCurrency(uint256[],uint256[])": FunctionFragment;
-    "getRoyalties(address)": FunctionFragment;
-    "getRoyaltiesNumerator(address)": FunctionFragment;
-    "getSellPrice(uint256,uint256,uint256)": FunctionFragment;
-    "getSellPriceWithRoyalty(uint256,uint256,uint256,uint256)": FunctionFragment;
-    "getTokenAddress()": FunctionFragment;
-    "getTotalSupply(uint256[])": FunctionFragment;
-    "onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)": FunctionFragment;
-    "onERC1155Received(address,address,uint256,uint256,bytes)": FunctionFragment;
-    "sendRoyalties(address)": FunctionFragment;
-  };
+    'buyTokens(uint256[],uint256[],uint256,uint256,address,address[],uint256[])': FunctionFragment
+    'getBuyPrice(uint256,uint256,uint256)': FunctionFragment
+    'getBuyPriceWithRoyalty(uint256,uint256,uint256,uint256)': FunctionFragment
+    'getCurrencyInfo()': FunctionFragment
+    'getCurrencyReserves(uint256[])': FunctionFragment
+    'getFactoryAddress()': FunctionFragment
+    'getGlobalRoyaltyFee()': FunctionFragment
+    'getGlobalRoyaltyRecipient()': FunctionFragment
+    'getLPFee()': FunctionFragment
+    'getPrice_currencyToToken(uint256[],uint256[])': FunctionFragment
+    'getPrice_tokenToCurrency(uint256[],uint256[])': FunctionFragment
+    'getRoyalties(address)': FunctionFragment
+    'getRoyaltiesNumerator(address)': FunctionFragment
+    'getSellPrice(uint256,uint256,uint256)': FunctionFragment
+    'getSellPriceWithRoyalty(uint256,uint256,uint256,uint256)': FunctionFragment
+    'getTokenAddress()': FunctionFragment
+    'getTotalSupply(uint256[])': FunctionFragment
+    'onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)': FunctionFragment
+    'onERC1155Received(address,address,uint256,uint256,bytes)': FunctionFragment
+    'sendRoyalties(address)': FunctionFragment
+  }
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "buyTokens"
-      | "getBuyPrice"
-      | "getBuyPriceWithRoyalty"
-      | "getCurrencyInfo"
-      | "getCurrencyReserves"
-      | "getFactoryAddress"
-      | "getGlobalRoyaltyFee"
-      | "getGlobalRoyaltyRecipient"
-      | "getLPFee"
-      | "getPrice_currencyToToken"
-      | "getPrice_tokenToCurrency"
-      | "getRoyalties"
-      | "getRoyaltiesNumerator"
-      | "getSellPrice"
-      | "getSellPriceWithRoyalty"
-      | "getTokenAddress"
-      | "getTotalSupply"
-      | "onERC1155BatchReceived"
-      | "onERC1155Received"
-      | "sendRoyalties"
-  ): FunctionFragment;
+      | 'buyTokens'
+      | 'getBuyPrice'
+      | 'getBuyPriceWithRoyalty'
+      | 'getCurrencyInfo'
+      | 'getCurrencyReserves'
+      | 'getFactoryAddress'
+      | 'getGlobalRoyaltyFee'
+      | 'getGlobalRoyaltyRecipient'
+      | 'getLPFee'
+      | 'getPrice_currencyToToken'
+      | 'getPrice_tokenToCurrency'
+      | 'getRoyalties'
+      | 'getRoyaltiesNumerator'
+      | 'getSellPrice'
+      | 'getSellPriceWithRoyalty'
+      | 'getTokenAddress'
+      | 'getTotalSupply'
+      | 'onERC1155BatchReceived'
+      | 'onERC1155Received'
+      | 'sendRoyalties'
+  ): FunctionFragment
 
   encodeFunctionData(
-    functionFragment: "buyTokens",
+    functionFragment: 'buyTokens',
     values: [
       PromiseOrValue<BigNumberish>[],
       PromiseOrValue<BigNumberish>[],
@@ -107,88 +92,53 @@ export interface INiftyswapExchange20Interface extends utils.Interface {
       PromiseOrValue<string>[],
       PromiseOrValue<BigNumberish>[]
     ]
-  ): string;
+  ): string
   encodeFunctionData(
-    functionFragment: "getBuyPrice",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
-  ): string;
+    functionFragment: 'getBuyPrice',
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+  ): string
   encodeFunctionData(
-    functionFragment: "getBuyPriceWithRoyalty",
+    functionFragment: 'getBuyPriceWithRoyalty',
     values: [
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>
     ]
-  ): string;
+  ): string
+  encodeFunctionData(functionFragment: 'getCurrencyInfo', values?: undefined): string
+  encodeFunctionData(functionFragment: 'getCurrencyReserves', values: [PromiseOrValue<BigNumberish>[]]): string
+  encodeFunctionData(functionFragment: 'getFactoryAddress', values?: undefined): string
+  encodeFunctionData(functionFragment: 'getGlobalRoyaltyFee', values?: undefined): string
+  encodeFunctionData(functionFragment: 'getGlobalRoyaltyRecipient', values?: undefined): string
+  encodeFunctionData(functionFragment: 'getLPFee', values?: undefined): string
   encodeFunctionData(
-    functionFragment: "getCurrencyInfo",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getCurrencyReserves",
-    values: [PromiseOrValue<BigNumberish>[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getFactoryAddress",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getGlobalRoyaltyFee",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getGlobalRoyaltyRecipient",
-    values?: undefined
-  ): string;
-  encodeFunctionData(functionFragment: "getLPFee", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "getPrice_currencyToToken",
+    functionFragment: 'getPrice_currencyToToken',
     values: [PromiseOrValue<BigNumberish>[], PromiseOrValue<BigNumberish>[]]
-  ): string;
+  ): string
   encodeFunctionData(
-    functionFragment: "getPrice_tokenToCurrency",
+    functionFragment: 'getPrice_tokenToCurrency',
     values: [PromiseOrValue<BigNumberish>[], PromiseOrValue<BigNumberish>[]]
-  ): string;
+  ): string
+  encodeFunctionData(functionFragment: 'getRoyalties', values: [PromiseOrValue<string>]): string
+  encodeFunctionData(functionFragment: 'getRoyaltiesNumerator', values: [PromiseOrValue<string>]): string
   encodeFunctionData(
-    functionFragment: "getRoyalties",
-    values: [PromiseOrValue<string>]
-  ): string;
+    functionFragment: 'getSellPrice',
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>]
+  ): string
   encodeFunctionData(
-    functionFragment: "getRoyaltiesNumerator",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getSellPrice",
-    values: [
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>,
-      PromiseOrValue<BigNumberish>
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getSellPriceWithRoyalty",
+    functionFragment: 'getSellPriceWithRoyalty',
     values: [
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BigNumberish>
     ]
-  ): string;
+  ): string
+  encodeFunctionData(functionFragment: 'getTokenAddress', values?: undefined): string
+  encodeFunctionData(functionFragment: 'getTotalSupply', values: [PromiseOrValue<BigNumberish>[]]): string
   encodeFunctionData(
-    functionFragment: "getTokenAddress",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getTotalSupply",
-    values: [PromiseOrValue<BigNumberish>[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "onERC1155BatchReceived",
+    functionFragment: 'onERC1155BatchReceived',
     values: [
       PromiseOrValue<string>,
       PromiseOrValue<string>,
@@ -196,9 +146,9 @@ export interface INiftyswapExchange20Interface extends utils.Interface {
       PromiseOrValue<BigNumberish>[],
       PromiseOrValue<BytesLike>
     ]
-  ): string;
+  ): string
   encodeFunctionData(
-    functionFragment: "onERC1155Received",
+    functionFragment: 'onERC1155Received',
     values: [
       PromiseOrValue<string>,
       PromiseOrValue<string>,
@@ -206,219 +156,129 @@ export interface INiftyswapExchange20Interface extends utils.Interface {
       PromiseOrValue<BigNumberish>,
       PromiseOrValue<BytesLike>
     ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "sendRoyalties",
-    values: [PromiseOrValue<string>]
-  ): string;
+  ): string
+  encodeFunctionData(functionFragment: 'sendRoyalties', values: [PromiseOrValue<string>]): string
 
-  decodeFunctionResult(functionFragment: "buyTokens", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getBuyPrice",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getBuyPriceWithRoyalty",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getCurrencyInfo",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getCurrencyReserves",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getFactoryAddress",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getGlobalRoyaltyFee",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getGlobalRoyaltyRecipient",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getLPFee", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getPrice_currencyToToken",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getPrice_tokenToCurrency",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getRoyalties",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getRoyaltiesNumerator",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getSellPrice",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getSellPriceWithRoyalty",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getTokenAddress",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getTotalSupply",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "onERC1155BatchReceived",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "onERC1155Received",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "sendRoyalties",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: 'buyTokens', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getBuyPrice', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getBuyPriceWithRoyalty', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getCurrencyInfo', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getCurrencyReserves', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getFactoryAddress', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getGlobalRoyaltyFee', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getGlobalRoyaltyRecipient', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getLPFee', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getPrice_currencyToToken', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getPrice_tokenToCurrency', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getRoyalties', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getRoyaltiesNumerator', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getSellPrice', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getSellPriceWithRoyalty', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getTokenAddress', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'getTotalSupply', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'onERC1155BatchReceived', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'onERC1155Received', data: BytesLike): Result
+  decodeFunctionResult(functionFragment: 'sendRoyalties', data: BytesLike): Result
 
   events: {
-    "CurrencyPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])": EventFragment;
-    "LiquidityAdded(address,uint256[],uint256[],uint256[])": EventFragment;
-    "LiquidityRemoved(address,uint256[],uint256[],tuple[])": EventFragment;
-    "RoyaltyChanged(address,uint256)": EventFragment;
-    "TokensPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])": EventFragment;
-  };
+    'CurrencyPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])': EventFragment
+    'LiquidityAdded(address,uint256[],uint256[],uint256[])': EventFragment
+    'LiquidityRemoved(address,uint256[],uint256[],tuple[])': EventFragment
+    'RoyaltyChanged(address,uint256)': EventFragment
+    'TokensPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])': EventFragment
+  }
 
-  getEvent(nameOrSignatureOrTopic: "CurrencyPurchase"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "LiquidityAdded"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "LiquidityRemoved"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "RoyaltyChanged"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "TokensPurchase"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'CurrencyPurchase'): EventFragment
+  getEvent(nameOrSignatureOrTopic: 'LiquidityAdded'): EventFragment
+  getEvent(nameOrSignatureOrTopic: 'LiquidityRemoved'): EventFragment
+  getEvent(nameOrSignatureOrTopic: 'RoyaltyChanged'): EventFragment
+  getEvent(nameOrSignatureOrTopic: 'TokensPurchase'): EventFragment
 }
 
 export interface CurrencyPurchaseEventObject {
-  buyer: string;
-  recipient: string;
-  tokensSoldIds: BigNumber[];
-  tokensSoldAmounts: BigNumber[];
-  currencyBoughtAmounts: BigNumber[];
-  extraFeeRecipients: string[];
-  extraFeeAmounts: BigNumber[];
+  buyer: string
+  recipient: string
+  tokensSoldIds: BigNumber[]
+  tokensSoldAmounts: BigNumber[]
+  currencyBoughtAmounts: BigNumber[]
+  extraFeeRecipients: string[]
+  extraFeeAmounts: BigNumber[]
 }
 export type CurrencyPurchaseEvent = TypedEvent<
-  [
-    string,
-    string,
-    BigNumber[],
-    BigNumber[],
-    BigNumber[],
-    string[],
-    BigNumber[]
-  ],
+  [string, string, BigNumber[], BigNumber[], BigNumber[], string[], BigNumber[]],
   CurrencyPurchaseEventObject
->;
+>
 
-export type CurrencyPurchaseEventFilter =
-  TypedEventFilter<CurrencyPurchaseEvent>;
+export type CurrencyPurchaseEventFilter = TypedEventFilter<CurrencyPurchaseEvent>
 
 export interface LiquidityAddedEventObject {
-  provider: string;
-  tokenIds: BigNumber[];
-  tokenAmounts: BigNumber[];
-  currencyAmounts: BigNumber[];
+  provider: string
+  tokenIds: BigNumber[]
+  tokenAmounts: BigNumber[]
+  currencyAmounts: BigNumber[]
 }
-export type LiquidityAddedEvent = TypedEvent<
-  [string, BigNumber[], BigNumber[], BigNumber[]],
-  LiquidityAddedEventObject
->;
+export type LiquidityAddedEvent = TypedEvent<[string, BigNumber[], BigNumber[], BigNumber[]], LiquidityAddedEventObject>
 
-export type LiquidityAddedEventFilter = TypedEventFilter<LiquidityAddedEvent>;
+export type LiquidityAddedEventFilter = TypedEventFilter<LiquidityAddedEvent>
 
 export interface LiquidityRemovedEventObject {
-  provider: string;
-  tokenIds: BigNumber[];
-  tokenAmounts: BigNumber[];
-  details: INiftyswapExchange20.LiquidityRemovedEventObjStructOutput[];
+  provider: string
+  tokenIds: BigNumber[]
+  tokenAmounts: BigNumber[]
+  details: INiftyswapExchange20.LiquidityRemovedEventObjStructOutput[]
 }
 export type LiquidityRemovedEvent = TypedEvent<
-  [
-    string,
-    BigNumber[],
-    BigNumber[],
-    INiftyswapExchange20.LiquidityRemovedEventObjStructOutput[]
-  ],
+  [string, BigNumber[], BigNumber[], INiftyswapExchange20.LiquidityRemovedEventObjStructOutput[]],
   LiquidityRemovedEventObject
->;
+>
 
-export type LiquidityRemovedEventFilter =
-  TypedEventFilter<LiquidityRemovedEvent>;
+export type LiquidityRemovedEventFilter = TypedEventFilter<LiquidityRemovedEvent>
 
 export interface RoyaltyChangedEventObject {
-  royaltyRecipient: string;
-  royaltyFee: BigNumber;
+  royaltyRecipient: string
+  royaltyFee: BigNumber
 }
-export type RoyaltyChangedEvent = TypedEvent<
-  [string, BigNumber],
-  RoyaltyChangedEventObject
->;
+export type RoyaltyChangedEvent = TypedEvent<[string, BigNumber], RoyaltyChangedEventObject>
 
-export type RoyaltyChangedEventFilter = TypedEventFilter<RoyaltyChangedEvent>;
+export type RoyaltyChangedEventFilter = TypedEventFilter<RoyaltyChangedEvent>
 
 export interface TokensPurchaseEventObject {
-  buyer: string;
-  recipient: string;
-  tokensBoughtIds: BigNumber[];
-  tokensBoughtAmounts: BigNumber[];
-  currencySoldAmounts: BigNumber[];
-  extraFeeRecipients: string[];
-  extraFeeAmounts: BigNumber[];
+  buyer: string
+  recipient: string
+  tokensBoughtIds: BigNumber[]
+  tokensBoughtAmounts: BigNumber[]
+  currencySoldAmounts: BigNumber[]
+  extraFeeRecipients: string[]
+  extraFeeAmounts: BigNumber[]
 }
 export type TokensPurchaseEvent = TypedEvent<
-  [
-    string,
-    string,
-    BigNumber[],
-    BigNumber[],
-    BigNumber[],
-    string[],
-    BigNumber[]
-  ],
+  [string, string, BigNumber[], BigNumber[], BigNumber[], string[], BigNumber[]],
   TokensPurchaseEventObject
->;
+>
 
-export type TokensPurchaseEventFilter = TypedEventFilter<TokensPurchaseEvent>;
+export type TokensPurchaseEventFilter = TypedEventFilter<TokensPurchaseEvent>
 
 export interface INiftyswapExchange20 extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+  connect(signerOrProvider: Signer | Provider | string): this
+  attach(addressOrName: string): this
+  deployed(): Promise<this>
 
-  interface: INiftyswapExchange20Interface;
+  interface: INiftyswapExchange20Interface
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TEvent>>
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  listeners<TEvent extends TypedEvent>(eventFilter?: TypedEventFilter<TEvent>): Array<TypedListener<TEvent>>
+  listeners(eventName?: string): Array<Listener>
+  removeAllListeners<TEvent extends TypedEvent>(eventFilter: TypedEventFilter<TEvent>): this
+  removeAllListeners(eventName?: string): this
+  off: OnEvent<this>
+  on: OnEvent<this>
+  once: OnEvent<this>
+  removeListener: OnEvent<this>
 
   functions: {
     buyTokens(
@@ -430,14 +290,14 @@ export interface INiftyswapExchange20 extends BaseContract {
       _extraFeeRecipients: PromiseOrValue<string>[],
       _extraFeeAmounts: PromiseOrValue<BigNumberish>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    ): Promise<ContractTransaction>
 
     getBuyPrice(
       _assetBoughtAmount: PromiseOrValue<BigNumberish>,
       _assetSoldReserve: PromiseOrValue<BigNumberish>,
       _assetBoughtReserve: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    ): Promise<[BigNumber]>
 
     getBuyPriceWithRoyalty(
       _tokenId: PromiseOrValue<BigNumberish>,
@@ -445,51 +305,42 @@ export interface INiftyswapExchange20 extends BaseContract {
       _assetSoldReserve: PromiseOrValue<BigNumberish>,
       _assetBoughtReserve: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<[BigNumber] & { price: BigNumber }>;
+    ): Promise<[BigNumber] & { price: BigNumber }>
 
-    getCurrencyInfo(overrides?: CallOverrides): Promise<[string]>;
+    getCurrencyInfo(overrides?: CallOverrides): Promise<[string]>
 
-    getCurrencyReserves(
-      _ids: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<[BigNumber[]]>;
+    getCurrencyReserves(_ids: PromiseOrValue<BigNumberish>[], overrides?: CallOverrides): Promise<[BigNumber[]]>
 
-    getFactoryAddress(overrides?: CallOverrides): Promise<[string]>;
+    getFactoryAddress(overrides?: CallOverrides): Promise<[string]>
 
-    getGlobalRoyaltyFee(overrides?: CallOverrides): Promise<[BigNumber]>;
+    getGlobalRoyaltyFee(overrides?: CallOverrides): Promise<[BigNumber]>
 
-    getGlobalRoyaltyRecipient(overrides?: CallOverrides): Promise<[string]>;
+    getGlobalRoyaltyRecipient(overrides?: CallOverrides): Promise<[string]>
 
-    getLPFee(overrides?: CallOverrides): Promise<[BigNumber]>;
+    getLPFee(overrides?: CallOverrides): Promise<[BigNumber]>
 
     getPrice_currencyToToken(
       _ids: PromiseOrValue<BigNumberish>[],
       _tokensBought: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
-    ): Promise<[BigNumber[]]>;
+    ): Promise<[BigNumber[]]>
 
     getPrice_tokenToCurrency(
       _ids: PromiseOrValue<BigNumberish>[],
       _tokensSold: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
-    ): Promise<[BigNumber[]]>;
+    ): Promise<[BigNumber[]]>
 
-    getRoyalties(
-      _royaltyRecipient: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    getRoyalties(_royaltyRecipient: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>
 
-    getRoyaltiesNumerator(
-      _royaltyRecipient: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    getRoyaltiesNumerator(_royaltyRecipient: PromiseOrValue<string>, overrides?: CallOverrides): Promise<[BigNumber]>
 
     getSellPrice(
       _assetSoldAmount: PromiseOrValue<BigNumberish>,
       _assetSoldReserve: PromiseOrValue<BigNumberish>,
       _assetBoughtReserve: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    ): Promise<[BigNumber]>
 
     getSellPriceWithRoyalty(
       _tokenId: PromiseOrValue<BigNumberish>,
@@ -497,14 +348,11 @@ export interface INiftyswapExchange20 extends BaseContract {
       _assetSoldReserve: PromiseOrValue<BigNumberish>,
       _assetBoughtReserve: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<[BigNumber] & { price: BigNumber }>;
+    ): Promise<[BigNumber] & { price: BigNumber }>
 
-    getTokenAddress(overrides?: CallOverrides): Promise<[string]>;
+    getTokenAddress(overrides?: CallOverrides): Promise<[string]>
 
-    getTotalSupply(
-      _ids: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<[BigNumber[]]>;
+    getTotalSupply(_ids: PromiseOrValue<BigNumberish>[], overrides?: CallOverrides): Promise<[BigNumber[]]>
 
     onERC1155BatchReceived(
       arg0: PromiseOrValue<string>,
@@ -513,7 +361,7 @@ export interface INiftyswapExchange20 extends BaseContract {
       _amounts: PromiseOrValue<BigNumberish>[],
       _data: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    ): Promise<ContractTransaction>
 
     onERC1155Received(
       _operator: PromiseOrValue<string>,
@@ -522,13 +370,13 @@ export interface INiftyswapExchange20 extends BaseContract {
       _amount: PromiseOrValue<BigNumberish>,
       _data: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+    ): Promise<ContractTransaction>
 
     sendRoyalties(
       _royaltyRecipient: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-  };
+    ): Promise<ContractTransaction>
+  }
 
   buyTokens(
     _tokenIds: PromiseOrValue<BigNumberish>[],
@@ -539,14 +387,14 @@ export interface INiftyswapExchange20 extends BaseContract {
     _extraFeeRecipients: PromiseOrValue<string>[],
     _extraFeeAmounts: PromiseOrValue<BigNumberish>[],
     overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  ): Promise<ContractTransaction>
 
   getBuyPrice(
     _assetBoughtAmount: PromiseOrValue<BigNumberish>,
     _assetSoldReserve: PromiseOrValue<BigNumberish>,
     _assetBoughtReserve: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  ): Promise<BigNumber>
 
   getBuyPriceWithRoyalty(
     _tokenId: PromiseOrValue<BigNumberish>,
@@ -554,51 +402,42 @@ export interface INiftyswapExchange20 extends BaseContract {
     _assetSoldReserve: PromiseOrValue<BigNumberish>,
     _assetBoughtReserve: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  ): Promise<BigNumber>
 
-  getCurrencyInfo(overrides?: CallOverrides): Promise<string>;
+  getCurrencyInfo(overrides?: CallOverrides): Promise<string>
 
-  getCurrencyReserves(
-    _ids: PromiseOrValue<BigNumberish>[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
+  getCurrencyReserves(_ids: PromiseOrValue<BigNumberish>[], overrides?: CallOverrides): Promise<BigNumber[]>
 
-  getFactoryAddress(overrides?: CallOverrides): Promise<string>;
+  getFactoryAddress(overrides?: CallOverrides): Promise<string>
 
-  getGlobalRoyaltyFee(overrides?: CallOverrides): Promise<BigNumber>;
+  getGlobalRoyaltyFee(overrides?: CallOverrides): Promise<BigNumber>
 
-  getGlobalRoyaltyRecipient(overrides?: CallOverrides): Promise<string>;
+  getGlobalRoyaltyRecipient(overrides?: CallOverrides): Promise<string>
 
-  getLPFee(overrides?: CallOverrides): Promise<BigNumber>;
+  getLPFee(overrides?: CallOverrides): Promise<BigNumber>
 
   getPrice_currencyToToken(
     _ids: PromiseOrValue<BigNumberish>[],
     _tokensBought: PromiseOrValue<BigNumberish>[],
     overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
+  ): Promise<BigNumber[]>
 
   getPrice_tokenToCurrency(
     _ids: PromiseOrValue<BigNumberish>[],
     _tokensSold: PromiseOrValue<BigNumberish>[],
     overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
+  ): Promise<BigNumber[]>
 
-  getRoyalties(
-    _royaltyRecipient: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  getRoyalties(_royaltyRecipient: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>
 
-  getRoyaltiesNumerator(
-    _royaltyRecipient: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  getRoyaltiesNumerator(_royaltyRecipient: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>
 
   getSellPrice(
     _assetSoldAmount: PromiseOrValue<BigNumberish>,
     _assetSoldReserve: PromiseOrValue<BigNumberish>,
     _assetBoughtReserve: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  ): Promise<BigNumber>
 
   getSellPriceWithRoyalty(
     _tokenId: PromiseOrValue<BigNumberish>,
@@ -606,14 +445,11 @@ export interface INiftyswapExchange20 extends BaseContract {
     _assetSoldReserve: PromiseOrValue<BigNumberish>,
     _assetBoughtReserve: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  ): Promise<BigNumber>
 
-  getTokenAddress(overrides?: CallOverrides): Promise<string>;
+  getTokenAddress(overrides?: CallOverrides): Promise<string>
 
-  getTotalSupply(
-    _ids: PromiseOrValue<BigNumberish>[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
+  getTotalSupply(_ids: PromiseOrValue<BigNumberish>[], overrides?: CallOverrides): Promise<BigNumber[]>
 
   onERC1155BatchReceived(
     arg0: PromiseOrValue<string>,
@@ -622,7 +458,7 @@ export interface INiftyswapExchange20 extends BaseContract {
     _amounts: PromiseOrValue<BigNumberish>[],
     _data: PromiseOrValue<BytesLike>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  ): Promise<ContractTransaction>
 
   onERC1155Received(
     _operator: PromiseOrValue<string>,
@@ -631,12 +467,12 @@ export interface INiftyswapExchange20 extends BaseContract {
     _amount: PromiseOrValue<BigNumberish>,
     _data: PromiseOrValue<BytesLike>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  ): Promise<ContractTransaction>
 
   sendRoyalties(
     _royaltyRecipient: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+  ): Promise<ContractTransaction>
 
   callStatic: {
     buyTokens(
@@ -648,14 +484,14 @@ export interface INiftyswapExchange20 extends BaseContract {
       _extraFeeRecipients: PromiseOrValue<string>[],
       _extraFeeAmounts: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
+    ): Promise<BigNumber[]>
 
     getBuyPrice(
       _assetBoughtAmount: PromiseOrValue<BigNumberish>,
       _assetSoldReserve: PromiseOrValue<BigNumberish>,
       _assetBoughtReserve: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
     getBuyPriceWithRoyalty(
       _tokenId: PromiseOrValue<BigNumberish>,
@@ -663,51 +499,42 @@ export interface INiftyswapExchange20 extends BaseContract {
       _assetSoldReserve: PromiseOrValue<BigNumberish>,
       _assetBoughtReserve: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
-    getCurrencyInfo(overrides?: CallOverrides): Promise<string>;
+    getCurrencyInfo(overrides?: CallOverrides): Promise<string>
 
-    getCurrencyReserves(
-      _ids: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
+    getCurrencyReserves(_ids: PromiseOrValue<BigNumberish>[], overrides?: CallOverrides): Promise<BigNumber[]>
 
-    getFactoryAddress(overrides?: CallOverrides): Promise<string>;
+    getFactoryAddress(overrides?: CallOverrides): Promise<string>
 
-    getGlobalRoyaltyFee(overrides?: CallOverrides): Promise<BigNumber>;
+    getGlobalRoyaltyFee(overrides?: CallOverrides): Promise<BigNumber>
 
-    getGlobalRoyaltyRecipient(overrides?: CallOverrides): Promise<string>;
+    getGlobalRoyaltyRecipient(overrides?: CallOverrides): Promise<string>
 
-    getLPFee(overrides?: CallOverrides): Promise<BigNumber>;
+    getLPFee(overrides?: CallOverrides): Promise<BigNumber>
 
     getPrice_currencyToToken(
       _ids: PromiseOrValue<BigNumberish>[],
       _tokensBought: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
+    ): Promise<BigNumber[]>
 
     getPrice_tokenToCurrency(
       _ids: PromiseOrValue<BigNumberish>[],
       _tokensSold: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
+    ): Promise<BigNumber[]>
 
-    getRoyalties(
-      _royaltyRecipient: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getRoyalties(_royaltyRecipient: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>
 
-    getRoyaltiesNumerator(
-      _royaltyRecipient: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getRoyaltiesNumerator(_royaltyRecipient: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>
 
     getSellPrice(
       _assetSoldAmount: PromiseOrValue<BigNumberish>,
       _assetSoldReserve: PromiseOrValue<BigNumberish>,
       _assetBoughtReserve: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
     getSellPriceWithRoyalty(
       _tokenId: PromiseOrValue<BigNumberish>,
@@ -715,14 +542,11 @@ export interface INiftyswapExchange20 extends BaseContract {
       _assetSoldReserve: PromiseOrValue<BigNumberish>,
       _assetBoughtReserve: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
-    getTokenAddress(overrides?: CallOverrides): Promise<string>;
+    getTokenAddress(overrides?: CallOverrides): Promise<string>
 
-    getTotalSupply(
-      _ids: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
+    getTotalSupply(_ids: PromiseOrValue<BigNumberish>[], overrides?: CallOverrides): Promise<BigNumber[]>
 
     onERC1155BatchReceived(
       arg0: PromiseOrValue<string>,
@@ -731,7 +555,7 @@ export interface INiftyswapExchange20 extends BaseContract {
       _amounts: PromiseOrValue<BigNumberish>[],
       _data: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
-    ): Promise<string>;
+    ): Promise<string>
 
     onERC1155Received(
       _operator: PromiseOrValue<string>,
@@ -740,16 +564,13 @@ export interface INiftyswapExchange20 extends BaseContract {
       _amount: PromiseOrValue<BigNumberish>,
       _data: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
-    ): Promise<string>;
+    ): Promise<string>
 
-    sendRoyalties(
-      _royaltyRecipient: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-  };
+    sendRoyalties(_royaltyRecipient: PromiseOrValue<string>, overrides?: CallOverrides): Promise<void>
+  }
 
   filters: {
-    "CurrencyPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])"(
+    'CurrencyPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])'(
       buyer?: PromiseOrValue<string> | null,
       recipient?: PromiseOrValue<string> | null,
       tokensSoldIds?: null,
@@ -757,7 +578,7 @@ export interface INiftyswapExchange20 extends BaseContract {
       currencyBoughtAmounts?: null,
       extraFeeRecipients?: null,
       extraFeeAmounts?: null
-    ): CurrencyPurchaseEventFilter;
+    ): CurrencyPurchaseEventFilter
     CurrencyPurchase(
       buyer?: PromiseOrValue<string> | null,
       recipient?: PromiseOrValue<string> | null,
@@ -766,44 +587,41 @@ export interface INiftyswapExchange20 extends BaseContract {
       currencyBoughtAmounts?: null,
       extraFeeRecipients?: null,
       extraFeeAmounts?: null
-    ): CurrencyPurchaseEventFilter;
+    ): CurrencyPurchaseEventFilter
 
-    "LiquidityAdded(address,uint256[],uint256[],uint256[])"(
+    'LiquidityAdded(address,uint256[],uint256[],uint256[])'(
       provider?: PromiseOrValue<string> | null,
       tokenIds?: null,
       tokenAmounts?: null,
       currencyAmounts?: null
-    ): LiquidityAddedEventFilter;
+    ): LiquidityAddedEventFilter
     LiquidityAdded(
       provider?: PromiseOrValue<string> | null,
       tokenIds?: null,
       tokenAmounts?: null,
       currencyAmounts?: null
-    ): LiquidityAddedEventFilter;
+    ): LiquidityAddedEventFilter
 
-    "LiquidityRemoved(address,uint256[],uint256[],tuple[])"(
+    'LiquidityRemoved(address,uint256[],uint256[],tuple[])'(
       provider?: PromiseOrValue<string> | null,
       tokenIds?: null,
       tokenAmounts?: null,
       details?: null
-    ): LiquidityRemovedEventFilter;
+    ): LiquidityRemovedEventFilter
     LiquidityRemoved(
       provider?: PromiseOrValue<string> | null,
       tokenIds?: null,
       tokenAmounts?: null,
       details?: null
-    ): LiquidityRemovedEventFilter;
+    ): LiquidityRemovedEventFilter
 
-    "RoyaltyChanged(address,uint256)"(
+    'RoyaltyChanged(address,uint256)'(
       royaltyRecipient?: PromiseOrValue<string> | null,
       royaltyFee?: null
-    ): RoyaltyChangedEventFilter;
-    RoyaltyChanged(
-      royaltyRecipient?: PromiseOrValue<string> | null,
-      royaltyFee?: null
-    ): RoyaltyChangedEventFilter;
+    ): RoyaltyChangedEventFilter
+    RoyaltyChanged(royaltyRecipient?: PromiseOrValue<string> | null, royaltyFee?: null): RoyaltyChangedEventFilter
 
-    "TokensPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])"(
+    'TokensPurchase(address,address,uint256[],uint256[],uint256[],address[],uint256[])'(
       buyer?: PromiseOrValue<string> | null,
       recipient?: PromiseOrValue<string> | null,
       tokensBoughtIds?: null,
@@ -811,7 +629,7 @@ export interface INiftyswapExchange20 extends BaseContract {
       currencySoldAmounts?: null,
       extraFeeRecipients?: null,
       extraFeeAmounts?: null
-    ): TokensPurchaseEventFilter;
+    ): TokensPurchaseEventFilter
     TokensPurchase(
       buyer?: PromiseOrValue<string> | null,
       recipient?: PromiseOrValue<string> | null,
@@ -820,8 +638,8 @@ export interface INiftyswapExchange20 extends BaseContract {
       currencySoldAmounts?: null,
       extraFeeRecipients?: null,
       extraFeeAmounts?: null
-    ): TokensPurchaseEventFilter;
-  };
+    ): TokensPurchaseEventFilter
+  }
 
   estimateGas: {
     buyTokens(
@@ -833,14 +651,14 @@ export interface INiftyswapExchange20 extends BaseContract {
       _extraFeeRecipients: PromiseOrValue<string>[],
       _extraFeeAmounts: PromiseOrValue<BigNumberish>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
     getBuyPrice(
       _assetBoughtAmount: PromiseOrValue<BigNumberish>,
       _assetSoldReserve: PromiseOrValue<BigNumberish>,
       _assetBoughtReserve: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
     getBuyPriceWithRoyalty(
       _tokenId: PromiseOrValue<BigNumberish>,
@@ -848,51 +666,42 @@ export interface INiftyswapExchange20 extends BaseContract {
       _assetSoldReserve: PromiseOrValue<BigNumberish>,
       _assetBoughtReserve: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
-    getCurrencyInfo(overrides?: CallOverrides): Promise<BigNumber>;
+    getCurrencyInfo(overrides?: CallOverrides): Promise<BigNumber>
 
-    getCurrencyReserves(
-      _ids: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getCurrencyReserves(_ids: PromiseOrValue<BigNumberish>[], overrides?: CallOverrides): Promise<BigNumber>
 
-    getFactoryAddress(overrides?: CallOverrides): Promise<BigNumber>;
+    getFactoryAddress(overrides?: CallOverrides): Promise<BigNumber>
 
-    getGlobalRoyaltyFee(overrides?: CallOverrides): Promise<BigNumber>;
+    getGlobalRoyaltyFee(overrides?: CallOverrides): Promise<BigNumber>
 
-    getGlobalRoyaltyRecipient(overrides?: CallOverrides): Promise<BigNumber>;
+    getGlobalRoyaltyRecipient(overrides?: CallOverrides): Promise<BigNumber>
 
-    getLPFee(overrides?: CallOverrides): Promise<BigNumber>;
+    getLPFee(overrides?: CallOverrides): Promise<BigNumber>
 
     getPrice_currencyToToken(
       _ids: PromiseOrValue<BigNumberish>[],
       _tokensBought: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
     getPrice_tokenToCurrency(
       _ids: PromiseOrValue<BigNumberish>[],
       _tokensSold: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
-    getRoyalties(
-      _royaltyRecipient: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getRoyalties(_royaltyRecipient: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>
 
-    getRoyaltiesNumerator(
-      _royaltyRecipient: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getRoyaltiesNumerator(_royaltyRecipient: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>
 
     getSellPrice(
       _assetSoldAmount: PromiseOrValue<BigNumberish>,
       _assetSoldReserve: PromiseOrValue<BigNumberish>,
       _assetBoughtReserve: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
     getSellPriceWithRoyalty(
       _tokenId: PromiseOrValue<BigNumberish>,
@@ -900,14 +709,11 @@ export interface INiftyswapExchange20 extends BaseContract {
       _assetSoldReserve: PromiseOrValue<BigNumberish>,
       _assetBoughtReserve: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
-    getTokenAddress(overrides?: CallOverrides): Promise<BigNumber>;
+    getTokenAddress(overrides?: CallOverrides): Promise<BigNumber>
 
-    getTotalSupply(
-      _ids: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    getTotalSupply(_ids: PromiseOrValue<BigNumberish>[], overrides?: CallOverrides): Promise<BigNumber>
 
     onERC1155BatchReceived(
       arg0: PromiseOrValue<string>,
@@ -916,7 +722,7 @@ export interface INiftyswapExchange20 extends BaseContract {
       _amounts: PromiseOrValue<BigNumberish>[],
       _data: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
     onERC1155Received(
       _operator: PromiseOrValue<string>,
@@ -925,13 +731,13 @@ export interface INiftyswapExchange20 extends BaseContract {
       _amount: PromiseOrValue<BigNumberish>,
       _data: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
+    ): Promise<BigNumber>
 
     sendRoyalties(
       _royaltyRecipient: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-  };
+    ): Promise<BigNumber>
+  }
 
   populateTransaction: {
     buyTokens(
@@ -943,14 +749,14 @@ export interface INiftyswapExchange20 extends BaseContract {
       _extraFeeRecipients: PromiseOrValue<string>[],
       _extraFeeAmounts: PromiseOrValue<BigNumberish>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    ): Promise<PopulatedTransaction>
 
     getBuyPrice(
       _assetBoughtAmount: PromiseOrValue<BigNumberish>,
       _assetSoldReserve: PromiseOrValue<BigNumberish>,
       _assetBoughtReserve: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    ): Promise<PopulatedTransaction>
 
     getBuyPriceWithRoyalty(
       _tokenId: PromiseOrValue<BigNumberish>,
@@ -958,55 +764,42 @@ export interface INiftyswapExchange20 extends BaseContract {
       _assetSoldReserve: PromiseOrValue<BigNumberish>,
       _assetBoughtReserve: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    ): Promise<PopulatedTransaction>
 
-    getCurrencyInfo(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    getCurrencyInfo(overrides?: CallOverrides): Promise<PopulatedTransaction>
 
-    getCurrencyReserves(
-      _ids: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getCurrencyReserves(_ids: PromiseOrValue<BigNumberish>[], overrides?: CallOverrides): Promise<PopulatedTransaction>
 
-    getFactoryAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    getFactoryAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>
 
-    getGlobalRoyaltyFee(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getGlobalRoyaltyFee(overrides?: CallOverrides): Promise<PopulatedTransaction>
 
-    getGlobalRoyaltyRecipient(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getGlobalRoyaltyRecipient(overrides?: CallOverrides): Promise<PopulatedTransaction>
 
-    getLPFee(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    getLPFee(overrides?: CallOverrides): Promise<PopulatedTransaction>
 
     getPrice_currencyToToken(
       _ids: PromiseOrValue<BigNumberish>[],
       _tokensBought: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    ): Promise<PopulatedTransaction>
 
     getPrice_tokenToCurrency(
       _ids: PromiseOrValue<BigNumberish>[],
       _tokensSold: PromiseOrValue<BigNumberish>[],
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    ): Promise<PopulatedTransaction>
 
-    getRoyalties(
-      _royaltyRecipient: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getRoyalties(_royaltyRecipient: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>
 
-    getRoyaltiesNumerator(
-      _royaltyRecipient: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getRoyaltiesNumerator(_royaltyRecipient: PromiseOrValue<string>, overrides?: CallOverrides): Promise<PopulatedTransaction>
 
     getSellPrice(
       _assetSoldAmount: PromiseOrValue<BigNumberish>,
       _assetSoldReserve: PromiseOrValue<BigNumberish>,
       _assetBoughtReserve: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    ): Promise<PopulatedTransaction>
 
     getSellPriceWithRoyalty(
       _tokenId: PromiseOrValue<BigNumberish>,
@@ -1014,14 +807,11 @@ export interface INiftyswapExchange20 extends BaseContract {
       _assetSoldReserve: PromiseOrValue<BigNumberish>,
       _assetBoughtReserve: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    ): Promise<PopulatedTransaction>
 
-    getTokenAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    getTokenAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>
 
-    getTotalSupply(
-      _ids: PromiseOrValue<BigNumberish>[],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    getTotalSupply(_ids: PromiseOrValue<BigNumberish>[], overrides?: CallOverrides): Promise<PopulatedTransaction>
 
     onERC1155BatchReceived(
       arg0: PromiseOrValue<string>,
@@ -1030,7 +820,7 @@ export interface INiftyswapExchange20 extends BaseContract {
       _amounts: PromiseOrValue<BigNumberish>[],
       _data: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    ): Promise<PopulatedTransaction>
 
     onERC1155Received(
       _operator: PromiseOrValue<string>,
@@ -1039,11 +829,11 @@ export interface INiftyswapExchange20 extends BaseContract {
       _amount: PromiseOrValue<BigNumberish>,
       _data: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
+    ): Promise<PopulatedTransaction>
 
     sendRoyalties(
       _royaltyRecipient: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-  };
+    ): Promise<PopulatedTransaction>
+  }
 }

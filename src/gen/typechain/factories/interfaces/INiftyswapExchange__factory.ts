@@ -2,12 +2,9 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
-import type {
-  INiftyswapExchange,
-  INiftyswapExchangeInterface,
-} from "../../interfaces/INiftyswapExchange";
+import { Contract, Signer, utils } from 'ethers'
+import type { Provider } from '@ethersproject/providers'
+import type { INiftyswapExchange, INiftyswapExchangeInterface } from '../../interfaces/INiftyswapExchange'
 
 const _abi = [
   {
@@ -15,436 +12,433 @@ const _abi = [
     inputs: [
       {
         indexed: true,
-        internalType: "address",
-        name: "buyer",
-        type: "address",
+        internalType: 'address',
+        name: 'buyer',
+        type: 'address'
       },
       {
         indexed: true,
-        internalType: "address",
-        name: "recipient",
-        type: "address",
+        internalType: 'address',
+        name: 'recipient',
+        type: 'address'
       },
       {
         indexed: false,
-        internalType: "uint256[]",
-        name: "tokensSoldIds",
-        type: "uint256[]",
+        internalType: 'uint256[]',
+        name: 'tokensSoldIds',
+        type: 'uint256[]'
       },
       {
         indexed: false,
-        internalType: "uint256[]",
-        name: "tokensSoldAmounts",
-        type: "uint256[]",
+        internalType: 'uint256[]',
+        name: 'tokensSoldAmounts',
+        type: 'uint256[]'
       },
       {
         indexed: false,
-        internalType: "uint256[]",
-        name: "currencyBoughtAmounts",
-        type: "uint256[]",
-      },
+        internalType: 'uint256[]',
+        name: 'currencyBoughtAmounts',
+        type: 'uint256[]'
+      }
     ],
-    name: "CurrencyPurchase",
-    type: "event",
+    name: 'CurrencyPurchase',
+    type: 'event'
   },
   {
     anonymous: false,
     inputs: [
       {
         indexed: true,
-        internalType: "address",
-        name: "provider",
-        type: "address",
+        internalType: 'address',
+        name: 'provider',
+        type: 'address'
       },
       {
         indexed: false,
-        internalType: "uint256[]",
-        name: "tokenIds",
-        type: "uint256[]",
+        internalType: 'uint256[]',
+        name: 'tokenIds',
+        type: 'uint256[]'
       },
       {
         indexed: false,
-        internalType: "uint256[]",
-        name: "tokenAmounts",
-        type: "uint256[]",
+        internalType: 'uint256[]',
+        name: 'tokenAmounts',
+        type: 'uint256[]'
       },
       {
         indexed: false,
-        internalType: "uint256[]",
-        name: "currencyAmounts",
-        type: "uint256[]",
-      },
+        internalType: 'uint256[]',
+        name: 'currencyAmounts',
+        type: 'uint256[]'
+      }
     ],
-    name: "LiquidityAdded",
-    type: "event",
+    name: 'LiquidityAdded',
+    type: 'event'
   },
   {
     anonymous: false,
     inputs: [
       {
         indexed: true,
-        internalType: "address",
-        name: "provider",
-        type: "address",
+        internalType: 'address',
+        name: 'provider',
+        type: 'address'
       },
       {
         indexed: false,
-        internalType: "uint256[]",
-        name: "tokenIds",
-        type: "uint256[]",
+        internalType: 'uint256[]',
+        name: 'tokenIds',
+        type: 'uint256[]'
       },
       {
         indexed: false,
-        internalType: "uint256[]",
-        name: "tokenAmounts",
-        type: "uint256[]",
+        internalType: 'uint256[]',
+        name: 'tokenAmounts',
+        type: 'uint256[]'
       },
       {
         components: [
           {
-            internalType: "uint256",
-            name: "currencyAmount",
-            type: "uint256",
+            internalType: 'uint256',
+            name: 'currencyAmount',
+            type: 'uint256'
           },
           {
-            internalType: "uint256",
-            name: "soldTokenNumerator",
-            type: "uint256",
+            internalType: 'uint256',
+            name: 'soldTokenNumerator',
+            type: 'uint256'
           },
           {
-            internalType: "uint256",
-            name: "boughtCurrencyNumerator",
-            type: "uint256",
+            internalType: 'uint256',
+            name: 'boughtCurrencyNumerator',
+            type: 'uint256'
           },
           {
-            internalType: "uint256",
-            name: "totalSupply",
-            type: "uint256",
-          },
+            internalType: 'uint256',
+            name: 'totalSupply',
+            type: 'uint256'
+          }
         ],
         indexed: false,
-        internalType: "struct INiftyswapExchange.LiquidityRemovedEventObj[]",
-        name: "details",
-        type: "tuple[]",
-      },
+        internalType: 'struct INiftyswapExchange.LiquidityRemovedEventObj[]',
+        name: 'details',
+        type: 'tuple[]'
+      }
     ],
-    name: "LiquidityRemoved",
-    type: "event",
+    name: 'LiquidityRemoved',
+    type: 'event'
   },
   {
     anonymous: false,
     inputs: [
       {
         indexed: true,
-        internalType: "address",
-        name: "buyer",
-        type: "address",
+        internalType: 'address',
+        name: 'buyer',
+        type: 'address'
       },
       {
         indexed: true,
-        internalType: "address",
-        name: "recipient",
-        type: "address",
+        internalType: 'address',
+        name: 'recipient',
+        type: 'address'
       },
       {
         indexed: false,
-        internalType: "uint256[]",
-        name: "tokensBoughtIds",
-        type: "uint256[]",
+        internalType: 'uint256[]',
+        name: 'tokensBoughtIds',
+        type: 'uint256[]'
       },
       {
         indexed: false,
-        internalType: "uint256[]",
-        name: "tokensBoughtAmounts",
-        type: "uint256[]",
+        internalType: 'uint256[]',
+        name: 'tokensBoughtAmounts',
+        type: 'uint256[]'
       },
       {
         indexed: false,
-        internalType: "uint256[]",
-        name: "currencySoldAmounts",
-        type: "uint256[]",
-      },
+        internalType: 'uint256[]',
+        name: 'currencySoldAmounts',
+        type: 'uint256[]'
+      }
     ],
-    name: "TokensPurchase",
-    type: "event",
+    name: 'TokensPurchase',
+    type: 'event'
   },
   {
     inputs: [
       {
-        internalType: "uint256",
-        name: "_assetBoughtAmount",
-        type: "uint256",
+        internalType: 'uint256',
+        name: '_assetBoughtAmount',
+        type: 'uint256'
       },
       {
-        internalType: "uint256",
-        name: "_assetSoldReserve",
-        type: "uint256",
+        internalType: 'uint256',
+        name: '_assetSoldReserve',
+        type: 'uint256'
       },
       {
-        internalType: "uint256",
-        name: "_assetBoughtReserve",
-        type: "uint256",
-      },
+        internalType: 'uint256',
+        name: '_assetBoughtReserve',
+        type: 'uint256'
+      }
     ],
-    name: "getBuyPrice",
+    name: 'getBuyPrice',
     outputs: [
       {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256'
+      }
     ],
-    stateMutability: "pure",
-    type: "function",
+    stateMutability: 'pure',
+    type: 'function'
   },
   {
     inputs: [],
-    name: "getCurrencyInfo",
+    name: 'getCurrencyInfo',
     outputs: [
       {
-        internalType: "address",
-        name: "",
-        type: "address",
+        internalType: 'address',
+        name: '',
+        type: 'address'
       },
       {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256'
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    stateMutability: 'view',
+    type: 'function'
   },
   {
     inputs: [
       {
-        internalType: "uint256[]",
-        name: "_ids",
-        type: "uint256[]",
-      },
+        internalType: 'uint256[]',
+        name: '_ids',
+        type: 'uint256[]'
+      }
     ],
-    name: "getCurrencyReserves",
+    name: 'getCurrencyReserves',
     outputs: [
       {
-        internalType: "uint256[]",
-        name: "",
-        type: "uint256[]",
-      },
+        internalType: 'uint256[]',
+        name: '',
+        type: 'uint256[]'
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    stateMutability: 'view',
+    type: 'function'
   },
   {
     inputs: [],
-    name: "getFactoryAddress",
+    name: 'getFactoryAddress',
     outputs: [
       {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
+        internalType: 'address',
+        name: '',
+        type: 'address'
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    stateMutability: 'view',
+    type: 'function'
   },
   {
     inputs: [
       {
-        internalType: "uint256[]",
-        name: "_ids",
-        type: "uint256[]",
+        internalType: 'uint256[]',
+        name: '_ids',
+        type: 'uint256[]'
       },
       {
-        internalType: "uint256[]",
-        name: "_tokensBought",
-        type: "uint256[]",
-      },
+        internalType: 'uint256[]',
+        name: '_tokensBought',
+        type: 'uint256[]'
+      }
     ],
-    name: "getPrice_currencyToToken",
+    name: 'getPrice_currencyToToken',
     outputs: [
       {
-        internalType: "uint256[]",
-        name: "",
-        type: "uint256[]",
-      },
+        internalType: 'uint256[]',
+        name: '',
+        type: 'uint256[]'
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    stateMutability: 'view',
+    type: 'function'
   },
   {
     inputs: [
       {
-        internalType: "uint256[]",
-        name: "_ids",
-        type: "uint256[]",
+        internalType: 'uint256[]',
+        name: '_ids',
+        type: 'uint256[]'
       },
       {
-        internalType: "uint256[]",
-        name: "_tokensSold",
-        type: "uint256[]",
-      },
+        internalType: 'uint256[]',
+        name: '_tokensSold',
+        type: 'uint256[]'
+      }
     ],
-    name: "getPrice_tokenToCurrency",
+    name: 'getPrice_tokenToCurrency',
     outputs: [
       {
-        internalType: "uint256[]",
-        name: "",
-        type: "uint256[]",
-      },
+        internalType: 'uint256[]',
+        name: '',
+        type: 'uint256[]'
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    stateMutability: 'view',
+    type: 'function'
   },
   {
     inputs: [
       {
-        internalType: "uint256",
-        name: "_assetSoldAmount",
-        type: "uint256",
+        internalType: 'uint256',
+        name: '_assetSoldAmount',
+        type: 'uint256'
       },
       {
-        internalType: "uint256",
-        name: "_assetSoldReserve",
-        type: "uint256",
+        internalType: 'uint256',
+        name: '_assetSoldReserve',
+        type: 'uint256'
       },
       {
-        internalType: "uint256",
-        name: "_assetBoughtReserve",
-        type: "uint256",
-      },
+        internalType: 'uint256',
+        name: '_assetBoughtReserve',
+        type: 'uint256'
+      }
     ],
-    name: "getSellPrice",
+    name: 'getSellPrice',
     outputs: [
       {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256'
+      }
     ],
-    stateMutability: "pure",
-    type: "function",
+    stateMutability: 'pure',
+    type: 'function'
   },
   {
     inputs: [],
-    name: "getTokenAddress",
+    name: 'getTokenAddress',
     outputs: [
       {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
+        internalType: 'address',
+        name: '',
+        type: 'address'
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    stateMutability: 'view',
+    type: 'function'
   },
   {
     inputs: [
       {
-        internalType: "uint256[]",
-        name: "_ids",
-        type: "uint256[]",
-      },
+        internalType: 'uint256[]',
+        name: '_ids',
+        type: 'uint256[]'
+      }
     ],
-    name: "getTotalSupply",
+    name: 'getTotalSupply',
     outputs: [
       {
-        internalType: "uint256[]",
-        name: "",
-        type: "uint256[]",
-      },
+        internalType: 'uint256[]',
+        name: '',
+        type: 'uint256[]'
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    stateMutability: 'view',
+    type: 'function'
   },
   {
     inputs: [
       {
-        internalType: "address",
-        name: "",
-        type: "address",
+        internalType: 'address',
+        name: '',
+        type: 'address'
       },
       {
-        internalType: "address",
-        name: "_from",
-        type: "address",
+        internalType: 'address',
+        name: '_from',
+        type: 'address'
       },
       {
-        internalType: "uint256[]",
-        name: "_ids",
-        type: "uint256[]",
+        internalType: 'uint256[]',
+        name: '_ids',
+        type: 'uint256[]'
       },
       {
-        internalType: "uint256[]",
-        name: "_amounts",
-        type: "uint256[]",
+        internalType: 'uint256[]',
+        name: '_amounts',
+        type: 'uint256[]'
       },
       {
-        internalType: "bytes",
-        name: "_data",
-        type: "bytes",
-      },
+        internalType: 'bytes',
+        name: '_data',
+        type: 'bytes'
+      }
     ],
-    name: "onERC1155BatchReceived",
+    name: 'onERC1155BatchReceived',
     outputs: [
       {
-        internalType: "bytes4",
-        name: "",
-        type: "bytes4",
-      },
+        internalType: 'bytes4',
+        name: '',
+        type: 'bytes4'
+      }
     ],
-    stateMutability: "nonpayable",
-    type: "function",
+    stateMutability: 'nonpayable',
+    type: 'function'
   },
   {
     inputs: [
       {
-        internalType: "address",
-        name: "_operator",
-        type: "address",
+        internalType: 'address',
+        name: '_operator',
+        type: 'address'
       },
       {
-        internalType: "address",
-        name: "_from",
-        type: "address",
+        internalType: 'address',
+        name: '_from',
+        type: 'address'
       },
       {
-        internalType: "uint256",
-        name: "_id",
-        type: "uint256",
+        internalType: 'uint256',
+        name: '_id',
+        type: 'uint256'
       },
       {
-        internalType: "uint256",
-        name: "_amount",
-        type: "uint256",
+        internalType: 'uint256',
+        name: '_amount',
+        type: 'uint256'
       },
       {
-        internalType: "bytes",
-        name: "_data",
-        type: "bytes",
-      },
+        internalType: 'bytes',
+        name: '_data',
+        type: 'bytes'
+      }
     ],
-    name: "onERC1155Received",
+    name: 'onERC1155Received',
     outputs: [
       {
-        internalType: "bytes4",
-        name: "",
-        type: "bytes4",
-      },
+        internalType: 'bytes4',
+        name: '',
+        type: 'bytes4'
+      }
     ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-] as const;
+    stateMutability: 'nonpayable',
+    type: 'function'
+  }
+] as const
 
 export class INiftyswapExchange__factory {
-  static readonly abi = _abi;
+  static readonly abi = _abi
   static createInterface(): INiftyswapExchangeInterface {
-    return new utils.Interface(_abi) as INiftyswapExchangeInterface;
+    return new utils.Interface(_abi) as INiftyswapExchangeInterface
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): INiftyswapExchange {
-    return new Contract(address, _abi, signerOrProvider) as INiftyswapExchange;
+  static connect(address: string, signerOrProvider: Signer | Provider): INiftyswapExchange {
+    return new Contract(address, _abi, signerOrProvider) as INiftyswapExchange
   }
 }

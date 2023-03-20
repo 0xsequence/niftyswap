@@ -782,7 +782,7 @@ describe('NiftyswapExchange20', () => {
                 prefixMetadataContract = (await erc1155MetadataPrefixAbstract.deploy(ownerWallet, [
                   '',
                   true,
-                  ownerWallet.address,
+                  ownerWallet.address
                 ])) as ERC1155MetadataPrefix
                 await niftyswapFactoryContract.setMetadataContract(prefixMetadataContract.address)
               })
@@ -808,7 +808,7 @@ describe('NiftyswapExchange20', () => {
                 const prefixMetadataContract2 = (await erc1155MetadataPrefixAbstract.deploy(ownerWallet, [
                   '',
                   false,
-                  ownerWallet.address,
+                  ownerWallet.address
                 ])) as ERC1155MetadataPrefix
                 await niftyswapFactoryContract.setMetadataContract(prefixMetadataContract2.address)
                 await prefixMetadataContract2.functions.setUriPrefix('https://v2.sequence.app/')

@@ -2,12 +2,9 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
-import type { Provider } from "@ethersproject/providers";
-import type {
-  INiftyswapFactory,
-  INiftyswapFactoryInterface,
-} from "../../interfaces/INiftyswapFactory";
+import { Contract, Signer, utils } from 'ethers'
+import type { Provider } from '@ethersproject/providers'
+import type { INiftyswapFactory, INiftyswapFactoryInterface } from '../../interfaces/INiftyswapFactory'
 
 const _abi = [
   {
@@ -15,95 +12,92 @@ const _abi = [
     inputs: [
       {
         indexed: true,
-        internalType: "address",
-        name: "token",
-        type: "address",
+        internalType: 'address',
+        name: 'token',
+        type: 'address'
       },
       {
         indexed: true,
-        internalType: "address",
-        name: "currency",
-        type: "address",
+        internalType: 'address',
+        name: 'currency',
+        type: 'address'
       },
       {
         indexed: true,
-        internalType: "uint256",
-        name: "currencyID",
-        type: "uint256",
+        internalType: 'uint256',
+        name: 'currencyID',
+        type: 'uint256'
       },
       {
         indexed: false,
-        internalType: "address",
-        name: "exchange",
-        type: "address",
-      },
+        internalType: 'address',
+        name: 'exchange',
+        type: 'address'
+      }
     ],
-    name: "NewExchange",
-    type: "event",
+    name: 'NewExchange',
+    type: 'event'
   },
   {
     inputs: [
       {
-        internalType: "address",
-        name: "_token",
-        type: "address",
+        internalType: 'address',
+        name: '_token',
+        type: 'address'
       },
       {
-        internalType: "address",
-        name: "_currency",
-        type: "address",
+        internalType: 'address',
+        name: '_currency',
+        type: 'address'
       },
       {
-        internalType: "uint256",
-        name: "_currencyID",
-        type: "uint256",
-      },
+        internalType: 'uint256',
+        name: '_currencyID',
+        type: 'uint256'
+      }
     ],
-    name: "createExchange",
+    name: 'createExchange',
     outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
+    stateMutability: 'nonpayable',
+    type: 'function'
   },
   {
     inputs: [
       {
-        internalType: "address",
-        name: "_token",
-        type: "address",
+        internalType: 'address',
+        name: '_token',
+        type: 'address'
       },
       {
-        internalType: "address",
-        name: "_currency",
-        type: "address",
+        internalType: 'address',
+        name: '_currency',
+        type: 'address'
       },
       {
-        internalType: "uint256",
-        name: "_currencyID",
-        type: "uint256",
-      },
+        internalType: 'uint256',
+        name: '_currencyID',
+        type: 'uint256'
+      }
     ],
-    name: "tokensToExchange",
+    name: 'tokensToExchange',
     outputs: [
       {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
+        internalType: 'address',
+        name: '',
+        type: 'address'
+      }
     ],
-    stateMutability: "view",
-    type: "function",
-  },
-] as const;
+    stateMutability: 'view',
+    type: 'function'
+  }
+] as const
 
 export class INiftyswapFactory__factory {
-  static readonly abi = _abi;
+  static readonly abi = _abi
   static createInterface(): INiftyswapFactoryInterface {
-    return new utils.Interface(_abi) as INiftyswapFactoryInterface;
+    return new utils.Interface(_abi) as INiftyswapFactoryInterface
   }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): INiftyswapFactory {
-    return new Contract(address, _abi, signerOrProvider) as INiftyswapFactory;
+  static connect(address: string, signerOrProvider: Signer | Provider): INiftyswapFactory {
+    return new Contract(address, _abi, signerOrProvider) as INiftyswapFactory
   }
 }
