@@ -15,9 +15,8 @@
     "adapter:build": "rimraf src/gen/adapter && tsc ./src/gen/typechain/index.ts --outDir ./src/gen/adapter",
     "test": "yarn build && yarn test:hardhat",
     "test:hardhat": "hardhat test \"tests/index.spec.ts\"",
-    "test:ganache": "hardhat --network ganache test tests/index.spec.ts",
     "test:gas-report": "REPORT_GAS=true yarn test",
-    "test:benchmark": "hardhat --network ganache test tests/index.bench.ts",
+    "test:benchmark": "hardhat test tests/index.bench.ts",
     "test:forge": "forge test -vv",
     "test:forge:coverage": "forge coverage --report summary",
     "lint": "yarn lint:ts && yarn lint:sol",
@@ -29,9 +28,6 @@
     "format": "yarn format:ts && yarn format:sol",
     "format:ts": "prettier --write \"./**/*.ts\"",
     "format:sol": "forge fmt",
-    "start:ganache": "cross-var ganache-cli --chainId $npm_package_config_ganacheChainID --networkId $npm_package_config_ganacheChainID --port $npm_package_config_ganachePort --gasLimit $npm_package_config_ganacheGasLimit --gasPrice $npm_package_config_ganacheGasPrice --defaultBalanceEther $npm_package_config_etherBalance --deterministic --mnemonic \"$npm_package_config_mnemonic\" $npm_package_config_extra",
-    "start:ganache:verbose": "yarn run start:ganache --verbose",
-    "stop:ganache": "ps aux | grep ganache-cli | grep -v grep | awk '{print $2}' | xargs kill -9",
     "release": "yarn publish src --access public",
     "release-list": "cd src && yarn release-list",
     "verify": "hardhat tenderly:verify"
@@ -60,7 +56,6 @@
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-prettier": "^4.2.1",
     "ethers": "^5.7.2",
-    "ganache-cli": "6.12.2",
     "hardhat": "2.13.0",
     "hardhat-gas-reporter": "1.0.9",
     "husky": "^4.2.3",
@@ -90,10 +85,6 @@
   },
   "config": {
     "mnemonic": "test test test test test test test test test test test junk",
-    "ganacheChainID": 127001,
-    "ganachePort": 8545,
-    "ganacheGasLimit": "0xfffffffffff",
-    "ganacheGasPrice": "20000000000",
     "etherBalance": "100000",
     "extra": ""
   }

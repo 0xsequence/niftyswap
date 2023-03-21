@@ -32,7 +32,6 @@ export function RevertError(errorMessage?: string) {
     return new RegExp(`VM Exception while processing transaction: reverted with reason string ["']${errorMessage}["']`)
   }
 }
-// In some cases hardhat throws invalid op code when Ganache throws revert
 export const CallError = () => /call revert exception/
 export const OpCodeError = () => RegExp('^VM Exception while processing transaction: (revert|invalid opcode)$')
 export const ArrayAccessError = () => /Array accessed at an out-of-bounds or negative index/

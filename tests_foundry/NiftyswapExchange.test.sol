@@ -25,6 +25,20 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         address indexed _operator, address indexed _from, address indexed _to, uint256[] _ids, uint256[] _values
     );
     // INiftyswapExchange
+    event TokensPurchase(
+        address indexed buyer,
+        address indexed recipient,
+        uint256[] tokensBoughtIds,
+        uint256[] tokensBoughtAmounts,
+        uint256[] currencySoldAmounts
+    );
+    event CurrencyPurchase(
+        address indexed buyer,
+        address indexed recipient,
+        uint256[] tokensSoldIds,
+        uint256[] tokensSoldAmounts,
+        uint256[] currencyBoughtAmounts
+    );
     event LiquidityAdded(
         address indexed provider, uint256[] tokenIds, uint256[] tokenAmounts, uint256[] currencyAmounts
     );
@@ -332,7 +346,20 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         );
     }
 
-    //TODO Max currency exceeded
+    function test_addLiquidity_maxCurrencyExceeded() external withLiquidity {
+        uint256[] memory currencyToAdd = new uint256[](1);
+        currencyToAdd[0] = 2;
+        uint256[] memory types = new uint256[](1);
+        types[0] = 2;
+        uint256[] memory tokensToAdd = new uint256[](1);
+        tokensToAdd[0] = 2;
+
+        vm.prank(OPERATOR);
+        vm.expectRevert("NiftyswapExchange#_addLiquidity: MAX_CURRENCY_AMOUNT_EXCEEDED");
+        erc1155AMock.safeBatchTransferFrom(
+            OPERATOR, exchangeAddr, types, tokensToAdd, encodeAddLiquidity(currencyToAdd, block.timestamp)
+        );
+    }
 
     //
     // Remove liquidity
@@ -376,7 +403,8 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         uint256[] memory types = new uint256[](1);
         types[0] = typeId;
         uint256[] memory liquidity = new uint256[](1);
-        liquidity[0] = exchange.balanceOf(OPERATOR, typeId);
+        uint256 liquidityBefore = exchange.balanceOf(OPERATOR, typeId);
+        liquidity[0] = liquidityBefore / 2;
         uint256[] memory tokens = new uint256[](1);
         tokens[0] = 1;
 
@@ -385,7 +413,8 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
             OPERATOR, exchangeAddr, types, liquidity, encodeRemoveLiquidity(currencies, tokens, block.timestamp + 1)
         );
 
-        //TODO Check balances
+        // Check balances
+        assertEq(liquidityBefore - liquidity[0], exchange.balanceOf(OPERATOR, typeId));
     }
 
     function test_removeLiquidity_insufficientCurrency() external withLiquidity {
@@ -484,7 +513,8 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
 
         // Run it
         vm.prank(USER);
-        //TODO Check emit
+        vm.expectEmit(true, true, true, true, exchangeAddr);
+        emit CurrencyPurchase(USER, USER, types, sellAmounts, prices);
         erc1155AMock.safeBatchTransferFrom(
             USER, exchangeAddr, types, sellAmounts, encodeSellTokens(USER, prices[0], block.timestamp)
         );
@@ -612,7 +642,8 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
 
         // Run it
         vm.prank(USER);
-        //TODO Check emit
+        vm.expectEmit(true, true, true, true, exchangeAddr);
+        emit TokensPurchase(USER, USER, types, tokens, prices);
         erc1155BMock.safeTransferFrom(
             USER, exchangeAddr, CURRENCY_ID, prices[0], encodeBuyTokens(USER, types, tokens, block.timestamp)
         );
@@ -704,9 +735,25 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         );
     }
 
-    //TODO Bad lengths
+    //
+    // Edge Cases
+    //
+    function test_edgeCase_noZeroReserve() external {
+        uint256[] memory currencies = new uint256[](1);
+        currencies[0] = 1000000001;
+        uint256[] memory types = new uint256[](1);
+        types[0] = 1;
+        uint256[] memory tokens = new uint256[](1);
+        tokens[0] = 1;
 
-    //TODO Edge cases
+        vm.prank(OPERATOR);
+        erc1155AMock.safeBatchTransferFrom(
+            OPERATOR, exchangeAddr, types, tokens, encodeAddLiquidity(currencies, block.timestamp)
+        );
+
+        vm.expectRevert(stdError.divisionError);
+        exchange.getPrice_currencyToToken(types, tokens);
+    }
 
     //
     // Helpers

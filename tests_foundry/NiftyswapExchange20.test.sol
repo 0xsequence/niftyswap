@@ -19,6 +19,24 @@ interface IERC1155Exchange is INiftyswapExchange20, IERC1155 {}
 contract NiftyswapExchange20Test is Niftyswap20TestHelper {
     // Events can't be imported
     // INiftyswapExchange20
+    event TokensPurchase(
+        address indexed buyer,
+        address indexed recipient,
+        uint256[] tokensBoughtIds,
+        uint256[] tokensBoughtAmounts,
+        uint256[] currencySoldAmounts,
+        address[] extraFeeRecipients,
+        uint256[] extraFeeAmounts
+    );
+    event CurrencyPurchase(
+        address indexed buyer,
+        address indexed recipient,
+        uint256[] tokensSoldIds,
+        uint256[] tokensSoldAmounts,
+        uint256[] currencyBoughtAmounts,
+        address[] extraFeeRecipients,
+        uint256[] extraFeeAmounts
+    );
     event LiquidityAdded(
         address indexed provider, uint256[] tokenIds, uint256[] tokenAmounts, uint256[] currencyAmounts
     );
@@ -294,7 +312,20 @@ contract NiftyswapExchange20Test is Niftyswap20TestHelper {
         );
     }
 
-    //TODO Max currency exceeded
+    function test_addLiquidity_maxCurrencyExceeded() external withLiquidity {
+        uint256[] memory currencyToAdd = new uint256[](1);
+        currencyToAdd[0] = 2;
+        uint256[] memory types = new uint256[](1);
+        types[0] = 2;
+        uint256[] memory tokensToAdd = new uint256[](1);
+        tokensToAdd[0] = 2;
+
+        vm.prank(OPERATOR);
+        vm.expectRevert("NE20#13");
+        erc1155Mock.safeBatchTransferFrom(
+            OPERATOR, exchangeAddr, types, tokensToAdd, encodeAddLiquidity(currencyToAdd, block.timestamp)
+        );
+    }
 
     //
     // Remove liquidity
@@ -333,12 +364,13 @@ contract NiftyswapExchange20Test is Niftyswap20TestHelper {
 
     function test_removeLiquidity_happyPath() external withLiquidity {
         uint256 typeId = 1;
+        uint256 liquidityBefore = exchange.balanceOf(OPERATOR, typeId);
         uint256[] memory currencies = new uint256[](1);
         currencies[0] = 1;
         uint256[] memory types = new uint256[](1);
         types[0] = typeId;
         uint256[] memory liquidity = new uint256[](1);
-        liquidity[0] = exchange.balanceOf(OPERATOR, typeId);
+        liquidity[0] = liquidityBefore / 2;
         uint256[] memory tokens = new uint256[](1);
         tokens[0] = 1;
 
@@ -347,7 +379,8 @@ contract NiftyswapExchange20Test is Niftyswap20TestHelper {
             OPERATOR, exchangeAddr, types, liquidity, encodeRemoveLiquidity(currencies, tokens, block.timestamp + 1)
         );
 
-        //TODO Check balances
+        // Check balances
+        assertEq(liquidityBefore - liquidity[0], exchange.balanceOf(OPERATOR, typeId));
     }
 
     function test_removeLiquidity_insufficientCurrency() external withLiquidity {
@@ -446,7 +479,8 @@ contract NiftyswapExchange20Test is Niftyswap20TestHelper {
 
         // Run it
         vm.prank(USER);
-        //TODO Check emit
+        vm.expectEmit(true, true, true, true, exchangeAddr);
+        emit CurrencyPurchase(USER, USER, types, sellAmounts, prices, NO_ADDRESSES, NO_FEES);
         erc1155Mock.safeBatchTransferFrom(
             USER,
             exchangeAddr,
@@ -583,8 +617,6 @@ contract NiftyswapExchange20Test is Niftyswap20TestHelper {
         vm.stopPrank();
     }
 
-    //TODO Royalties
-
     //
     // Buy
     //
@@ -604,7 +636,8 @@ contract NiftyswapExchange20Test is Niftyswap20TestHelper {
 
         // Run it
         vm.prank(USER);
-        //TODO Check emit
+        vm.expectEmit(true, true, true, true, exchangeAddr);
+        emit TokensPurchase(USER, USER, types, tokens, prices, NO_ADDRESSES, NO_FEES);
         exchange.buyTokens(types, tokens, getTotal(prices), block.timestamp, USER, NO_ADDRESSES, NO_FEES);
 
         // Check balances
@@ -684,9 +717,38 @@ contract NiftyswapExchange20Test is Niftyswap20TestHelper {
         exchange.buyTokens(types, tokens, getTotal(prices), block.timestamp, USER, NO_ADDRESSES, NO_FEES);
     }
 
-    //TODO Bad lengths
+    function test_currencyToToken_badArrayLengths() external withLiquidity {
+        uint256[] memory types = new uint256[](1);
+        types[0] = 1;
+        uint256[] memory tokens = new uint256[](2);
+        tokens[0] = 10;
+        tokens[1] = 10;
+        uint256[] memory prices = exchange.getPrice_currencyToToken(types, tokens);
 
-    //TODO Edge cases
+        vm.prank(USER);
+        vm.expectRevert("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH");
+        exchange.buyTokens(types, tokens, getTotal(prices), block.timestamp, USER, NO_ADDRESSES, NO_FEES);
+    }
+
+    //
+    // Edge Cases
+    //
+    function test_edgeCase_noZeroReserve() external {
+        uint256[] memory currencies = new uint256[](1);
+        currencies[0] = 1000000001;
+        uint256[] memory types = new uint256[](1);
+        types[0] = 1;
+        uint256[] memory tokens = new uint256[](1);
+        tokens[0] = 1;
+
+        vm.prank(OPERATOR);
+        erc1155Mock.safeBatchTransferFrom(
+            OPERATOR, exchangeAddr, types, tokens, encodeAddLiquidity(currencies, block.timestamp)
+        );
+
+        vm.expectRevert(stdError.divisionError);
+        exchange.getPrice_currencyToToken(types, tokens);
+    }
 
     //
     // Helpers

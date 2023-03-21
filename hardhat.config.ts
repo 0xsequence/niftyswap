@@ -23,10 +23,6 @@ const config: HardhatUserConfig = {
     tests: '../tests'
   },
   networks: {
-    ganache: {
-      url: 'http://127.0.0.1:8545',
-      blockGasLimit: 10000000
-    },
     matic: {
       url: 'https://rpc-mainnet.matic.network'
     },
