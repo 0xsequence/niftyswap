@@ -73,9 +73,9 @@
   },
   "lint-staged": {
     "*.ts": [
-      "yarn lint:ts",
-      "yarn format:ts",
-      "yarn lint:ts"
+      "eslint -c .eslintrc.js",
+      "prettier --write",
+      "eslint -c .eslintrc.js"
     ],
     "*.sol": [
       "yarn lint:sol",
