@@ -2125,8 +2125,6 @@ describe('NiftyswapExchange20', () => {
         })
 
         it('should fail if any duplicate', async () => {
-          const One = One
-
           // Tokens to buy
           const tx1 = userExchangeContract.functions.buyTokens(
             [1, 1],
