@@ -28,5 +28,6 @@
     "@uniswap/lib": "^4.0.1-alpha"
   },
   "devDependencies": {
+    "@openzeppelin/contracts": "^4.8.2"
   }
 }
