@@ -315,7 +315,7 @@ The `_tokenIds` and  `_tokensSoldAmounts` arguments are specified as the token i
 
 ```solidity
 // Tokens received need to be correct ERC-1155 Token contract
-require(msg.sender == address(token), "NiftyswapExchange#onERC1155BatchReceived: INVALID_TOKENS_TRANSFERRED");
+require(msg.sender == address(token), "NE#22");
 
 // Decode SellTokensObj from _data to call _tokenToCurrency()
 SellTokensObj memory obj;
@@ -359,7 +359,7 @@ The `_provider` argument is the address of who sent the tokens and the `_tokenId
 
 ```solidity
 // Tokens received need to be correct ERC-1155 Token contract
-require(msg.sender == address(token), "NiftyswapExchange#onERC1155BatchReceived: INVALID_TOKEN_TRANSFERRED");
+require(msg.sender == address(token), "NE#23");
 
 // Decode AddLiquidityObj from _data to call _addLiquidity()
 AddLiquidityObj memory obj;
@@ -398,7 +398,7 @@ The `_provider` argument is the address of who sent the liquidity pool tokens, t
 
 ```solidity
 // Tokens received need to be NIFTY-1155 tokens (liquidity pool tokens)
-require(msg.sender == address(this), "NiftyswapExchange#onERC1155BatchReceived: INVALID_NIFTY_TOKENS_TRANSFERRED");
+require(msg.sender == address(this), "NE#24");
 
 // Decode RemoveLiquidityObj from _data to call _removeLiquidity()
 RemoveLiquidityObj memory obj;

@@ -39,9 +39,9 @@ contract NiftyswapFactoryTest is Test {
     }
 
     function test_createExchange_revertOnZeroAddr() external {
-        vm.expectRevert("NiftyswapExchange#constructor:INVALID_INPUT");
+        vm.expectRevert("NE#01");
         factory.createExchange(address(0), erc1155B, BASE_TOKEN_ID);
-        vm.expectRevert("NiftyswapExchange#constructor:INVALID_INPUT");
+        vm.expectRevert("NE#01");
         factory.createExchange(erc1155A, address(0), BASE_TOKEN_ID);
     }
 

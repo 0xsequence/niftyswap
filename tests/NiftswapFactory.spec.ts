@@ -103,7 +103,7 @@ describe('NiftyswapFactory', () => {
         baseTokenID,
         HIGH_GAS_LIMIT
       )
-      await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange#constructor:INVALID_INPUT'))
+      await expect(tx).to.be.rejectedWith(RevertError('NE#01'))
     })
 
     it('should REVERT if Base Token is 0x0', async () => {
@@ -113,7 +113,7 @@ describe('NiftyswapFactory', () => {
         baseTokenID,
         HIGH_GAS_LIMIT
       )
-      await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange#constructor:INVALID_INPUT'))
+      await expect(tx).to.be.rejectedWith(RevertError('NE#01'))
     })
 
     it("should PASS if exchange doesn't exist yet", async () => {

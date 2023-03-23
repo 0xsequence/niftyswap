@@ -325,7 +325,7 @@ describe('NiftyswapExchange', () => {
             { gasLimit: 50000000 }
           )
 
-          await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange#_addLiquidity: CURRENCY_POOL_FORBIDDEN'))
+          await expect(tx).to.be.rejectedWith(RevertError('NE#12'))
         })
 
         it('should REVERT if deadline is passed', async () => {
@@ -340,7 +340,7 @@ describe('NiftyswapExchange', () => {
             addLiquidityData,
             { gasLimit: 8000000 }
           )
-          await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange#_addLiquidity: DEADLINE_EXCEEDED'))
+          await expect(tx).to.be.rejectedWith(RevertError('NE#09'))
         })
 
         it('should REVERT if a maxCurrency is null', async () => {
@@ -356,7 +356,7 @@ describe('NiftyswapExchange', () => {
             addLiquidityData,
             { gasLimit: 8000000 }
           )
-          await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange#_addLiquidity: NULL_MAX_CURRENCY'))
+          await expect(tx).to.be.rejectedWith(RevertError('NE#10'))
         })
 
         it('should REVERT if a token amount is null', async () => {
@@ -371,7 +371,7 @@ describe('NiftyswapExchange', () => {
             addLiquidityData,
             { gasLimit: 8000000 }
           )
-          await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange#_addLiquidity: NULL_TOKENS_AMOUNT'))
+          await expect(tx).to.be.rejectedWith(RevertError('NE#11'))
         })
 
         it('should REVERT if arrays are not the same length', async () => {
@@ -461,9 +461,7 @@ describe('NiftyswapExchange', () => {
             addLiquidityData,
             { gasLimit: 50000000 }
           )
-          await expect(tx1).to.be.rejectedWith(
-            RevertError('NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS')
-          )
+          await expect(tx1).to.be.rejectedWith(RevertError('NE#29'))
 
           const tx2 = operatorERC1155Contract.functions.safeBatchTransferFrom(
             operatorAddress,
@@ -473,9 +471,7 @@ describe('NiftyswapExchange', () => {
             addLiquidityData,
             { gasLimit: 50000000 }
           )
-          await expect(tx2).to.be.rejectedWith(
-            RevertError('NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS')
-          )
+          await expect(tx2).to.be.rejectedWith(RevertError('NE#29'))
 
           const tx3 = operatorERC1155Contract.functions.safeBatchTransferFrom(
             operatorAddress,
@@ -485,9 +481,7 @@ describe('NiftyswapExchange', () => {
             addLiquidityData,
             { gasLimit: 50000000 }
           )
-          await expect(tx3).to.be.rejectedWith(
-            RevertError('NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS')
-          )
+          await expect(tx3).to.be.rejectedWith(RevertError('NE#29'))
         })
 
         context('When liquidity was added', () => {
@@ -711,7 +705,7 @@ describe('NiftyswapExchange', () => {
               addLiquidityData,
               { gasLimit: 8000000 }
             )
-            await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange#_addLiquidity: MAX_CURRENCY_AMOUNT_EXCEEDED'))
+            await expect(tx).to.be.rejectedWith(RevertError('NE#13'))
           })
 
           it('should update Token ids balances', async () => {
@@ -846,7 +840,7 @@ describe('NiftyswapExchange', () => {
             removeLiquidityData,
             { gasLimit: 8000000 }
           )
-          await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange#_removeLiquidity: NULL_TOTAL_LIQUIDITY'))
+          await expect(tx).to.be.rejectedWith(RevertError('NE#16'))
         })
 
         context('When liquidity was added', () => {
@@ -874,7 +868,7 @@ describe('NiftyswapExchange', () => {
               removeLiquidityData,
               { gasLimit: 8000000 }
             )
-            await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange#_removeLiquidity: INSUFFICIENT_CURRENCY_AMOUNT'))
+            await expect(tx).to.be.rejectedWith(RevertError('NE#17'))
           })
 
           it('should revert if insufficient tokens', async () => {
@@ -890,7 +884,7 @@ describe('NiftyswapExchange', () => {
               removeLiquidityData,
               { gasLimit: 8000000 }
             )
-            await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange#_removeLiquidity: INSUFFICIENT_TOKENS'))
+            await expect(tx).to.be.rejectedWith(RevertError('NE#18'))
           })
 
           it('should fail if any duplicate', async () => {
@@ -902,9 +896,7 @@ describe('NiftyswapExchange', () => {
               removeLiquidityData,
               { gasLimit: 8000000 }
             )
-            await expect(tx1).to.be.rejectedWith(
-              RevertError('NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS')
-            )
+            await expect(tx1).to.be.rejectedWith(RevertError('NE#29'))
 
             const tx2 = operatorExchangeContract.functions.safeBatchTransferFrom(
               operatorAddress,
@@ -914,9 +906,7 @@ describe('NiftyswapExchange', () => {
               removeLiquidityData,
               { gasLimit: 8000000 }
             )
-            await expect(tx2).to.be.rejectedWith(
-              RevertError('NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS')
-            )
+            await expect(tx2).to.be.rejectedWith(RevertError('NE#29'))
 
             const tx3 = operatorExchangeContract.functions.safeBatchTransferFrom(
               operatorAddress,
@@ -926,9 +916,7 @@ describe('NiftyswapExchange', () => {
               removeLiquidityData,
               { gasLimit: 8000000 }
             )
-            await expect(tx3).to.be.rejectedWith(
-              RevertError('NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS')
-            )
+            await expect(tx3).to.be.rejectedWith(RevertError('NE#29'))
           })
 
           it('should REVERT if arrays are not the same length', async () => {
@@ -1403,7 +1391,7 @@ describe('NiftyswapExchange', () => {
             sellTokenData,
             { gasLimit: 8000000 }
           )
-          await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange#_tokenToCurrency: NULL_TOKENS_SOLD'))
+          await expect(tx).to.be.rejectedWith(RevertError('NE#06'))
         })
 
         it('should fail if deadline is passed', async () => {
@@ -1420,7 +1408,7 @@ describe('NiftyswapExchange', () => {
             { gasLimit: 8000000 }
           )
 
-          await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange#_tokenToCurrency: DEADLINE_EXCEEDED'))
+          await expect(tx).to.be.rejectedWith(RevertError('NE#05'))
         })
 
         it('should pass if currency balance is equal to cost', async () => {
@@ -1454,7 +1442,7 @@ describe('NiftyswapExchange', () => {
             sellTokenData,
             { gasLimit: 8000000 }
           )
-          await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange#_tokenToCurrency: INSUFFICIENT_CURRENCY_AMOUNT'))
+          await expect(tx).to.be.rejectedWith(RevertError('NE#07'))
         })
 
         it('should fail if any duplicate', async () => {
@@ -1466,9 +1454,7 @@ describe('NiftyswapExchange', () => {
             sellTokenData,
             { gasLimit: 8000000 }
           )
-          await expect(tx1).to.be.rejectedWith(
-            RevertError('NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS')
-          )
+          await expect(tx1).to.be.rejectedWith(RevertError('NE#29'))
 
           const tx2 = userERC1155Contract.functions.safeBatchTransferFrom(
             userAddress,
@@ -1478,9 +1464,7 @@ describe('NiftyswapExchange', () => {
             sellTokenData,
             { gasLimit: 8000000 }
           )
-          await expect(tx2).to.be.rejectedWith(
-            RevertError('NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS')
-          )
+          await expect(tx2).to.be.rejectedWith(RevertError('NE#29'))
 
           const tx3 = userERC1155Contract.functions.safeBatchTransferFrom(
             userAddress,
@@ -1490,9 +1474,7 @@ describe('NiftyswapExchange', () => {
             sellTokenData,
             { gasLimit: 8000000 }
           )
-          await expect(tx3).to.be.rejectedWith(
-            RevertError('NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS')
-          )
+          await expect(tx3).to.be.rejectedWith(RevertError('NE#29'))
         })
 
         it('should REVERT if arrays are not the same length', async () => {
@@ -1672,7 +1654,7 @@ describe('NiftyswapExchange', () => {
             buyTokenData,
             { gasLimit: 8000000 }
           )
-          await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange#_currencyToToken: NULL_TOKENS_BOUGHT'))
+          await expect(tx).to.be.rejectedWith(RevertError('NE#03'))
         })
 
         it('should fail if deadline is passed', async () => {
@@ -1688,7 +1670,7 @@ describe('NiftyswapExchange', () => {
             { gasLimit: 8000000 }
           )
 
-          await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange#_currencyToToken: DEADLINE_EXCEEDED'))
+          await expect(tx).to.be.rejectedWith(RevertError('NE#02'))
         })
 
         it('should fail if currency sent is lower than cost', async () => {
@@ -1717,9 +1699,7 @@ describe('NiftyswapExchange', () => {
             { gasLimit: 8000000 }
           )
 
-          await expect(tx1).to.be.rejectedWith(
-            RevertError('NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS')
-          )
+          await expect(tx1).to.be.rejectedWith(RevertError('NE#29'))
 
           // Tokens to buy
           const invalid_buyTokenData2 = getBuyTokenData(randomWallet.address, [1, 2, 2], [One, One, One], deadline)
@@ -1731,9 +1711,7 @@ describe('NiftyswapExchange', () => {
             invalid_buyTokenData2,
             { gasLimit: 8000000 }
           )
-          await expect(tx2).to.be.rejectedWith(
-            RevertError('NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS')
-          )
+          await expect(tx2).to.be.rejectedWith(RevertError('NE#29'))
 
           // Tokens to buy
           const invalid_buyTokenData3 = getBuyTokenData(randomWallet.address, [1, 2, 1], [One, One, One], deadline)
@@ -1745,9 +1723,7 @@ describe('NiftyswapExchange', () => {
             invalid_buyTokenData3,
             { gasLimit: 8000000 }
           )
-          await expect(tx3).to.be.rejectedWith(
-            RevertError('NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS')
-          )
+          await expect(tx3).to.be.rejectedWith(RevertError('NE#29'))
         })
 
         it('should REVERT if arrays are not the same length', async () => {

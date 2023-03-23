@@ -217,7 +217,7 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         tokensToAdd[0] = 1;
 
         vm.prank(OPERATOR);
-        vm.expectRevert("NiftyswapExchange#onERC1155BatchReceived: INVALID_TOKEN_TRANSFERRED");
+        vm.expectRevert("NE#23");
         // Using contract A instead of B
         erc1155AMock.safeBatchTransferFrom(
             OPERATOR, excAddr, types, tokensToAdd, encodeAddLiquidity(currencyToAdd, block.timestamp)
@@ -238,7 +238,7 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
 
         // Provide liq for currency / currency
         vm.prank(OPERATOR);
-        vm.expectRevert("NiftyswapExchange#_addLiquidity: CURRENCY_POOL_FORBIDDEN");
+        vm.expectRevert("NE#12");
         erc1155BMock.safeBatchTransferFrom(
             OPERATOR, excAddr, types, tokensToAdd, encodeAddLiquidity(currencyToAdd, block.timestamp)
         );
@@ -253,7 +253,7 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         tokensToAdd[0] = 2;
 
         vm.prank(OPERATOR);
-        vm.expectRevert("NiftyswapExchange#_addLiquidity: DEADLINE_EXCEEDED");
+        vm.expectRevert("NE#09");
         erc1155AMock.safeBatchTransferFrom(
             OPERATOR, exchangeAddr, types, tokensToAdd, encodeAddLiquidity(currencyToAdd, block.timestamp - 1)
         );
@@ -271,7 +271,7 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         tokensToAdd[1] = 2;
 
         vm.prank(OPERATOR);
-        vm.expectRevert("NiftyswapExchange#_addLiquidity: NULL_MAX_CURRENCY");
+        vm.expectRevert("NE#10");
         erc1155AMock.safeBatchTransferFrom(
             OPERATOR, exchangeAddr, types, tokensToAdd, encodeAddLiquidity(currencyToAdd, block.timestamp)
         );
@@ -289,7 +289,7 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         // Implicit: tokensToAdd[1] = 0;
 
         vm.prank(OPERATOR);
-        vm.expectRevert("NiftyswapExchange#_addLiquidity: NULL_TOKENS_AMOUNT");
+        vm.expectRevert("NE#11");
         erc1155AMock.safeBatchTransferFrom(
             OPERATOR, exchangeAddr, types, tokensToAdd, encodeAddLiquidity(currencyToAdd, block.timestamp)
         );
@@ -340,7 +340,7 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         tokensToAdd[1] = 2;
 
         vm.prank(OPERATOR);
-        vm.expectRevert("NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS");
+        vm.expectRevert("NE#29");
         erc1155AMock.safeBatchTransferFrom(
             OPERATOR, exchangeAddr, types, tokensToAdd, encodeAddLiquidity(currencyToAdd, block.timestamp)
         );
@@ -355,7 +355,7 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         tokensToAdd[0] = 2;
 
         vm.prank(OPERATOR);
-        vm.expectRevert("NiftyswapExchange#_addLiquidity: MAX_CURRENCY_AMOUNT_EXCEEDED");
+        vm.expectRevert("NE#13");
         erc1155AMock.safeBatchTransferFrom(
             OPERATOR, exchangeAddr, types, tokensToAdd, encodeAddLiquidity(currencyToAdd, block.timestamp)
         );
@@ -390,7 +390,7 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         tokens[0] = 1;
 
         vm.prank(OPERATOR);
-        vm.expectRevert("NiftyswapExchange#_removeLiquidity: NULL_TOTAL_LIQUIDITY");
+        vm.expectRevert("NE#16");
         exchange.safeBatchTransferFrom(
             OPERATOR, exchangeAddr, types, liquidity, encodeRemoveLiquidity(currencies, tokens, block.timestamp + 1)
         );
@@ -426,7 +426,7 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         tokens[0] = 75;
 
         vm.prank(OPERATOR);
-        vm.expectRevert("NiftyswapExchange#_removeLiquidity: INSUFFICIENT_CURRENCY_AMOUNT");
+        vm.expectRevert("NE#17");
         exchange.safeBatchTransferFrom(
             OPERATOR, exchangeAddr, types, tokens, encodeRemoveLiquidity(currencies, tokens, block.timestamp + 1)
         );
@@ -441,7 +441,7 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         tokens[0] = 3000; // Too much
 
         vm.prank(OPERATOR);
-        vm.expectRevert("NiftyswapExchange#_removeLiquidity: INSUFFICIENT_TOKENS");
+        vm.expectRevert("NE#18");
         exchange.safeBatchTransferFrom(
             OPERATOR, exchangeAddr, types, tokens, encodeRemoveLiquidity(currencies, tokens, block.timestamp + 1)
         );
@@ -459,7 +459,7 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         tokens[0] = 10;
 
         vm.prank(OPERATOR);
-        vm.expectRevert("NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS");
+        vm.expectRevert("NE#29");
         exchange.safeBatchTransferFrom(
             OPERATOR, exchangeAddr, types, tokens, encodeRemoveLiquidity(currencies, tokens, block.timestamp + 1)
         );
@@ -538,7 +538,7 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         uint256[] memory prices = exchange.getPrice_tokenToCurrency(types, sellAmounts);
 
         vm.prank(USER);
-        vm.expectRevert("NiftyswapExchange#_tokenToCurrency: NULL_TOKENS_SOLD");
+        vm.expectRevert("NE#06");
         erc1155AMock.safeBatchTransferFrom(
             USER, exchangeAddr, types, sellAmounts, encodeSellTokens(USER, prices[0], block.timestamp)
         );
@@ -568,7 +568,7 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         uint256[] memory prices = exchange.getPrice_tokenToCurrency(types, sellAmounts);
 
         vm.prank(USER);
-        vm.expectRevert("NiftyswapExchange#_tokenToCurrency: DEADLINE_EXCEEDED");
+        vm.expectRevert("NE#05");
         erc1155AMock.safeBatchTransferFrom(
             USER, exchangeAddr, types, sellAmounts, encodeSellTokens(USER, prices[0], block.timestamp - 1)
         );
@@ -583,7 +583,7 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         prices[0] += 1; // Too high
 
         vm.prank(USER);
-        vm.expectRevert("NiftyswapExchange#_tokenToCurrency: INSUFFICIENT_CURRENCY_AMOUNT");
+        vm.expectRevert("NE#07");
         erc1155AMock.safeBatchTransferFrom(
             USER, exchangeAddr, types, sellAmounts, encodeSellTokens(USER, prices[0], block.timestamp)
         );
@@ -599,7 +599,7 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         uint256[] memory prices = exchange.getPrice_tokenToCurrency(types, sellAmounts);
 
         vm.prank(USER);
-        vm.expectRevert("NiftyswapExchange#_tokenToCurrency: DEADLINE_EXCEEDED");
+        vm.expectRevert("NE#05");
         erc1155AMock.safeBatchTransferFrom(
             USER, exchangeAddr, types, sellAmounts, encodeSellTokens(USER, prices[0], block.timestamp - 1)
         );
@@ -667,7 +667,7 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         uint256[] memory prices = exchange.getPrice_currencyToToken(types, tokens);
 
         vm.prank(USER);
-        vm.expectRevert("NiftyswapExchange#_currencyToToken: NULL_TOKENS_BOUGHT");
+        vm.expectRevert("NE#03");
         erc1155BMock.safeTransferFrom(
             USER, exchangeAddr, CURRENCY_ID, prices[0], encodeBuyTokens(USER, types, tokens, block.timestamp)
         );
@@ -698,7 +698,7 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         uint256[] memory prices = exchange.getPrice_currencyToToken(types, tokens);
 
         vm.prank(USER);
-        vm.expectRevert("NiftyswapExchange#_currencyToToken: DEADLINE_EXCEEDED");
+        vm.expectRevert("NE#02");
         erc1155BMock.safeTransferFrom(
             USER, exchangeAddr, CURRENCY_ID, prices[0], encodeBuyTokens(USER, types, tokens, block.timestamp - 1)
         );
@@ -729,7 +729,7 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         uint256[] memory prices = exchange.getPrice_currencyToToken(types, tokens);
 
         vm.prank(USER);
-        vm.expectRevert("NiftyswapExchange#_getTokenReserves: UNSORTED_OR_DUPLICATE_TOKEN_IDS");
+        vm.expectRevert("NE#29");
         erc1155BMock.safeTransferFrom(
             USER, exchangeAddr, CURRENCY_ID, prices[0], encodeBuyTokens(USER, types, tokens, block.timestamp)
         );
