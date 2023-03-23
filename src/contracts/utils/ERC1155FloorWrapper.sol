@@ -8,6 +8,7 @@ import {ERC1155} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155.sol
 import {ERC1155MintBurn} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
 import {IERC1155FloorWrapper} from "../interfaces/IERC1155FloorWrapper.sol";
 import {AddressConverter} from "./AddressConverter.sol";
+import {ERC1155MetadataPrefix} from "./ERC1155MetadataPrefix.sol";
 
 // Errors
 error UnsupportedMethod();
@@ -19,12 +20,15 @@ error InvalidERC1155Received();
  */
 contract ERC1155FloorWrapper is
     IERC1155FloorWrapper,
-    ERC1155,
     ERC1155MintBurn,
+    ERC1155MetadataPrefix,
     IERC1155TokenReceiver,
     AddressConverter
 {
     bool private isDepositing;
+
+    // solhint-disable-next-line no-empty-blocks
+    constructor(string memory _prefix, address _admin) ERC1155MetadataPrefix(_prefix, false, _admin) {}
 
     modifier onlyDepositing() {
         if (!isDepositing) {

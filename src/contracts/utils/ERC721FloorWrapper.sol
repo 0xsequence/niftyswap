@@ -8,6 +8,7 @@ import {ERC1155MintBurn} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC
 import {IERC721} from "../interfaces/IERC721.sol";
 import {IERC721FloorWrapper} from "../interfaces/IERC721FloorWrapper.sol";
 import {AddressConverter} from "./AddressConverter.sol";
+import {ERC1155MetadataPrefix} from "./ERC1155MetadataPrefix.sol";
 
 // Errors
 error UnsupportedMethod();
@@ -17,7 +18,10 @@ error UnsupportedMethod();
  *   of corresponding ERC-1155 tokens with native metaTransaction methods.
  *   Each ERC-721 within a collection is treated as if fungible.
  */
-contract ERC721FloorWrapper is IERC721FloorWrapper, ERC1155, ERC1155MintBurn, AddressConverter {
+contract ERC721FloorWrapper is IERC721FloorWrapper, ERC1155MetadataPrefix, ERC1155MintBurn, AddressConverter {
+    // solhint-disable-next-line no-empty-blocks
+    constructor(string memory _prefix, address _admin) ERC1155MetadataPrefix(_prefix, false, _admin) {}
+
     /**
      * Prevent invalid method calls.
      */

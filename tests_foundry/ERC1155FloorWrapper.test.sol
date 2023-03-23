@@ -21,7 +21,7 @@ contract ERC1155FloorWrapperTest is TestHelperBase {
     uint256 private erc1155Uint256; // The Uint256 value of erc1155Addr
 
     function setUp() external {
-        wrapper = new ERC1155FloorWrapper();
+        wrapper = new ERC1155FloorWrapper("", address(this));
         wrapperAddr = address(wrapper);
         erc1155 = new ERC1155Mock();
         erc1155Addr = address(erc1155);
