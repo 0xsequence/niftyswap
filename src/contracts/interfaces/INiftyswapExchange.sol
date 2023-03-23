@@ -2,12 +2,6 @@
 pragma solidity ^0.8.0;
 
 interface INiftyswapExchange {
-    /**
-     * |
-     * |               Events              |
-     * |__________________________________
-     */
-
     event TokensPurchase(
         address indexed buyer,
         address indexed recipient,
@@ -64,11 +58,9 @@ interface INiftyswapExchange {
         uint256 deadline; // Timestamp after which the tx isn't valid anymore
     }
 
-    /**
-     * |
-     * |        OnReceive Functions        |
-     * |__________________________________
-     */
+    //
+    // OnReceive Functions
+    //
 
     /**
      * @notice Handle which method is being called on Token transfer
@@ -103,15 +95,11 @@ interface INiftyswapExchange {
         uint256[] calldata _ids,
         uint256[] calldata _amounts,
         bytes calldata _data
-    )
-        external
-        returns (bytes4);
+    ) external returns (bytes4);
 
-    /**
-     * |
-     * |         Getter Functions          |
-     * |__________________________________
-     */
+    //
+    // Getter Functions
+    //
 
     /**
      * @dev Pricing function used for converting between currency token to Tokens.

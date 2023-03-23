@@ -59,7 +59,7 @@ contract ERC1155RoyaltyMock is ERC1155MintBurnMock {
      * @param _interfaceID  The interface identifier, as specified in ERC-165
      * @return `true` if the contract implements `_interfaceID` and
      */
-    function supportsInterface(bytes4 _interfaceID) public pure virtual override (ERC1155MintBurnMock) returns (bool) {
+    function supportsInterface(bytes4 _interfaceID) public pure virtual override(ERC1155MintBurnMock) returns (bool) {
         // Should be 0x2a55205a
         if (_interfaceID == _INTERFACE_ID_ERC2981) {
             return true;

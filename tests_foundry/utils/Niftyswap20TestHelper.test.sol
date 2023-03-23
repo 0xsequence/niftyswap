@@ -23,7 +23,8 @@ abstract contract Niftyswap20TestHelper is TestHelperBase {
         pure
         returns (bytes memory data)
     {
-        return abi.encode(REMOVELIQUIDITY20_SIG, INiftyswapExchange20.RemoveLiquidityObj(minCurrency, minToken, deadline));
+        return
+            abi.encode(REMOVELIQUIDITY20_SIG, INiftyswapExchange20.RemoveLiquidityObj(minCurrency, minToken, deadline));
     }
 
     function encodeSellTokens(
@@ -32,11 +33,7 @@ abstract contract Niftyswap20TestHelper is TestHelperBase {
         address[] memory extraFeeRecipients,
         uint256[] memory extraFeeAmounts,
         uint256 deadline
-    )
-        internal
-        pure
-        returns (bytes memory data)
-    {
+    ) internal pure returns (bytes memory data) {
         return abi.encode(
             SELLTOKENS20_SIG,
             INiftyswapExchange20.SellTokensObj(recipient, minCurrency, extraFeeRecipients, extraFeeAmounts, deadline)

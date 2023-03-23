@@ -30,7 +30,5 @@ interface IWrapAndNiftyswap {
         uint256[] calldata _ids,
         uint256[] calldata _amounts,
         bytes calldata _data
-    )
-        external
-        returns (bytes4);
+    ) external returns (bytes4);
 }

@@ -29,7 +29,8 @@ contract WrapAndNiftyswap {
      */
     constructor(address payable _tokenWrapper, address _exchange, address _erc20, address _erc1155) public {
         require(
-            _tokenWrapper != address(0x0) && _exchange != address(0x0) && _erc20 != address(0x0) && _erc1155 != address(0x0),
+            _tokenWrapper != address(0x0) && _exchange != address(0x0) && _erc20 != address(0x0)
+                && _erc1155 != address(0x0),
             "INVALID CONSTRUCTOR ARGUMENT"
         );
 
@@ -111,10 +112,7 @@ contract WrapAndNiftyswap {
         uint256[] calldata _ids,
         uint256[] calldata _amounts,
         bytes calldata _niftyswapOrder
-    )
-        external
-        returns (bytes4)
-    {
+    ) external returns (bytes4) {
         // If coming from niftyswap or wrapped token, ignore
         if (isInNiftyswap || msg.sender == address(tokenWrapper)) {
             return IERC1155TokenReceiver.onERC1155BatchReceived.selector;

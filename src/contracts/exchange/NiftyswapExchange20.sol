@@ -36,12 +36,6 @@ contract NiftyswapExchange20 is
     IERC1155Metadata,
     DelegatedOwnable
 {
-    /**
-     * |
-     * |       Variables & Constants       |
-     * |__________________________________
-     */
-
     // Variables
     IERC1155 internal immutable token; // address of the ERC-1155 token contract
     address internal immutable currency; // address of the ERC-20 currency used for exchange
@@ -61,11 +55,9 @@ contract NiftyswapExchange20 is
     uint256 internal constant ROYALTIES_DENOMINATOR = 10000;
     uint256 internal constant MAX_ROYALTY = ROYALTIES_DENOMINATOR / 4;
 
-    /**
-     * |
-     * |            Constructor           |
-     * |__________________________________
-     */
+    //
+    // Constructor
+    //
 
     /**
      * @notice Create instance of exchange contract with respective token and currency token
@@ -98,11 +90,9 @@ contract NiftyswapExchange20 is
         } catch {} // solhint-disable-line no-empty-blocks
     }
 
-    /**
-     * |
-     * |        Metadata Functions         |
-     * |__________________________________
-     */
+    //
+    // Metadata Functions
+    //
 
     /**
      * @notice A distinct Uniform Resource Identifier (URI) for a given token.
@@ -114,11 +104,9 @@ contract NiftyswapExchange20 is
         return IDelegatedERC1155Metadata(factory).metadataProvider().uri(_id);
     }
 
-    /**
-     * |
-     * |        Exchange Functions         |
-     * |__________________________________
-     */
+    //
+    // Exchange Functions
+    //
 
     /**
      * @notice Convert currency tokens to Tokens _id and transfers Tokens to recipient.
@@ -129,11 +117,7 @@ contract NiftyswapExchange20 is
         uint256 _maxCurrency,
         uint256 _deadline,
         address _recipient
-    )
-        internal
-        nonReentrant
-        returns (uint256[] memory currencySold)
-    {
+    ) internal nonReentrant returns (uint256[] memory currencySold) {
         // Input validation
         // solhint-disable-next-line not-rely-on-time
         require(_deadline >= block.timestamp, "NE20#3"); // NiftyswapExchange20#_currencyToToken: DEADLINE_EXCEEDED
@@ -233,12 +217,7 @@ contract NiftyswapExchange20 is
         uint256 _assetBoughtAmount,
         uint256 _assetSoldReserve,
         uint256 _assetBoughtReserve
-    )
-        public
-        view
-        override
-        returns (uint256 price)
-    {
+    ) public view override returns (uint256 price) {
         uint256 cost = getBuyPrice(_assetBoughtAmount, _assetSoldReserve, _assetBoughtReserve);
         (, uint256 royaltyAmount) = getRoyaltyInfo(_tokenId, cost);
         return cost + royaltyAmount;
@@ -266,11 +245,7 @@ contract NiftyswapExchange20 is
         address _recipient,
         address[] memory _extraFeeRecipients,
         uint256[] memory _extraFeeAmounts
-    )
-        internal
-        nonReentrant
-        returns (uint256[] memory currencyBought)
-    {
+    ) internal nonReentrant returns (uint256[] memory currencyBought) {
         // Number of Token IDs to deposit
         uint256 nTokens = _tokenIds.length;
 
@@ -375,22 +350,15 @@ contract NiftyswapExchange20 is
         uint256 _assetSoldAmount,
         uint256 _assetSoldReserve,
         uint256 _assetBoughtReserve
-    )
-        public
-        view
-        override
-        returns (uint256 price)
-    {
+    ) public view override returns (uint256 price) {
         uint256 sellAmount = getSellPrice(_assetSoldAmount, _assetSoldReserve, _assetBoughtReserve);
         (, uint256 royaltyAmount) = getRoyaltyInfo(_tokenId, sellAmount);
         return sellAmount - royaltyAmount;
     }
 
-    /**
-     * |
-     * |        Liquidity Functions        |
-     * |__________________________________
-     */
+    //
+    // Liquidity Functions
+    //
 
     /**
      * @notice Deposit less than max currency tokens && exact Tokens (token ID) at current ratio to mint liquidity pool tokens.
@@ -410,10 +378,7 @@ contract NiftyswapExchange20 is
         uint256[] memory _tokenAmounts,
         uint256[] memory _maxCurrency,
         uint256 _deadline
-    )
-        internal
-        nonReentrant
-    {
+    ) internal nonReentrant {
         // Requirements
         // solhint-disable-next-line not-rely-on-time
         require(_deadline >= block.timestamp, "NE20#10"); // NiftyswapExchange20#_addLiquidity: DEADLINE_EXCEEDED
@@ -592,10 +557,7 @@ contract NiftyswapExchange20 is
         uint256[] memory _minCurrency,
         uint256[] memory _minTokens,
         uint256 _deadline
-    )
-        internal
-        nonReentrant
-    {
+    ) internal nonReentrant {
         // Input validation
         // solhint-disable-next-line not-rely-on-time
         require(_deadline > block.timestamp, "NE20#15"); // NiftyswapExchange20#_removeLiquidity: DEADLINE_EXCEEDED
@@ -686,11 +648,9 @@ contract NiftyswapExchange20 is
         emit LiquidityRemoved(_provider, _tokenIds, tokenAmounts, eventObjs);
     }
 
-    /**
-     * |
-     * |     Receiver Methods Handler      |
-     * |__________________________________
-     */
+    //
+    // Receive Method Handlers
+    //
 
     // Method signatures for onReceive control logic
 
@@ -714,11 +674,9 @@ contract NiftyswapExchange20 is
     // ));
     bytes4 internal constant DEPOSIT_SIG = 0xc8c323f9;
 
-    /**
-     * |
-     * |           Buying Tokens           |
-     * |__________________________________
-     */
+    //
+    // Buying Tokens
+    //
 
     /**
      * @notice Convert currency tokens to Tokens _id and transfers Tokens to recipient.
@@ -743,11 +701,7 @@ contract NiftyswapExchange20 is
         address _recipient,
         address[] memory _extraFeeRecipients,
         uint256[] memory _extraFeeAmounts
-    )
-        external
-        override
-        returns (uint256[] memory)
-    {
+    ) external override returns (uint256[] memory) {
         // solhint-disable-next-line not-rely-on-time
         require(_deadline >= block.timestamp, "NE20#19"); // NiftyswapExchange20#buyTokens: DEADLINE_EXCEEDED
         require(_tokenIds.length > 0, "NE20#20"); // NiftyswapExchange20#buyTokens: INVALID_CURRENCY_IDS_AMOUNT
@@ -774,7 +728,7 @@ contract NiftyswapExchange20 is
             _currencyToToken(_tokenIds, _tokensBoughtAmounts, maxCurrency, _deadline, recipient);
         emit TokensPurchase(
             msg.sender, recipient, _tokenIds, _tokensBoughtAmounts, currencySold, _extraFeeRecipients, _extraFeeAmounts
-            );
+        );
 
         return currencySold;
     }
@@ -796,11 +750,7 @@ contract NiftyswapExchange20 is
         uint256[] memory _ids,
         uint256[] memory _amounts,
         bytes memory _data
-    )
-        public
-        override
-        returns (bytes4)
-    {
+    ) public override returns (bytes4) {
         // This function assumes that the ERC-1155 token contract can
         // only call `onERC1155BatchReceived()` via a valid token transfer.
         // Users must be responsible and only use this Niftyswap exchange
@@ -809,12 +759,9 @@ contract NiftyswapExchange20 is
         // Obtain method to call via object signature
         bytes4 functionSignature = abi.decode(_data, (bytes4));
 
-        /**
-         * |
-         * |           Selling Tokens          |
-         * |__________________________________
-         */
-
+        //
+        // Selling Tokens
+        //
         if (functionSignature == SELLTOKENS_SIG) {
             // Tokens received need to be Token contract
             require(msg.sender == address(token), "NE20#22"); // NiftyswapExchange20#onERC1155BatchReceived: INVALID_TOKENS_TRANSFERRED
@@ -833,13 +780,11 @@ contract NiftyswapExchange20 is
             );
             emit CurrencyPurchase(
                 _from, recipient, _ids, _amounts, currencyBought, obj.extraFeeRecipients, obj.extraFeeAmounts
-                );
+            );
 
-            /**
-             * |
-             * |      Adding Liquidity Tokens      |
-             * |__________________________________
-             */
+            //
+            // Adding Liquidity Tokens
+            //
         } else if (functionSignature == ADDLIQUIDITY_SIG) {
             // Only allow to receive ERC-1155 tokens from `token` contract
             require(msg.sender == address(token), "NE20#24"); // NiftyswapExchange20#onERC1155BatchReceived: INVALID_TOKEN_TRANSFERRED
@@ -849,11 +794,9 @@ contract NiftyswapExchange20 is
             (, obj) = abi.decode(_data, (bytes4, AddLiquidityObj));
             _addLiquidity(_from, _ids, _amounts, obj.maxCurrency, obj.deadline);
 
-            /**
-             * |
-             * |      Removing iquidity Tokens     |
-             * |__________________________________
-             */
+            //
+            // Removing Liquidity Tokens
+            //
         } else if (functionSignature == REMOVELIQUIDITY_SIG) {
             // Tokens received need to be NIFTY-1155 tokens
             require(msg.sender == address(this), "NE20#25"); // NiftyswapExchange20#onERC1155BatchReceived: INVALID_NIFTY_TOKENS_TRANSFERRED
@@ -863,11 +806,9 @@ contract NiftyswapExchange20 is
             (, obj) = abi.decode(_data, (bytes4, RemoveLiquidityObj));
             _removeLiquidity(_from, _ids, _amounts, obj.minCurrency, obj.minTokens, obj.deadline);
 
-            /**
-             * |
-             * |      Deposits & Invalid Calls     |
-             * |__________________________________
-             */
+            //
+            // Deposits & Invalid Calls
+            //
         } else if (functionSignature == DEPOSIT_SIG) {
             // Do nothing for when contract is self depositing
             // This could be use to deposit currency "by accident", which would be locked
@@ -908,11 +849,9 @@ contract NiftyswapExchange20 is
         revert("NE20#29"); // NiftyswapExchange20:UNSUPPORTED_METHOD
     }
 
-    /**
-     * |
-     * |         Royalty Functions         |
-     * |__________________________________
-     */
+    //
+    // Royalty Functions
+    //
 
     /**
      * @notice Will set the royalties fees and recipient for contracts that don't support ERC-2981
@@ -966,11 +905,9 @@ contract NiftyswapExchange20 is
         }
     }
 
-    /**
-     * |
-     * |         Getter Functions          |
-     * |__________________________________
-     */
+    //
+    // Getter Functions
+    //
 
     /**
      * @notice Get amount of currency in reserve for each Token _id in _ids
@@ -1110,11 +1047,9 @@ contract NiftyswapExchange20 is
         return royaltiesNumerator[_royaltyRecipient];
     }
 
-    /**
-     * |
-     * |         Utility Functions         |
-     * |__________________________________
-     */
+    //
+    // Utility Functions
+    //
 
     /**
      * @notice Divides two numbers and add 1 if there is a rounding error

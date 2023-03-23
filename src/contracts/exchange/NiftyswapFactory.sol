@@ -5,20 +5,16 @@ import {NiftyswapExchange} from "./NiftyswapExchange.sol";
 import {INiftyswapFactory} from "../interfaces/INiftyswapFactory.sol";
 
 contract NiftyswapFactory is INiftyswapFactory {
-    /**
-     * |
-     * |       Events And Variables        |
-     * |__________________________________
-     */
+    //
+    // Events and Variables
+    //
 
     // tokensToExchange[erc1155_token_address][currency_address][currency_token_id]
     mapping(address => mapping(address => mapping(uint256 => address))) public override tokensToExchange;
 
-    /**
-     * |
-     * |             Functions             |
-     * |__________________________________
-     */
+    //
+    // Functions
+    //
 
     /**
      * @notice Creates a NiftySwap Exchange for given token contract

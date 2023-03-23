@@ -2,12 +2,6 @@
 pragma solidity ^0.8.0;
 
 interface INiftyswapExchange20 {
-    /**
-     * |
-     * |               Events              |
-     * |__________________________________
-     */
-
     event TokensPurchase(
         address indexed buyer,
         address indexed recipient,
@@ -64,11 +58,9 @@ interface INiftyswapExchange20 {
         uint256 deadline; // Timestamp after which the tx isn't valid anymore
     }
 
-    /**
-     * |
-     * |        Purchasing Functions       |
-     * |__________________________________
-     */
+    //
+    // Purchasing Functions
+    //
 
     /**
      * @notice Convert currency tokens to Tokens _id and transfers Tokens to recipient.
@@ -93,15 +85,11 @@ interface INiftyswapExchange20 {
         address _recipient,
         address[] memory _extraFeeRecipients,
         uint256[] memory _extraFeeAmounts
-    )
-        external
-        returns (uint256[] memory);
+    ) external returns (uint256[] memory);
 
-    /**
-     * |
-     * |         Royalties Functions       |
-     * |__________________________________
-     */
+    //
+    // Royalties Functions
+    //
 
     /**
      * @notice Will send the royalties that _royaltyRecipient can claim, if any
@@ -111,11 +99,9 @@ interface INiftyswapExchange20 {
      */
     function sendRoyalties(address _royaltyRecipient) external;
 
-    /**
-     * |
-     * |        OnReceive Functions        |
-     * |__________________________________
-     */
+    //
+    // OnReceive Functions
+    //
 
     /**
      * @notice Handle which method is being called on Token transfer
@@ -150,15 +136,11 @@ interface INiftyswapExchange20 {
         uint256[] calldata _ids,
         uint256[] calldata _amounts,
         bytes calldata _data
-    )
-        external
-        returns (bytes4);
+    ) external returns (bytes4);
 
-    /**
-     * |
-     * |         Getter Functions          |
-     * |__________________________________
-     */
+    //
+    // Getter Functions
+    //
 
     /**
      * @dev Pricing function used for converting between currency token to Tokens.
@@ -185,10 +167,7 @@ interface INiftyswapExchange20 {
         uint256 _assetBoughtAmount,
         uint256 _assetSoldReserve,
         uint256 _assetBoughtReserve
-    )
-        external
-        view
-        returns (uint256 price);
+    ) external view returns (uint256 price);
 
     /**
      * @dev Pricing function used for converting Tokens to currency token.
@@ -215,10 +194,7 @@ interface INiftyswapExchange20 {
         uint256 _assetSoldAmount,
         uint256 _assetSoldReserve,
         uint256 _assetBoughtReserve
-    )
-        external
-        view
-        returns (uint256 price);
+    ) external view returns (uint256 price);
 
     /**
      * @notice Get amount of currency in reserve for each Token _id in _ids

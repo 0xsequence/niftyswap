@@ -24,12 +24,6 @@ import {ERC1155MintBurn} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC
  * some collaboration between liquidity providers.
  */
 contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchange {
-    /**
-     * |
-     * |       Variables & Constants       |
-     * |__________________________________
-     */
-
     // Variables
     IERC1155 internal token; // address of the ERC-1155 token contract
     IERC1155 internal currency; // address of the ERC-1155 currency used for exchange
@@ -42,11 +36,9 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
     mapping(uint256 => uint256) internal totalSupplies; // Liquidity pool token supply per Token id
     mapping(uint256 => uint256) internal currencyReserves; // currency Token reserve per Token id
 
-    /**
-     * |
-     * |            Constructor           |
-     * |_________________________________
-     */
+    //
+    // Constructor
+    //
 
     /**
      * @notice Create instance of exchange contract with respective token and currency token
@@ -69,11 +61,9 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
         currencyPoolBanned = _currencyAddr == _tokenAddr ? true : false;
     }
 
-    /**
-     * |
-     * |        Exchange Functions         |
-     * |__________________________________
-     */
+    //
+    // Exchange Functions
+    //
 
     /**
      * @notice Convert currency tokens to Tokens _id and transfers Tokens to recipient.
@@ -94,11 +84,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
         uint256 _maxCurrency,
         uint256 _deadline,
         address _recipient
-    )
-        internal
-        nonReentrant
-        returns (uint256[] memory currencySold)
-    {
+    ) internal nonReentrant returns (uint256[] memory currencySold) {
         // Input validation
         // solhint-disable-next-line not-rely-on-time
         require(_deadline >= block.timestamp, "NiftyswapExchange#_currencyToToken: DEADLINE_EXCEEDED");
@@ -196,11 +182,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
         uint256 _minCurrency,
         uint256 _deadline,
         address _recipient
-    )
-        internal
-        nonReentrant
-        returns (uint256[] memory currencyBought)
-    {
+    ) internal nonReentrant returns (uint256[] memory currencyBought) {
         // Number of Token IDs to deposit
         uint256 nTokens = _tokenIds.length;
 
@@ -279,11 +261,9 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
         return numerator / denominator; //Rounding errors will favor Niftyswap, so nothing to do
     }
 
-    /**
-     * |
-     * |        Liquidity Functions        |
-     * |__________________________________
-     */
+    //
+    // Liquidity Functions
+    //
 
     /**
      * @notice Deposit less than max currency tokens && exact Tokens (token ID) at current ratio to mint liquidity pool tokens.
@@ -303,10 +283,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
         uint256[] memory _tokenAmounts,
         uint256[] memory _maxCurrency,
         uint256 _deadline
-    )
-        internal
-        nonReentrant
-    {
+    ) internal nonReentrant {
         // Requirements
         // solhint-disable-next-line not-rely-on-time
         require(_deadline >= block.timestamp, "NiftyswapExchange#_addLiquidity: DEADLINE_EXCEEDED");
@@ -482,10 +459,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
         uint256[] memory _minCurrency,
         uint256[] memory _minTokens,
         uint256 _deadline
-    )
-        internal
-        nonReentrant
-    {
+    ) internal nonReentrant {
         // Input validation
         // solhint-disable-next-line not-rely-on-time
         require(_deadline > block.timestamp, "NiftyswapExchange#_removeLiquidity: DEADLINE_EXCEEDED");
@@ -568,11 +542,9 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
         emit LiquidityRemoved(_provider, _tokenIds, tokenAmounts, eventObjs);
     }
 
-    /**
-     * |
-     * |     Receiver Methods Handler      |
-     * |__________________________________
-     */
+    //
+    // Receiver Method Handlers
+    //
 
     // Method signatures for onReceive control logic
 
@@ -618,11 +590,7 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
         uint256[] memory _ids,
         uint256[] memory _amounts,
         bytes memory _data
-    )
-        public
-        override
-        returns (bytes4)
-    {
+    ) public override returns (bytes4) {
         // This function assumes that the ERC-1155 token contract can
         // only call `onERC1155BatchReceived()` via a valid token transfer.
         // Users must be responsible and only use this Niftyswap exchange
@@ -631,16 +599,14 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
         // Obtain method to call via object signature
         bytes4 functionSignature = abi.decode(_data, (bytes4));
 
-        /**
-         * |
-         * |           Buying Tokens           |
-         * |__________________________________
-         */
-
+        //
+        // Buying Tokens
+        //
         if (functionSignature == BUYTOKENS_SIG) {
             // Tokens received need to be currency contract
             require(
-                msg.sender == address(currency), "NiftyswapExchange#onERC1155BatchReceived: INVALID_CURRENCY_TRANSFERRED"
+                msg.sender == address(currency),
+                "NiftyswapExchange#onERC1155BatchReceived: INVALID_CURRENCY_TRANSFERRED"
             );
             require(_ids.length == 1, "NiftyswapExchange#onERC1155BatchReceived: INVALID_CURRENCY_IDS_AMOUNT");
             require(_ids[0] == currencyID, "NiftyswapExchange#onERC1155BatchReceived: INVALID_CURRENCY_ID");
@@ -655,11 +621,9 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
                 _currencyToToken(obj.tokensBoughtIDs, obj.tokensBoughtAmounts, _amounts[0], obj.deadline, recipient);
             emit TokensPurchase(_from, recipient, obj.tokensBoughtIDs, obj.tokensBoughtAmounts, currencySold);
 
-            /**
-             * |
-             * |           Selling Tokens          |
-             * |__________________________________
-             */
+            //
+            // Selling Tokens
+            //
         } else if (functionSignature == SELLTOKENS_SIG) {
             // Tokens received need to be Token contract
             require(
@@ -675,11 +639,9 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
             uint256[] memory currencyBought = _tokenToCurrency(_ids, _amounts, obj.minCurrency, obj.deadline, recipient);
             emit CurrencyPurchase(_from, recipient, _ids, _amounts, currencyBought);
 
-            /**
-             * |
-             * |      Adding Liquidity Tokens      |
-             * |__________________________________
-             */
+            //
+            // Adding Liquidity Tokens
+            //
         } else if (functionSignature == ADDLIQUIDITY_SIG) {
             // Only allow to receive ERC-1155 tokens from `token` contract
             require(msg.sender == address(token), "NiftyswapExchange#onERC1155BatchReceived: INVALID_TOKEN_TRANSFERRED");
@@ -689,15 +651,14 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
             (, obj) = abi.decode(_data, (bytes4, AddLiquidityObj));
             _addLiquidity(_from, _ids, _amounts, obj.maxCurrency, obj.deadline);
 
-            /**
-             * |
-             * |      Removing iquidity Tokens     |
-             * |__________________________________
-             */
+            //
+            // Removing Liquidity Tokens
+            //
         } else if (functionSignature == REMOVELIQUIDITY_SIG) {
             // Tokens received need to be NIFTY-1155 tokens
             require(
-                msg.sender == address(this), "NiftyswapExchange#onERC1155BatchReceived: INVALID_NIFTY_TOKENS_TRANSFERRED"
+                msg.sender == address(this),
+                "NiftyswapExchange#onERC1155BatchReceived: INVALID_NIFTY_TOKENS_TRANSFERRED"
             );
 
             // Decode RemoveLiquidityObj from _data to call _removeLiquidity()
@@ -705,11 +666,9 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
             (, obj) = abi.decode(_data, (bytes4, RemoveLiquidityObj));
             _removeLiquidity(_from, _ids, _amounts, obj.minCurrency, obj.minTokens, obj.deadline);
 
-            /**
-             * |
-             * |      Deposits & Invalid Calls     |
-             * |__________________________________
-             */
+            //
+            // Deposits & Invalid Calls
+            //
         } else if (functionSignature == DEPOSIT_SIG) {
             // Do nothing for when contract is self depositing
             // This could be use to deposit currency "by accident", which would be locked
@@ -753,11 +712,9 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
         revert("NiftyswapExchange:UNSUPPORTED_METHOD");
     }
 
-    /**
-     * |
-     * |         Getter Functions          |
-     * |__________________________________
-     */
+    //
+    // Getter Functions
+    //
 
     /**
      * @notice Get amount of currency in reserve for each Token _id in _ids
@@ -864,11 +821,9 @@ contract NiftyswapExchange is ReentrancyGuard, ERC1155MintBurn, INiftyswapExchan
         return factory;
     }
 
-    /**
-     * |
-     * |         Utility Functions         |
-     * |__________________________________
-     */
+    //
+    // Utility Functions
+    //
 
     /**
      * @notice Divides two numbers and add 1 if there is a rounding error

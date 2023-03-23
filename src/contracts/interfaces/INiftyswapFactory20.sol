@@ -2,23 +2,15 @@
 pragma solidity ^0.8.0;
 
 interface INiftyswapFactory20 {
-    /**
-     * |
-     * |               Events              |
-     * |__________________________________
-     */
-
     event NewExchange(
         address indexed token, address indexed currency, uint256 indexed salt, uint256 lpFee, address exchange
     );
 
     event MetadataContractChanged(address indexed metadataContract);
 
-    /**
-     * |
-     * |         Public  Functions         |
-     * |__________________________________
-     */
+    //
+    // Functions
+    //
 
     /**
      * @notice Creates a NiftySwap Exchange for given token contract

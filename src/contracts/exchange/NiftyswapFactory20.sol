@@ -7,12 +7,6 @@ import {INiftyswapFactory20} from "../interfaces/INiftyswapFactory20.sol";
 import {IDelegatedERC1155Metadata, IERC1155Metadata} from "../interfaces/IDelegatedERC1155Metadata.sol";
 
 contract NiftyswapFactory20 is INiftyswapFactory20, Ownable, IDelegatedERC1155Metadata {
-    /**
-     * |
-     * |       Events And Variables        |
-     * |__________________________________
-     */
-
     // tokensToExchange[erc1155_token_address][currency_address][lp_fee][instance]
     mapping(address => mapping(address => mapping(uint256 => mapping(uint256 => address)))) public override
         tokensToExchange;
@@ -27,11 +21,10 @@ contract NiftyswapFactory20 is INiftyswapFactory20, Ownable, IDelegatedERC1155Me
      */
     constructor(address _admin) Ownable(_admin) {} // solhint-disable-line no-empty-blocks
 
-    /**
-     * |
-     * |             Functions             |
-     * |__________________________________
-     */
+    //
+    // Functions
+    //
+
     /**
      * @notice Creates a NiftySwap Exchange for given token contract
      * @param _token    The address of the ERC-1155 token contract
@@ -64,11 +57,9 @@ contract NiftyswapFactory20 is INiftyswapFactory20, Ownable, IDelegatedERC1155Me
         return pairExchanges[_token][_currency];
     }
 
-    /**
-     * |
-     * |        Metadata Functions         |
-     * |__________________________________
-     */
+    //
+    // Metadata Functions
+    //
 
     /**
      * @notice Changes the implementation of the ERC-1155 Metadata contract
