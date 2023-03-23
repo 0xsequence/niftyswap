@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
 import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 import {IERC1155} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
@@ -7,6 +7,7 @@ import {ERC1155} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155.sol
 import {ERC1155MintBurn} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
 import {IERC721} from "../interfaces/IERC721.sol";
 import {IERC721FloorWrapper} from "../interfaces/IERC721FloorWrapper.sol";
+import {AddressConverter} from "./AddressConverter.sol";
 
 // Errors
 error UnsupportedMethod();
@@ -16,7 +17,7 @@ error UnsupportedMethod();
  *   of corresponding ERC-1155 tokens with native metaTransaction methods.
  *   Each ERC-721 within a collection is treated as if fungible.
  */
-contract ERC721FloorWrapper is IERC721FloorWrapper, ERC1155, ERC1155MintBurn {
+contract ERC721FloorWrapper is IERC721FloorWrapper, ERC1155, ERC1155MintBurn, AddressConverter {
     /**
      * Prevent invalid method calls.
      */
@@ -54,25 +55,6 @@ contract ERC721FloorWrapper is IERC721FloorWrapper, ERC1155, ERC1155MintBurn {
             IERC721(tokenAddr).safeTransferFrom(address(this), recipient, tokenIds[i]);
         }
         emit TokensWithdrawn(tokenAddr, tokenIds);
-    }
-
-    /**
-     * Convert an address into a uint256.
-     * @param input The address to convert.
-     * @return output The resulting uint256.
-     */
-    function convertAddressToUint256(address input) public pure returns (uint256 output) {
-        return uint256(uint160(input));
-    }
-
-    /**
-     * Convert a uint256 into an address.
-     * @param input The uint256 to convert.
-     * @return output The resulting address.
-     * @dev As uint256 is larger than address, this may result in collisions.
-     */
-    function convertUint256ToAddress(uint256 input) external pure returns (address output) {
-        return address(uint160(input));
     }
 
     /**
