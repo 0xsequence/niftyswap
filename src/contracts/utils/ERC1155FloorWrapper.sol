@@ -51,22 +51,27 @@ contract ERC1155FloorWrapper is
      * @param tokenIds The ERC-1155 token ids to deposit.
      * @param tokenAmounts The amount of each token to deposit.
      * @param recipient The recipient of the wrapped tokens.
+     * @param data Data to pass to ERC-1155 receiver.
      * @notice Users must first approve this contract address on the ERC-1155 contract.
      */
-    function deposit(address tokenAddr, uint256[] memory tokenIds, uint256[] memory tokenAmounts, address recipient)
-        external
-    {
+    function deposit(
+        address tokenAddr,
+        uint256[] memory tokenIds,
+        uint256[] memory tokenAmounts,
+        address recipient,
+        bytes calldata data
+    ) external {
         isDepositing = true;
         IERC1155(tokenAddr).safeBatchTransferFrom(msg.sender, address(this), tokenIds, tokenAmounts, "");
         delete isDepositing;
+
+        emit TokensDeposited(tokenAddr, tokenIds, tokenAmounts);
 
         uint256 total;
         for (uint256 i = 0; i < tokenIds.length; i++) {
             total += tokenAmounts[i];
         }
-        _mint(recipient, convertAddressToUint256(tokenAddr), total, "");
-
-        emit TokensDeposited(tokenAddr, tokenIds, tokenAmounts);
+        _mint(recipient, convertAddressToUint256(tokenAddr), total, data);
     }
 
     /**
@@ -75,19 +80,24 @@ contract ERC1155FloorWrapper is
      * @param tokenIds The ERC-1155 token ids to withdraw.
      * @param tokenAmounts The amount of each token to deposit.
      * @param recipient The recipient of the unwrapped tokens.
+     * @param data Data to pass to ERC-1155 receiver.
      */
-    function withdraw(address tokenAddr, uint256[] memory tokenIds, uint256[] memory tokenAmounts, address recipient)
-        external
-    {
+    function withdraw(
+        address tokenAddr,
+        uint256[] memory tokenIds,
+        uint256[] memory tokenAmounts,
+        address recipient,
+        bytes calldata data
+    ) external {
         uint256 total;
         for (uint256 i = 0; i < tokenIds.length; i++) {
             total += tokenAmounts[i];
         }
         _burn(msg.sender, convertAddressToUint256(tokenAddr), total);
 
-        IERC1155(tokenAddr).safeBatchTransferFrom(address(this), recipient, tokenIds, tokenAmounts, "");
-
         emit TokensWithdrawn(tokenAddr, tokenIds, tokenAmounts);
+
+        IERC1155(tokenAddr).safeBatchTransferFrom(address(this), recipient, tokenIds, tokenAmounts, data);
     }
 
     /**

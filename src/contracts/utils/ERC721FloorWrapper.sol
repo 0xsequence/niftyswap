@@ -34,16 +34,17 @@ contract ERC721FloorWrapper is IERC721FloorWrapper, ERC1155MetadataPrefix, ERC11
      * @param tokenAddr The address of the ERC-721 tokens.
      * @param tokenIds The ERC-721 token ids to deposit.
      * @param recipient The recipient of the wrapped tokens.
+     * @param data Data to pass to ERC-1155 receiver.
      * @notice Users must first approve this contract address on the ERC-721 contract.
      */
-    function deposit(address tokenAddr, uint256[] memory tokenIds, address recipient) external {
+    function deposit(address tokenAddr, uint256[] memory tokenIds, address recipient, bytes calldata data) external {
         for (uint256 i; i < tokenIds.length; i++) {
             //FIXME Gas optimisation
             // Intentionally unsafe transfer
             IERC721(tokenAddr).transferFrom(msg.sender, address(this), tokenIds[i]);
         }
-        _mint(recipient, convertAddressToUint256(tokenAddr), tokenIds.length, "");
         emit TokensDeposited(tokenAddr, tokenIds);
+        _mint(recipient, convertAddressToUint256(tokenAddr), tokenIds.length, data);
     }
 
     /**
@@ -51,14 +52,15 @@ contract ERC721FloorWrapper is IERC721FloorWrapper, ERC1155MetadataPrefix, ERC11
      * @param tokenAddr The address of the ERC-721 tokens.
      * @param tokenIds The ERC-721 token ids to withdraw.
      * @param recipient The recipient of the unwrapped tokens.
+     * @param data Data to pass to ERC-1155 receiver.
      */
-    function withdraw(address tokenAddr, uint256[] memory tokenIds, address recipient) external {
+    function withdraw(address tokenAddr, uint256[] memory tokenIds, address recipient, bytes calldata data) external {
         _burn(msg.sender, convertAddressToUint256(tokenAddr), tokenIds.length);
+        emit TokensWithdrawn(tokenAddr, tokenIds);
         for (uint256 i; i < tokenIds.length; i++) {
             //FIXME Gas optimisation
-            IERC721(tokenAddr).safeTransferFrom(address(this), recipient, tokenIds[i]);
+            IERC721(tokenAddr).safeTransferFrom(address(this), recipient, tokenIds[i], data);
         }
-        emit TokensWithdrawn(tokenAddr, tokenIds);
     }
 
     /**

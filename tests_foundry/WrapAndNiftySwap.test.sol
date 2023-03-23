@@ -8,10 +8,12 @@ import {ERC20TokenMock} from "src/contracts/mocks/ERC20TokenMock.sol";
 import {ERC20WrapperMock} from "src/contracts/mocks/ERC20WrapperMock.sol";
 import {ERC1155Mock} from "src/contracts/mocks/ERC1155Mock.sol";
 
+import {USER, OPERATOR} from "./utils/Constants.test.sol";
 import {NiftyswapTestHelper} from "./utils/NiftyswapTestHelper.test.sol";
+import {TestHelperBase} from "./utils/TestHelperBase.test.sol";
 import {console} from "forge-std/Test.sol";
 
-contract WrapAndNiftySwapTest is NiftyswapTestHelper {
+contract WrapAndNiftySwapTest is TestHelperBase {
     // Events can't be imported
     event NewExchange(
         address indexed token, address indexed currency, uint256 indexed salt, uint256 lpFee, address exchange
@@ -82,7 +84,7 @@ contract WrapAndNiftySwapTest is NiftyswapTestHelper {
             exchangeAddr,
             TOKEN_TYPES,
             TOKEN_AMTS_TO_ADD,
-            encodeAddLiquidity(CURRENCIES_PER_TYPE, block.timestamp)
+            NiftyswapTestHelper.encodeAddLiquidity(CURRENCIES_PER_TYPE, block.timestamp)
         );
     }
 
@@ -96,8 +98,9 @@ contract WrapAndNiftySwapTest is NiftyswapTestHelper {
         uint256[] memory exchangeBalBefore = getBalances(exchangeAddr, TOKEN_TYPES, erc1155);
         uint256[] memory userBalBefore = getBalances(USER, TOKEN_TYPES, erc1155);
 
-        // Encode request
-        bytes memory data = encodeBuyTokens(address(0), TOKEN_TYPES, TOKENS_TO_SWAP, block.timestamp);
+        // NiftyswapTestHelper.encode request
+        bytes memory data =
+            NiftyswapTestHelper.encodeBuyTokens(address(0), TOKEN_TYPES, TOKENS_TO_SWAP, block.timestamp);
         uint256[] memory costs = exchange.getPrice_currencyToToken(TOKEN_TYPES, TOKENS_TO_SWAP);
         uint256 total = getTotal(costs);
 
@@ -122,7 +125,7 @@ contract WrapAndNiftySwapTest is NiftyswapTestHelper {
     }
 
     function test_wrapAndSwap_badRecipient() external {
-        bytes memory data = encodeBuyTokens(USER, TOKEN_TYPES, TOKENS_TO_SWAP, block.timestamp);
+        bytes memory data = NiftyswapTestHelper.encodeBuyTokens(USER, TOKEN_TYPES, TOKENS_TO_SWAP, block.timestamp);
         uint256[] memory costs = exchange.getPrice_currencyToToken(TOKEN_TYPES, TOKENS_TO_SWAP);
         uint256 total = getTotal(costs);
 
@@ -140,10 +143,10 @@ contract WrapAndNiftySwapTest is NiftyswapTestHelper {
         uint256[] memory exchangeBalBefore = getBalances(exchangeAddr, TOKEN_TYPES, erc1155);
         uint256[] memory userBalBefore = getBalances(USER, TOKEN_TYPES, erc1155);
 
-        // Encode request
+        // NiftyswapTestHelper.encode request
         uint256[] memory costs = exchange.getPrice_tokenToCurrency(TOKEN_TYPES, TOKENS_TO_SWAP);
         uint256 total = getTotal(costs);
-        bytes memory data = encodeSellTokens(address(0), total, block.timestamp);
+        bytes memory data = NiftyswapTestHelper.encodeSellTokens(address(0), total, block.timestamp);
 
         // Make request
         vm.prank(USER);
@@ -168,7 +171,7 @@ contract WrapAndNiftySwapTest is NiftyswapTestHelper {
     function test_swapAndUnwrap_badRecipient() external {
         uint256[] memory costs = exchange.getPrice_tokenToCurrency(TOKEN_TYPES, TOKENS_TO_SWAP);
         uint256 total = getTotal(costs);
-        bytes memory data = encodeSellTokens(USER, total, block.timestamp);
+        bytes memory data = NiftyswapTestHelper.encodeSellTokens(USER, total, block.timestamp);
 
         // Make request
         vm.prank(USER);

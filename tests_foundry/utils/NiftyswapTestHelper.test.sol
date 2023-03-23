@@ -3,10 +3,9 @@ pragma solidity ^0.8.4;
 
 import {INiftyswapExchange} from "src/contracts/interfaces/INiftyswapExchange.sol";
 import {IERC1155} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
+import {ADDLIQUIDITY_SIG, REMOVELIQUIDITY_SIG, BUYTOKENS_SIG, SELLTOKENS_SIG} from "./Constants.test.sol";
 
-import {TestHelperBase} from "./TestHelperBase.test.sol";
-
-abstract contract NiftyswapTestHelper is TestHelperBase {
+library NiftyswapTestHelper {
     //
     // Niftyswap data encodings
     //

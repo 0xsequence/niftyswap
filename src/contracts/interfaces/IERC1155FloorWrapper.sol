@@ -14,10 +14,16 @@ interface IERC1155FloorWrapper is IERC1155 {
      * @param tokenIds The ERC-1155 token ids to deposit.
      * @param tokenAmounts The amount of each token to deposit.
      * @param recipient The recipient of the wrapped tokens.
+     * @param data Data to pass to ERC-1155 receiver.
      * @notice Users must first approve this contract address on the ERC-1155 contract.
      */
-    function deposit(address tokenAddr, uint256[] memory tokenIds, uint256[] memory tokenAmounts, address recipient)
-        external;
+    function deposit(
+        address tokenAddr,
+        uint256[] memory tokenIds,
+        uint256[] memory tokenAmounts,
+        address recipient,
+        bytes calldata data
+    ) external;
 
     /**
      * Unwrap and withdraw ERC-1155 tokens.
@@ -25,7 +31,13 @@ interface IERC1155FloorWrapper is IERC1155 {
      * @param tokenIds The ERC-1155 token ids to withdraw.
      * @param tokenAmounts The amount of each token to deposit.
      * @param recipient The recipient of the unwrapped tokens.
+     * @param data Data to pass to ERC-1155 receiver.
      */
-    function withdraw(address tokenAddr, uint256[] memory tokenIds, uint256[] memory tokenAmounts, address recipient)
-        external;
+    function withdraw(
+        address tokenAddr,
+        uint256[] memory tokenIds,
+        uint256[] memory tokenAmounts,
+        address recipient,
+        bytes calldata data
+    ) external;
 }
