@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
 import {INiftyswapExchange} from "src/contracts/interfaces/INiftyswapExchange.sol";
 import {WrapAndNiftyswap} from "src/contracts/utils/WrapAndNiftyswap.sol";

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
 import {NiftyswapFactory} from "src/contracts/exchange/NiftyswapFactory.sol";
 import {ERC1155Mock} from "src/contracts/mocks/ERC1155Mock.sol";

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
 import {IERC1155Metadata} from "../interfaces/IERC1155Metadata.sol";
 import {Ownable} from "./Ownable.sol";

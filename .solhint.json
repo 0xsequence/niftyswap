@@ -18,7 +18,7 @@
     "no-inline-assembly": "off",
     "payable-fallback": "off",
     "visibility-modifier-order": "off",
-    "compiler-version": ["error", "^0.8.0"],
+    "compiler-version": ["error", "^0.8.4"],
     "func-visibility": ["warn", {"ignoreConstructors":true}],
     "reason-string": ["warn", {"maxLength": 96}]
   }

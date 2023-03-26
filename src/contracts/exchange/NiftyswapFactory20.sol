@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
 import {NiftyswapExchange20} from "./NiftyswapExchange20.sol";
 import {Ownable} from "../utils/Ownable.sol";

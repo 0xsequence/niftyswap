@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
 import {MetaERC20Wrapper} from "@0xsequence/erc20-meta-token/contracts/wrapper/MetaERC20Wrapper.sol";
 

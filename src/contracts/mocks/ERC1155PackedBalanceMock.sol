@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
 import {ERC1155MintBurnPackedBalanceMock} from
     "@0xsequence/erc-1155/contracts/mocks/ERC1155MintBurnPackedBalanceMock.sol";

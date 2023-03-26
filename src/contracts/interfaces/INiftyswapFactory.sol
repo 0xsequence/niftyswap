@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
 interface INiftyswapFactory {
     event NewExchange(address indexed token, address indexed currency, uint256 indexed currencyID, address exchange);

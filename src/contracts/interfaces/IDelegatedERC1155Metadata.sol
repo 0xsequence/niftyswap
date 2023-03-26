@@ -1,4 +1,4 @@
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
 import {IERC1155Metadata} from "./IERC1155Metadata.sol";
 
