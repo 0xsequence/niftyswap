@@ -10,3 +10,7 @@ lerna-debug.log*
 build
 coverage
 coverage.json
+
+# Forge
+foundry_artifacts
+cache

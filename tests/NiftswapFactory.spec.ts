@@ -1,51 +1,35 @@
 import * as ethers from 'ethers'
 
-import { AbstractContract, BigNumber, expect, RevertError } from './utils'
+import { AbstractContract, BigNumber, expect, HIGH_GAS_LIMIT, RevertError } from './utils'
 
 import * as utils from './utils'
 
-import {
-  ERC1155Mock,
-  ERC1155PackedBalanceMock,
-  NiftyswapFactory
-} from 'src/gen/typechain'
+import { ERC1155Mock, ERC1155PackedBalanceMock, NiftyswapFactory } from 'src/gen/typechain'
 
 import { web3 } from 'hardhat'
 
 // init test wallets from package.json mnemonic
 
 const { wallet: ownerWallet } = utils.createTestWallet(web3, 0)
-
-const { wallet: userWallet, signer: userSigner } = utils.createTestWallet(web3, 2)
-
-const { wallet: operatorWallet, signer: operatorSigner } = utils.createTestWallet(web3, 4)
+const { wallet: userWallet } = utils.createTestWallet(web3, 2)
 
 describe('NiftyswapFactory', () => {
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
-  let ownerAddress: string
   let userAddress: string
-  let operatorAddress: string
   let erc1155Abstract: AbstractContract
   let erc1155PackedAbstract: AbstractContract
   let niftyswapFactoryAbstract: AbstractContract
-  let niftyswapExchangeAbstract: AbstractContract
 
-  // ERC-1155 token
+  // Token
   let ownerERC1155Contract: ERC1155PackedBalanceMock
-  let userERC1155Contract: ERC1155PackedBalanceMock
-  let operatorERC1155Contract: ERC1155PackedBalanceMock
-
-  // Base Tokens
   let ownerBaseTokenContract: ERC1155Mock
-  let userBaseTokenContract: ERC1155Mock
-  let operatorBaseTokenContract: ERC1155Mock
 
   let niftyswapFactoryContract: NiftyswapFactory
 
   // Token Param
-  let types: number[] = []
-  let values: number[] = []
+  const types: number[] = []
+  const values: number[] = []
   const nTokenTypes = 30 //560
   const nTokensPerType = 500000
 
@@ -54,13 +38,10 @@ describe('NiftyswapFactory', () => {
 
   // load contract abi and deploy to test server
   beforeEach(async () => {
-    ownerAddress = await ownerWallet.getAddress()
     userAddress = await userWallet.getAddress()
-    operatorAddress = await operatorWallet.getAddress()
     erc1155Abstract = await AbstractContract.fromArtifactName('ERC1155Mock')
     erc1155PackedAbstract = await AbstractContract.fromArtifactName('ERC1155PackedBalanceMock')
     niftyswapFactoryAbstract = await AbstractContract.fromArtifactName('NiftyswapFactory')
-    niftyswapExchangeAbstract = await AbstractContract.fromArtifactName('NiftyswapExchange')
 
     // Minting enough values for transfer for each types
     for (let i = 0; i < nTokenTypes; i++) {
@@ -73,13 +54,9 @@ describe('NiftyswapFactory', () => {
   beforeEach(async () => {
     // Deploy Base Token contract
     ownerBaseTokenContract = (await erc1155Abstract.deploy(ownerWallet)) as ERC1155Mock
-    userBaseTokenContract = (await ownerBaseTokenContract.connect(userSigner)) as ERC1155Mock
-    operatorBaseTokenContract = (await ownerBaseTokenContract.connect(operatorSigner)) as ERC1155Mock
 
     // Deploy ERC-1155
     ownerERC1155Contract = (await erc1155PackedAbstract.deploy(ownerWallet)) as ERC1155PackedBalanceMock
-    operatorERC1155Contract = (await ownerERC1155Contract.connect(operatorSigner)) as ERC1155PackedBalanceMock
-    userERC1155Contract = (await ownerERC1155Contract.connect(userSigner)) as ERC1155PackedBalanceMock
 
     // Deploy Niftyswap factory
     niftyswapFactoryContract = (await niftyswapFactoryAbstract.deploy(ownerWallet)) as NiftyswapFactory
@@ -119,20 +96,24 @@ describe('NiftyswapFactory', () => {
   })
 
   describe('createExchange() function', () => {
-    beforeEach(async () => {})
-
     it('should REVERT if Token is 0x0', async () => {
-      const tx = niftyswapFactoryContract.functions.createExchange(ZERO_ADDRESS, ownerBaseTokenContract.address, baseTokenID, {
-        gasLimit: 1000000
-      })
-      await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange#constructor:INVALID_INPUT'))
+      const tx = niftyswapFactoryContract.functions.createExchange(
+        ZERO_ADDRESS,
+        ownerBaseTokenContract.address,
+        baseTokenID,
+        HIGH_GAS_LIMIT
+      )
+      await expect(tx).to.be.rejectedWith(RevertError('NE#01'))
     })
 
     it('should REVERT if Base Token is 0x0', async () => {
-      const tx = niftyswapFactoryContract.functions.createExchange(ownerERC1155Contract.address, ZERO_ADDRESS, baseTokenID, {
-        gasLimit: 1000000
-      })
-      await expect(tx).to.be.rejectedWith(RevertError('NiftyswapExchange#constructor:INVALID_INPUT'))
+      const tx = niftyswapFactoryContract.functions.createExchange(
+        ownerERC1155Contract.address,
+        ZERO_ADDRESS,
+        baseTokenID,
+        HIGH_GAS_LIMIT
+      )
+      await expect(tx).to.be.rejectedWith(RevertError('NE#01'))
     })
 
     it("should PASS if exchange doesn't exist yet", async () => {
@@ -193,17 +174,15 @@ describe('NiftyswapFactory', () => {
           ownerERC1155Contract.address,
           ownerBaseTokenContract.address,
           baseTokenID,
-          {
-            gasLimit: 1000000
-          }
+          HIGH_GAS_LIMIT
         )
         await expect(tx).to.be.rejectedWith(RevertError('NiftyswapFactory#createExchange: EXCHANGE_ALREADY_CREATED'))
       })
 
       it('should emit NewExchange event', async () => {
         const receipt = await tx.wait(1)
-        const ev = receipt.events!.pop()!
-        expect(ev.event).to.be.eql('NewExchange')
+        const ev = receipt.events?.pop()
+        expect(ev?.event).to.be.eql('NewExchange')
       })
 
       describe('NewExchange Event', async () => {
@@ -211,8 +190,8 @@ describe('NiftyswapFactory', () => {
 
         beforeEach(async () => {
           const receipt = await tx.wait(1)
-          const ev = receipt.events!.pop()!
-          args = ev.args! as any
+          const ev = receipt.events?.pop()
+          args = ev?.args as any
         })
 
         it('should have token address as `token` field', async () => {

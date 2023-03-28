@@ -1,1 +1,1 @@
-require("./NiftswapExchange.bench")
+require('./NiftswapExchange.bench')

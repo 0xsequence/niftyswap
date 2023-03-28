@@ -1,54 +1,28 @@
 import * as ethers from 'ethers'
 
-import {
-  AbstractContract,
-  expect,
-  BigNumber,
-  RevertError,
-  BuyTokensType,
-  SellTokensType,
-  getBuyTokenData,
-  getSellTokenData,
-  getAddLiquidityData,
-  methodsSignature
-} from './utils'
+import { AbstractContract, expect, BigNumber, getBuyTokenData, getSellTokenData, getAddLiquidityData } from './utils'
 
 import * as utils from './utils'
 
-import {
-  ERC1155Mock,
-  ERC1155PackedBalanceMock,
-  NiftyswapExchange,
-  NiftyswapFactory
-} from 'src/gen/typechain'
+import { ERC1155Mock, ERC1155PackedBalanceMock, NiftyswapExchange, NiftyswapFactory } from 'src/gen/typechain'
 
 import { abi as exchangeABI } from '@0xsequence/niftyswap/artifacts/contracts/exchange/NiftyswapExchange.sol/NiftyswapExchange.json'
 import { web3 } from 'hardhat'
 
 // init test wallets from package.json mnemonic
 
-const { wallet: ownerWallet, provider: ownerProvider, signer: ownerSigner } = utils.createTestWallet(web3, 0)
-
-const { wallet: userWallet, provider: userProvider, signer: userSigner } = utils.createTestWallet(web3, 2)
-
-const { wallet: operatorWallet, provider: operatorProvider, signer: operatorSigner } = utils.createTestWallet(web3, 4)
+const { wallet: ownerWallet, provider: ownerProvider, signer: ownerSigner } = utils.createTestWallet(web3, 0) // eslint-disable-line @typescript-eslint/no-unused-vars
+const { wallet: userWallet, provider: userProvider, signer: userSigner } = utils.createTestWallet(web3, 2) // eslint-disable-line @typescript-eslint/no-unused-vars
+const { wallet: operatorWallet, provider: operatorProvider, signer: operatorSigner } = utils.createTestWallet(web3, 4) // eslint-disable-line @typescript-eslint/no-unused-vars
 
 const getBig = (id: number) => BigNumber.from(id)
 
 describe('NiftyswapExchange', () => {
-  const MAXVAL = BigNumber.from(2)
-    .pow(256)
-    .sub(1) // 2**256 - 1
-  const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
-
-  let ownerAddress: string
   let userAddress: string
   let operatorAddress: string
   let erc1155Abstract: AbstractContract
   let erc1155PackedAbstract: AbstractContract
   let niftyswapFactoryAbstract: AbstractContract
-  let niftyswapExchangeAbstract: AbstractContract
-  let operatorAbstract: AbstractContract
 
   // ERC-1155 token
   let ownerERC1155Contract: ERC1155PackedBalanceMock
@@ -72,17 +46,15 @@ describe('NiftyswapExchange', () => {
   const currencyAmount = BigNumber.from(10000000).mul(BigNumber.from(10).pow(18))
 
   const types = new Array(nTokenTypes).fill('').map((a, i) => getBig(i))
-  const values = new Array(nTokenTypes).fill('').map((a, i) => nTokensPerType)
+  const values = new Array(nTokenTypes).fill('').map(() => nTokensPerType)
 
   // load contract abi and deploy to test server
   beforeEach(async () => {
-    ownerAddress = await ownerWallet.getAddress()
     userAddress = await userWallet.getAddress()
     operatorAddress = await operatorWallet.getAddress()
     erc1155Abstract = await AbstractContract.fromArtifactName('ERC1155Mock')
     erc1155PackedAbstract = await AbstractContract.fromArtifactName('ERC1155PackedBalanceMock')
     niftyswapFactoryAbstract = await AbstractContract.fromArtifactName('NiftyswapFactory')
-    niftyswapExchangeAbstract = await AbstractContract.fromArtifactName('NiftyswapExchange')
   })
 
   // deploy before each test, to reset state of contract
@@ -134,15 +106,14 @@ describe('NiftyswapExchange', () => {
 
   describe('_tokenToCurrency() function', () => {
     //Liquidity
-    let tokenAmountToAdd = BigNumber.from(10)
-    let currencyAmountToAdd = BigNumber.from(10).pow(18)
-    let currencyAmountsToAdd: ethers.BigNumber[] = []
-    let tokenAmountsToAdd: ethers.BigNumber[] = []
-    let addLiquidityData: string
+    const tokenAmountToAdd = BigNumber.from(10)
+    const currencyAmountToAdd = BigNumber.from(10).pow(18)
+    const currencyAmountsToAdd: ethers.BigNumber[] = []
+    const tokenAmountsToAdd: ethers.BigNumber[] = []
 
     //Sell
-    let tokenAmountToSell = BigNumber.from(50)
-    let tokensAmountsToSell: ethers.BigNumber[] = []
+    const tokenAmountToSell = BigNumber.from(50)
+    const tokensAmountsToSell: ethers.BigNumber[] = []
     let sellTokenData: string
 
     for (let i = 0; i < nTokenTypes; i++) {
@@ -150,7 +121,7 @@ describe('NiftyswapExchange', () => {
       tokenAmountsToAdd.push(tokenAmountToAdd)
       tokensAmountsToSell.push(tokenAmountToSell)
     }
-    addLiquidityData = getAddLiquidityData(currencyAmountsToAdd, 10000000)
+    const addLiquidityData = getAddLiquidityData(currencyAmountsToAdd, 10000000)
 
     beforeEach(async () => {
       // Add liquidity
@@ -174,8 +145,8 @@ describe('NiftyswapExchange', () => {
 
       sellTokenData = getSellTokenData(userAddress, price[0].mul(nTokens), 10000000)
 
-      let tokensSoldIDs = new Array(nTokens).fill('').map((a, i) => getBig(i))
-      let tokensSoldAmounts = new Array(nTokens).fill('').map((a, i) => tokenAmountToSell)
+      const tokensSoldIDs = new Array(nTokens).fill('').map((a, i) => getBig(i))
+      const tokensSoldAmounts = new Array(nTokens).fill('').map(() => tokenAmountToSell)
 
       const tx = userERC1155Contract.functions.safeBatchTransferFrom(
         userAddress,
@@ -193,8 +164,8 @@ describe('NiftyswapExchange', () => {
       const price = (await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]))[0]
       sellTokenData = getSellTokenData(userAddress, price[0].mul(nTokens), 10000000)
 
-      let tokensSoldIDs = new Array(nTokens).fill('').map((a, i) => getBig(i))
-      let tokensSoldAmounts = new Array(nTokens).fill('').map((a, i) => tokenAmountToSell)
+      const tokensSoldIDs = new Array(nTokens).fill('').map((_a, i) => getBig(i))
+      const tokensSoldAmounts = new Array(nTokens).fill('').map(() => tokenAmountToSell)
 
       const tx = userERC1155Contract.functions.safeBatchTransferFrom(
         userAddress,
@@ -213,8 +184,8 @@ describe('NiftyswapExchange', () => {
       const price = (await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]))[0]
       sellTokenData = getSellTokenData(userAddress, price[0].mul(nTokens), 10000000)
 
-      let tokensSoldIDs = new Array(nTokens).fill('').map((a, i) => getBig(i))
-      let tokensSoldAmounts = new Array(nTokens).fill('').map((a, i) => tokenAmountToSell)
+      const tokensSoldIDs = new Array(nTokens).fill('').map((_a, i) => getBig(i))
+      const tokensSoldAmounts = new Array(nTokens).fill('').map(() => tokenAmountToSell)
 
       const tx = userERC1155Contract.functions.safeBatchTransferFrom(
         userAddress,
@@ -233,8 +204,8 @@ describe('NiftyswapExchange', () => {
       const price = (await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]))[0]
       sellTokenData = getSellTokenData(userAddress, price[0].mul(nTokens), 10000000)
 
-      let tokensSoldIDs = new Array(nTokens).fill('').map((a, i) => getBig(i))
-      let tokensSoldAmounts = new Array(nTokens).fill('').map((a, i) => tokenAmountToSell)
+      const tokensSoldIDs = new Array(nTokens).fill('').map((_a, i) => getBig(i))
+      const tokensSoldAmounts = new Array(nTokens).fill('').map(() => tokenAmountToSell)
 
       const tx = userERC1155Contract.functions.safeBatchTransferFrom(
         userAddress,
@@ -253,8 +224,8 @@ describe('NiftyswapExchange', () => {
       const price = (await niftyswapExchangeContract.functions.getPrice_tokenToCurrency([0], [tokenAmountToSell]))[0]
       sellTokenData = getSellTokenData(userAddress, price[0].mul(nTokens), 10000000)
 
-      let tokensSoldIDs = new Array(nTokens).fill('').map((a, i) => getBig(i))
-      let tokensSoldAmounts = new Array(nTokens).fill('').map((a, i) => tokenAmountToSell)
+      const tokensSoldIDs = new Array(nTokens).fill('').map((_a, i) => getBig(i))
+      const tokensSoldAmounts = new Array(nTokens).fill('').map(() => tokenAmountToSell)
 
       const tx = userERC1155Contract.functions.safeBatchTransferFrom(
         userAddress,
@@ -270,17 +241,14 @@ describe('NiftyswapExchange', () => {
 
   describe('_currencyToToken() function', () => {
     //Liquidity
-    let tokenAmountToAdd = BigNumber.from(500)
-    let currencyAmountToAdd = BigNumber.from(10)
-      .pow(18)
-      .mul(500)
-    let currencyAmountsToAdd: ethers.BigNumber[] = []
-    let tokenAmountsToAdd: ethers.BigNumber[] = []
-    let addLiquidityData: string
+    const tokenAmountToAdd = BigNumber.from(500)
+    const currencyAmountToAdd = BigNumber.from(10).pow(18).mul(500)
+    const currencyAmountsToAdd: ethers.BigNumber[] = []
+    const tokenAmountsToAdd: ethers.BigNumber[] = []
 
     //Buy
-    let tokenAmountToBuy = BigNumber.from(50)
-    let tokensAmountsToBuy: ethers.BigNumber[] = []
+    const tokenAmountToBuy = BigNumber.from(50)
+    const tokensAmountsToBuy: ethers.BigNumber[] = []
     let buyTokenData: string
     let cost: ethers.BigNumber
 
@@ -289,7 +257,7 @@ describe('NiftyswapExchange', () => {
       tokenAmountsToAdd.push(tokenAmountToAdd)
       tokensAmountsToBuy.push(tokenAmountToBuy)
     }
-    addLiquidityData = getAddLiquidityData(currencyAmountsToAdd, 10000000)
+    const addLiquidityData = getAddLiquidityData(currencyAmountsToAdd, 10000000)
 
     beforeEach(async () => {
       // Add liquidity
@@ -328,8 +296,8 @@ describe('NiftyswapExchange', () => {
 
       buyTokenData = getBuyTokenData(
         userAddress,
-        new Array(5).fill('').map((a, i) => getBig(i)),
-        new Array(5).fill('').map((a, i) => getBig(1)),
+        new Array(5).fill('').map((_a, i) => getBig(i)),
+        new Array(5).fill('').map(() => getBig(1)),
         10000000
       )
 
@@ -348,8 +316,8 @@ describe('NiftyswapExchange', () => {
       cost = cost.div(nTokenTypes).mul(30)
       buyTokenData = getBuyTokenData(
         userAddress,
-        new Array(30).fill('').map((a, i) => getBig(i)),
-        new Array(30).fill('').map((a, i) => getBig(1)),
+        new Array(30).fill('').map((_a, i) => getBig(i)),
+        new Array(30).fill('').map(() => getBig(1)),
         10000000
       )
 
@@ -368,8 +336,8 @@ describe('NiftyswapExchange', () => {
       cost = cost.div(nTokenTypes).mul(80)
       buyTokenData = getBuyTokenData(
         userAddress,
-        new Array(80).fill('').map((a, i) => getBig(i)),
-        new Array(80).fill('').map((a, i) => getBig(1)),
+        new Array(80).fill('').map((_a, i) => getBig(i)),
+        new Array(80).fill('').map(() => getBig(1)),
         10000000
       )
 
@@ -388,8 +356,8 @@ describe('NiftyswapExchange', () => {
       cost = cost.div(nTokenTypes).mul(400)
       buyTokenData = getBuyTokenData(
         userAddress,
-        new Array(400).fill('').map((a, i) => getBig(i)),
-        new Array(400).fill('').map((a, i) => getBig(1)),
+        new Array(400).fill('').map((_a, i) => getBig(i)),
+        new Array(400).fill('').map(() => getBig(1)),
         10000000
       )
 

@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity 0.7.4;
-pragma experimental ABIEncoderV2;
-import "@0xsequence/erc20-meta-token/contracts/wrapper/MetaERC20Wrapper.sol";
+pragma solidity ^0.8.4;
 
+import {MetaERC20Wrapper} from "@0xsequence/erc20-meta-token/contracts/wrapper/MetaERC20Wrapper.sol";
 
-contract ERC20WrapperMock is MetaERC20Wrapper {
-
-}
+// solhint-disable-next-line no-empty-blocks
+contract ERC20WrapperMock is MetaERC20Wrapper {}
