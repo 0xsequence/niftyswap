@@ -61,7 +61,9 @@ contract ERC721FloorWrapperTest is TestHelperBase {
         vm.prank(USER);
         vm.expectEmit(true, true, true, true, wrapperAddr);
         emit TokensDeposited(erc721Addr, tokenIds);
+        startMeasuringGas("Deposit 1");
         wrapper.deposit(erc721Addr, tokenIds, USER, "");
+        stopMeasuringGas();
 
         assertEq(beforeERC1155UserBal + 1, wrapper.balanceOf(USER, erc721Uint256));
         assertEq(beforeERC721WrapperBal + 1, erc721.balanceOf(wrapperAddr));
@@ -91,23 +93,28 @@ contract ERC721FloorWrapperTest is TestHelperBase {
         test_deposit_happyPath();
     }
 
-    function test_deposit_two() external {
+    function test_deposit_five() external {
         uint256 beforeERC1155UserBal = wrapper.balanceOf(USER, erc721Uint256);
         uint256 beforeERC721WrapperBal = erc721.balanceOf(wrapperAddr);
         uint256 beforeERC721UserBal = erc721.balanceOf(USER);
 
-        uint256[] memory tokenIds = new uint256[](2);
+        uint256[] memory tokenIds = new uint256[](5);
         tokenIds[0] = 0;
         tokenIds[1] = 1;
+        tokenIds[2] = 2;
+        tokenIds[3] = 3;
+        tokenIds[4] = 4;
 
         vm.prank(USER);
         vm.expectEmit(true, true, true, true, wrapperAddr);
         emit TokensDeposited(erc721Addr, tokenIds);
+        startMeasuringGas("Deposit 5");
         wrapper.deposit(erc721Addr, tokenIds, USER, "");
+        stopMeasuringGas();
 
-        assertEq(beforeERC1155UserBal + 2, wrapper.balanceOf(USER, erc721Uint256));
-        assertEq(beforeERC721WrapperBal + 2, erc721.balanceOf(wrapperAddr));
-        assertEq(beforeERC721UserBal - 2, erc721.balanceOf(USER));
+        assertEq(beforeERC1155UserBal + 5, wrapper.balanceOf(USER, erc721Uint256));
+        assertEq(beforeERC721WrapperBal + 5, erc721.balanceOf(wrapperAddr));
+        assertEq(beforeERC721UserBal - 5, erc721.balanceOf(USER));
     }
 
     function test_deposit_duplicateFails() external {
@@ -232,7 +239,9 @@ contract ERC721FloorWrapperTest is TestHelperBase {
         vm.prank(USER);
         vm.expectEmit(true, true, true, true, wrapperAddr);
         emit TokensWithdrawn(erc721Addr, tokenIds);
+        startMeasuringGas("Withdraw 1");
         wrapper.withdraw(erc721Addr, tokenIds, USER, "");
+        stopMeasuringGas();
 
         assertEq(beforeERC1155UserBal - 1, wrapper.balanceOf(USER, erc721Uint256));
         assertEq(beforeERC721WrapperBal - 1, erc721.balanceOf(wrapperAddr));

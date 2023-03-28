@@ -38,10 +38,14 @@ contract ERC721FloorWrapper is IERC721FloorWrapper, ERC1155MetadataPrefix, ERC11
      * @notice Users must first approve this contract address on the ERC-721 contract.
      */
     function deposit(address tokenAddr, uint256[] memory tokenIds, address recipient, bytes calldata data) external {
-        for (uint256 i; i < tokenIds.length; i++) {
-            //FIXME Gas optimisation
+        uint256 length = tokenIds.length;
+        for (uint256 i; i < length;) {
             // Intentionally unsafe transfer
             IERC721(tokenAddr).transferFrom(msg.sender, address(this), tokenIds[i]);
+            unchecked {
+                // Can never overflow
+                ++i;
+            }
         }
         emit TokensDeposited(tokenAddr, tokenIds);
         _mint(recipient, convertAddressToUint256(tokenAddr), tokenIds.length, data);
@@ -57,9 +61,13 @@ contract ERC721FloorWrapper is IERC721FloorWrapper, ERC1155MetadataPrefix, ERC11
     function withdraw(address tokenAddr, uint256[] memory tokenIds, address recipient, bytes calldata data) external {
         _burn(msg.sender, convertAddressToUint256(tokenAddr), tokenIds.length);
         emit TokensWithdrawn(tokenAddr, tokenIds);
-        for (uint256 i; i < tokenIds.length; i++) {
-            //FIXME Gas optimisation
+        uint256 length = tokenIds.length;
+        for (uint256 i; i < length;) {
             IERC721(tokenAddr).safeTransferFrom(address(this), recipient, tokenIds[i], data);
+            unchecked {
+                // Can never overflow
+                ++i;
+            }
         }
     }
 
