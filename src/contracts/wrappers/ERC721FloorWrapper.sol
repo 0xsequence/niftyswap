@@ -7,8 +7,8 @@ import {ERC1155} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155.sol
 import {ERC1155MintBurn} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
 import {IERC721} from "../interfaces/IERC721.sol";
 import {IERC721FloorWrapper} from "../interfaces/IERC721FloorWrapper.sol";
-import {AddressConverter} from "./AddressConverter.sol";
-import {ERC1155MetadataPrefix} from "./ERC1155MetadataPrefix.sol";
+import {AddressConverter} from "../utils/AddressConverter.sol";
+import {ERC1155MetadataPrefix} from "../utils/ERC1155MetadataPrefix.sol";
 
 // Errors
 error UnsupportedMethod();

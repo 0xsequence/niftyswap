@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.4;
 
-import {ERC721FloorWrapper} from "src/contracts/utils/ERC721FloorWrapper.sol";
+import {ERC721FloorWrapper} from "src/contracts/wrappers/ERC721FloorWrapper.sol";
 import {ERC721Mock} from "src/contracts/mocks/ERC721Mock.sol";
 import {ERC1155Mock} from "src/contracts/mocks/ERC1155Mock.sol";
 import {ERC20TokenMock} from "src/contracts/mocks/ERC20TokenMock.sol";

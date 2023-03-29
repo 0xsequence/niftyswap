@@ -2,7 +2,7 @@
 pragma solidity ^0.8.4;
 
 import {INiftyswapExchange} from "src/contracts/interfaces/INiftyswapExchange.sol";
-import {WrapAndNiftyswap} from "src/contracts/utils/WrapAndNiftyswap.sol";
+import {WrapAndNiftyswap} from "src/contracts/wrappers/WrapAndNiftyswap.sol";
 import {NiftyswapFactory} from "src/contracts/exchange/NiftyswapFactory.sol";
 import {ERC20TokenMock} from "src/contracts/mocks/ERC20TokenMock.sol";
 import {ERC20WrapperMock} from "src/contracts/mocks/ERC20WrapperMock.sol";
