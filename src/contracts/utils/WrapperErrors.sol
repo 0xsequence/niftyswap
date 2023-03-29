@@ -9,6 +9,9 @@ abstract contract WrapperErrors {
     error WrapperAlreadyCreated(address tokenAddr, address wrapperAddr);
     error WrapperCreationFailed(address tokenAddr);
 
+    // ERC1155
+    error InvalidERC1155Received();
+
     // General
     error UnsupportedMethod();
     error InvalidInitialization();

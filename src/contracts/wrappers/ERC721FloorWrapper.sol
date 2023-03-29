@@ -109,7 +109,7 @@ contract ERC721FloorWrapper is IERC721FloorWrapper, ERC1155MintBurn, IERC1155Met
      * @return supported Whether the interfaceId is supported.
      */
     function supportsInterface(bytes4 interfaceId) public pure override(IERC165, ERC1155) returns (bool supported) {
-        return interfaceId == type(IERC165).interfaceId || interfaceId == type(IERC1155Metadata).interfaceId
-            || super.supportsInterface(interfaceId);
+        return interfaceId == type(IERC165).interfaceId || interfaceId == type(IERC1155).interfaceId
+            || interfaceId == type(IERC1155Metadata).interfaceId || super.supportsInterface(interfaceId);
     }
 }

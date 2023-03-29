@@ -7,28 +7,40 @@ import {IERC1155TokenReceiver} from "@0xsequence/erc-1155/contracts/interfaces/I
 import {ERC1155} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155.sol";
 import {ERC1155MintBurn} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
 import {IERC1155FloorWrapper} from "../interfaces/IERC1155FloorWrapper.sol";
-import {AddressConverter} from "../utils/AddressConverter.sol";
-import {ERC1155MetadataPrefix} from "../utils/ERC1155MetadataPrefix.sol";
-
-// Errors
-error UnsupportedMethod();
-error InvalidERC1155Received();
+import {IERC1155Metadata} from "../interfaces/IERC1155Metadata.sol";
+import {IDelegatedERC1155Metadata} from "../interfaces/IDelegatedERC1155Metadata.sol";
+import {WrapperErrors} from "../utils/WrapperErrors.sol";
 
 /**
- * Allows an all token ids within an ERC-1155 contract to be wrapped and
- * treated as a single ERC-1155 token id.
+ * @notice Allows users to wrap any amount of a ERC-1155 token with a 1:1 ratio.
+ * Therefore each ERC-1155 within a collection can be treated as if fungible.
  */
 contract ERC1155FloorWrapper is
     IERC1155FloorWrapper,
     ERC1155MintBurn,
-    ERC1155MetadataPrefix,
+    IERC1155Metadata,
     IERC1155TokenReceiver,
-    AddressConverter
+    WrapperErrors
 {
+    bool private initialized;
+    address internal immutable factory;
+    IERC1155 public token;
+    // This contract only supports a single token id
+    uint256 public constant TOKEN_ID = 0;
+
     bool private isDepositing;
 
-    // solhint-disable-next-line no-empty-blocks
-    constructor(string memory _prefix, address _admin) ERC1155MetadataPrefix(_prefix, false, _admin) {}
+    constructor() {
+        factory = msg.sender;
+    }
+
+    function initialize(address tokenAddr) external {
+        if (initialized || msg.sender != factory) {
+            revert InvalidInitialization();
+        }
+        token = IERC1155(tokenAddr);
+        initialized = true;
+    }
 
     modifier onlyDepositing() {
         if (!isDepositing) {
@@ -47,57 +59,47 @@ contract ERC1155FloorWrapper is
 
     /**
      * Deposit and wrap ERC-1155 tokens.
-     * @param tokenAddr The address of the ERC-1155 tokens.
      * @param tokenIds The ERC-1155 token ids to deposit.
      * @param tokenAmounts The amount of each token to deposit.
      * @param recipient The recipient of the wrapped tokens.
      * @param data Data to pass to ERC-1155 receiver.
      * @notice Users must first approve this contract address on the ERC-1155 contract.
      */
-    function deposit(
-        address tokenAddr,
-        uint256[] memory tokenIds,
-        uint256[] memory tokenAmounts,
-        address recipient,
-        bytes calldata data
-    ) external {
+    function deposit(uint256[] memory tokenIds, uint256[] memory tokenAmounts, address recipient, bytes calldata data)
+        external
+    {
         isDepositing = true;
-        IERC1155(tokenAddr).safeBatchTransferFrom(msg.sender, address(this), tokenIds, tokenAmounts, "");
+        token.safeBatchTransferFrom(msg.sender, address(this), tokenIds, tokenAmounts, "");
         delete isDepositing;
 
-        emit TokensDeposited(tokenAddr, tokenIds, tokenAmounts);
+        emit TokensDeposited(tokenIds, tokenAmounts);
 
         uint256 total;
         for (uint256 i = 0; i < tokenIds.length; i++) {
             total += tokenAmounts[i];
         }
-        _mint(recipient, convertAddressToUint256(tokenAddr), total, data);
+        _mint(recipient, TOKEN_ID, total, data);
     }
 
     /**
      * Unwrap and withdraw ERC-1155 tokens.
-     * @param tokenAddr The address of the ERC-1155 tokens.
      * @param tokenIds The ERC-1155 token ids to withdraw.
      * @param tokenAmounts The amount of each token to deposit.
      * @param recipient The recipient of the unwrapped tokens.
      * @param data Data to pass to ERC-1155 receiver.
      */
-    function withdraw(
-        address tokenAddr,
-        uint256[] memory tokenIds,
-        uint256[] memory tokenAmounts,
-        address recipient,
-        bytes calldata data
-    ) external {
+    function withdraw(uint256[] memory tokenIds, uint256[] memory tokenAmounts, address recipient, bytes calldata data)
+        external
+    {
         uint256 total;
         for (uint256 i = 0; i < tokenIds.length; i++) {
             total += tokenAmounts[i];
         }
-        _burn(msg.sender, convertAddressToUint256(tokenAddr), total);
+        _burn(msg.sender, TOKEN_ID, total);
 
-        emit TokensWithdrawn(tokenAddr, tokenIds, tokenAmounts);
+        emit TokensWithdrawn(tokenIds, tokenAmounts);
 
-        IERC1155(tokenAddr).safeBatchTransferFrom(address(this), recipient, tokenIds, tokenAmounts, data);
+        token.safeBatchTransferFrom(address(this), recipient, tokenIds, tokenAmounts, data);
     }
 
     /**
@@ -125,12 +127,23 @@ contract ERC1155FloorWrapper is
     }
 
     /**
+     * A distinct Uniform Resource Identifier (URI) for a given token.
+     * @param _id The token id.
+     * @dev URIs are defined in RFC 3986.
+     * The URI MUST point to a JSON file that conforms to the "ERC-1155 Metadata URI JSON Schema".
+     * @return URI string
+     */
+    function uri(uint256 _id) external view override returns (string memory) {
+        return IDelegatedERC1155Metadata(factory).metadataProvider().uri(_id);
+    }
+
+    /**
      * Query if a contract supports an interface.
      * @param  interfaceId The interfaceId to test.
      * @return supported Whether the interfaceId is supported.
      */
     function supportsInterface(bytes4 interfaceId) public pure override(IERC165, ERC1155) returns (bool supported) {
         return interfaceId == type(IERC165).interfaceId || interfaceId == type(IERC1155).interfaceId
-            || super.supportsInterface(interfaceId);
+            || interfaceId == type(IERC1155Metadata).interfaceId || super.supportsInterface(interfaceId);
     }
 }
