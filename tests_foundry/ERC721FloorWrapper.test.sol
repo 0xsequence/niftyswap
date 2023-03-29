@@ -2,6 +2,7 @@
 pragma solidity ^0.8.4;
 
 import {ERC721FloorWrapper} from "src/contracts/wrappers/ERC721FloorWrapper.sol";
+import {ERC721FloorFactory} from "src/contracts/wrappers/ERC721FloorFactory.sol";
 import {ERC721Mock} from "src/contracts/mocks/ERC721Mock.sol";
 import {ERC1155Mock} from "src/contracts/mocks/ERC1155Mock.sol";
 import {ERC20TokenMock} from "src/contracts/mocks/ERC20TokenMock.sol";
@@ -30,7 +31,9 @@ contract ERC721FloorWrapperTest is TestHelperBase {
 
     function setUp() external {
         erc721 = new ERC721Mock();
-        wrapper = new ERC721FloorWrapper(address(erc721));
+
+        wrapper = new ERC721FloorWrapper();
+        wrapper.initialize(address(erc721));
         wrapperAddr = address(wrapper);
         wrapperTokenId = wrapper.TOKEN_ID();
 
@@ -66,6 +69,10 @@ contract ERC721FloorWrapperTest is TestHelperBase {
         assertEq(beforeERC1155UserBal + 1, wrapper.balanceOf(USER, wrapperTokenId));
         assertEq(beforeERC721WrapperBal + 1, erc721.balanceOf(wrapperAddr));
         assertEq(beforeERC721UserBal - 1, erc721.balanceOf(USER));
+    }
+
+    function test_deposit_happyPathWithFactory() public withFactoryCreatedWrapper {
+        test_deposit_happyPath();
     }
 
     function test_deposit_toRecipient() public {
@@ -234,6 +241,10 @@ contract ERC721FloorWrapperTest is TestHelperBase {
         assertEq(beforeERC721UserBal + 1, erc721.balanceOf(USER));
     }
 
+    function test_withdraw_happyPathWithFactory() public withFactoryCreatedWrapper {
+        test_withdraw_happyPath();
+    }
+
     function test_withdraw_toRecipient() external withDeposit {
         uint256 beforeERC1155UserBal = wrapper.balanceOf(USER, wrapperTokenId);
         uint256 beforeERC721WrapperBal = erc721.balanceOf(wrapperAddr);
@@ -293,7 +304,9 @@ contract ERC721FloorWrapperTest is TestHelperBase {
         vm.prank(USER);
         vm.expectEmit(true, true, true, true, wrapperAddr);
         emit TokensWithdrawn(tokenIds);
+        startMeasuringGas("Withdraw 2");
         wrapper.withdraw(tokenIds, USER, "");
+        stopMeasuringGas();
 
         assertEq(beforeERC1155UserBal - 2, wrapper.balanceOf(USER, wrapperTokenId));
         assertEq(beforeERC721WrapperBal - 2, erc721.balanceOf(wrapperAddr));
@@ -312,6 +325,22 @@ contract ERC721FloorWrapperTest is TestHelperBase {
     //
     // Helpers
     //
+    modifier withFactoryCreatedWrapper() {
+        // Recreate wrapper through factory
+        ERC721FloorFactory factory = new ERC721FloorFactory(address(this));
+        wrapper = ERC721FloorWrapper(factory.createWrapper(address(erc721)));
+        wrapperAddr = address(wrapper);
+        wrapperTokenId = wrapper.TOKEN_ID();
+
+        // Approvals
+        vm.prank(USER);
+        erc721.setApprovalForAll(wrapperAddr, true);
+        vm.prank(OPERATOR);
+        erc721.setApprovalForAll(wrapperAddr, true);
+
+        _;
+    }
+
     modifier withDeposit() {
         uint256[] memory tokenIds = new uint256[](2);
 

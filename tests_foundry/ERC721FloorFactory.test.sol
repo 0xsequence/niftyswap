@@ -43,7 +43,7 @@ contract ERC721FloorFactoryTest is TestHelperBase, IERC721FloorFactory, WrapperE
         vm.expectRevert(
             abi.encodeWithSelector(WrapperAlreadyCreated.selector, tokenAddr, factory.tokenToWrapper(tokenAddr))
         );
-        address wrapper = factory.createWrapper(tokenAddr);
+        factory.createWrapper(tokenAddr);
     }
 
     //
@@ -78,11 +78,11 @@ contract ERC721FloorFactoryTest is TestHelperBase, IERC721FloorFactory, WrapperE
     //
     // Interface overrides
     //
-    function createWrapper(address tokenAddr) external returns (address) {
+    function createWrapper(address) external pure returns (address) {
         revert UnsupportedMethod();
     }
 
-    function tokenToWrapper(address tokenAddr) external view returns (address) {
+    function tokenToWrapper(address) external pure returns (address) {
         revert UnsupportedMethod();
     }
 }
