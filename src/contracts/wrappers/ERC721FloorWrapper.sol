@@ -52,7 +52,7 @@ contract ERC721FloorWrapper is IERC721FloorWrapper, ERC1155MintBurn, IERC1155Met
      * @param data Data to pass to ERC-1155 receiver.
      * @notice Users must first approve this contract address on the ERC-721 contract.
      */
-    function deposit(uint256[] memory tokenIds, address recipient, bytes calldata data) external {
+    function deposit(uint256[] calldata tokenIds, address recipient, bytes calldata data) external {
         uint256 length = tokenIds.length;
         for (uint256 i; i < length;) {
             // Intentionally unsafe transfer
@@ -72,7 +72,7 @@ contract ERC721FloorWrapper is IERC721FloorWrapper, ERC1155MintBurn, IERC1155Met
      * @param recipient The recipient of the unwrapped tokens.
      * @param data Data to pass to ERC-1155 receiver.
      */
-    function withdraw(uint256[] memory tokenIds, address recipient, bytes calldata data) external {
+    function withdraw(uint256[] calldata tokenIds, address recipient, bytes calldata data) external {
         _burn(msg.sender, TOKEN_ID, tokenIds.length);
         emit TokensWithdrawn(tokenIds);
         uint256 length = tokenIds.length;
