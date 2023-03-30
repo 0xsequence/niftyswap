@@ -3,20 +3,19 @@ pragma solidity ^0.8.4;
 
 import {IERC721FloorFactory} from "../interfaces/IERC721FloorFactory.sol";
 import {ERC721FloorWrapper} from "../wrappers/ERC721FloorWrapper.sol";
-import {WrapperErrors} from "../utils/WrapperErrors.sol";
 import {Ownable} from "../utils/Ownable.sol";
 import {Proxy} from "../utils/Proxy.sol";
+import {WrapperProxyDeployer} from "../utils/WrapperProxyDeployer.sol";
 import {IDelegatedERC1155Metadata, IERC1155Metadata} from "../interfaces/IDelegatedERC1155Metadata.sol";
 
-contract ERC721FloorFactory is IERC721FloorFactory, Ownable, IDelegatedERC1155Metadata, WrapperErrors {
-    mapping(address => address) public override tokenToWrapper;
-    ERC721FloorWrapper private wrapperImpl;
-
-    IERC1155Metadata internal metadataContract; // address of the ERC-1155 Metadata contract
+contract ERC721FloorFactory is IERC721FloorFactory, Ownable, IDelegatedERC1155Metadata, WrapperProxyDeployer {
+    address private immutable implAddr; // Address of the wrapper implementation
+    IERC1155Metadata internal metadataContract; // Address of the ERC-1155 Metadata contract
 
     constructor(address _admin) Ownable(_admin) {
-        wrapperImpl = new ERC721FloorWrapper();
+        ERC721FloorWrapper wrapperImpl = new ERC721FloorWrapper();
         wrapperImpl.initialize(address(0));
+        implAddr = address(wrapperImpl);
     }
 
     /**
@@ -25,26 +24,23 @@ contract ERC721FloorFactory is IERC721FloorFactory, Ownable, IDelegatedERC1155Me
      * @return wrapperAddr The address of the ERC-721 Floor Wrapper
      */
     function createWrapper(address tokenAddr) external returns (address wrapperAddr) {
-        if (tokenToWrapper[tokenAddr] != address(0)) {
-            revert WrapperAlreadyCreated(tokenAddr, tokenToWrapper[tokenAddr]);
-        }
-
-        // Compute the address of the proxy contract using create2
-        bytes memory code = abi.encodePacked(type(Proxy).creationCode, uint256(uint160(address(wrapperImpl))));
-        bytes32 salt = keccak256(abi.encodePacked(tokenAddr));
-
-        // Deploy it
-        assembly {
-            wrapperAddr := create2(0, add(code, 32), mload(code), salt)
-        }
-        if (wrapperAddr == address(0)) {
-            revert WrapperCreationFailed(tokenAddr);
-        }
+        wrapperAddr = deployProxy(implAddr, tokenAddr);
         ERC721FloorWrapper(wrapperAddr).initialize(tokenAddr);
-
-        tokenToWrapper[tokenAddr] = wrapperAddr;
-
         emit NewERC721FloorWrapper(tokenAddr);
+        return wrapperAddr;
+    }
+
+    /**
+     * Return address of the ERC-721 Floor Wrapper for a given token contract
+     * @param tokenAddr The address of the ERC-721 token contract
+     * @return wrapperAddr The address of the ERC-721 Floor Wrapper
+     */
+    function tokenToWrapper(address tokenAddr) public view returns (address wrapperAddr) {
+        wrapperAddr = predictWrapperAddress(implAddr, tokenAddr);
+        if (!isContract(wrapperAddr)) {
+            return address(0);
+        }
+
         return wrapperAddr;
     }
 
