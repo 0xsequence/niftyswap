@@ -18,8 +18,6 @@ import {IERC721FloorWrapper} from "../interfaces/IERC721FloorWrapper.sol";
  * Therefore each ERC-721 within a collection can be treated as if fungible.
  */
 contract ERC721FloorWrapper is IERC721FloorWrapper, ERC1155MintBurn, IERC1155Metadata, WrapperErrors {
-    bool private initialized;
-
     IERC721 public token;
     address internal immutable factory;
     // This contract only supports a single token id
@@ -30,11 +28,10 @@ contract ERC721FloorWrapper is IERC721FloorWrapper, ERC1155MintBurn, IERC1155Met
     }
 
     function initialize(address tokenAddr) external {
-        if (initialized || msg.sender != factory) {
+        if (msg.sender != factory) {
             revert InvalidInitialization();
         }
         token = IERC721(tokenAddr);
-        initialized = true;
     }
 
     /**

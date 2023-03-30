@@ -22,7 +22,6 @@ contract ERC1155FloorWrapper is
     IERC1155TokenReceiver,
     WrapperErrors
 {
-    bool private initialized;
     address internal immutable factory;
     IERC1155 public token;
     // This contract only supports a single token id
@@ -35,11 +34,10 @@ contract ERC1155FloorWrapper is
     }
 
     function initialize(address tokenAddr) external {
-        if (initialized || msg.sender != factory) {
+        if (msg.sender != factory) {
             revert InvalidInitialization();
         }
         token = IERC1155(tokenAddr);
-        initialized = true;
     }
 
     modifier onlyDepositing() {

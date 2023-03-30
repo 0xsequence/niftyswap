@@ -14,7 +14,6 @@ contract ERC721FloorFactory is IERC721FloorFactory, Ownable, IDelegatedERC1155Me
 
     constructor(address _admin) Ownable(_admin) {
         ERC721FloorWrapper wrapperImpl = new ERC721FloorWrapper();
-        wrapperImpl.initialize(address(0));
         implAddr = address(wrapperImpl);
     }
 

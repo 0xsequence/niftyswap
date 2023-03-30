@@ -14,7 +14,6 @@ contract ERC1155FloorFactory is IERC1155FloorFactory, Ownable, IDelegatedERC1155
 
     constructor(address _admin) Ownable(_admin) {
         ERC1155FloorWrapper wrapperImpl = new ERC1155FloorWrapper();
-        wrapperImpl.initialize(address(0));
         implAddr = address(wrapperImpl);
     }
 
