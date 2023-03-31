@@ -5,6 +5,15 @@ export const HIGH_GAS_LIMIT = { gasLimit: 6_000_000 }
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 import { BuyTokensObj, SellTokensObj, AddLiquidityObj, RemoveLiquidityObj, SellTokensObj20 } from 'src/typings/tx-types'
+import {
+  MethodSignature,
+  MethodSignature20,
+  BuyTokensType,
+  SellTokensType,
+  SellTokens20Type,
+  AddLiquidityType,
+  RemoveLiquidityType
+} from '../../src/utils/constants'
 
 // createTestWallet creates a new wallet
 export const createTestWallet = (web3, addressIndex = 0) => {
@@ -37,52 +46,6 @@ export const OpCodeError = () => RegExp('^VM Exception while processing transact
 export const ArrayAccessError = () => /Array accessed at an out-of-bounds or negative index/
 export const RevertUnsafeMathError = () => /Arithmetic operation .*flowed/
 
-export const methodsSignature = {
-  BUYTOKENS: '0xb2d81047',
-  SELLTOKENS: '0xdb08ec97',
-  ADDLIQUIDITY: '0x82da2b73',
-  REMOVELIQUIDITY: '0x5c0bf259'
-}
-
-export const methodsSignature20 = {
-  BUYTOKENS: '0xb2d81047',
-  SELLTOKENS: '0xade79c7a',
-  ADDLIQUIDITY: '0x82da2b73',
-  REMOVELIQUIDITY: '0x5c0bf259'
-}
-
-export const BuyTokensType = `tuple(
-  address recipient,
-  uint256[] tokensBoughtIDs,
-  uint256[] tokensBoughtAmounts,
-  uint256 deadline
-)`
-
-export const SellTokensType = `tuple(
-  address recipient,
-  uint256 minBaseTokens,
-  uint256 deadline
-)`
-
-export const SellTokens20Type = `tuple(
-  address recipient,
-  uint256 minCurrency,
-  address[] extraFeeRecipients,
-  uint256[] extraFeeAmounts,
-  uint256 deadline
-)`
-
-export const AddLiquidityType = `tuple(
-  uint256[] maxCurrency,
-  uint256 deadline
-)`
-
-export const RemoveLiquidityType = `tuple(
-  uint256[] minCurrency,
-  uint256[] minTokens,
-  uint256 deadline
-)`
-
 export interface JSONRPCRequest {
   jsonrpc: string
   id: number
@@ -103,7 +66,7 @@ export const getBuyTokenData = (
     deadline: deadline
   } as BuyTokensObj
 
-  return ethers.utils.defaultAbiCoder.encode(['bytes4', BuyTokensType], [methodsSignature.BUYTOKENS, buyTokenObj])
+  return ethers.utils.defaultAbiCoder.encode(['bytes4', BuyTokensType], [MethodSignature.BUYTOKENS, buyTokenObj])
 }
 
 export const getSellTokenData = (recipient: string, cost: BigNumber, deadline: number) => {
@@ -113,7 +76,7 @@ export const getSellTokenData = (recipient: string, cost: BigNumber, deadline: n
     deadline: deadline
   } as SellTokensObj
 
-  return ethers.utils.defaultAbiCoder.encode(['bytes4', SellTokensType], [methodsSignature.SELLTOKENS, sellTokenObj])
+  return ethers.utils.defaultAbiCoder.encode(['bytes4', SellTokensType], [MethodSignature.SELLTOKENS, sellTokenObj])
 }
 
 // Buy and sell data for ERC-20 exchange
@@ -132,13 +95,13 @@ export const getSellTokenData20 = (
     deadline: deadline
   } as SellTokensObj20
 
-  return ethers.utils.defaultAbiCoder.encode(['bytes4', SellTokens20Type], [methodsSignature20.SELLTOKENS, sellTokenObj])
+  return ethers.utils.defaultAbiCoder.encode(['bytes4', SellTokens20Type], [MethodSignature20.SELLTOKENS, sellTokenObj])
 }
 
 export const getAddLiquidityData = (maxCurrency: BigNumber[], deadline: number) => {
   const addLiquidityObj = { maxCurrency, deadline } as AddLiquidityObj
 
-  return ethers.utils.defaultAbiCoder.encode(['bytes4', AddLiquidityType], [methodsSignature20.ADDLIQUIDITY, addLiquidityObj])
+  return ethers.utils.defaultAbiCoder.encode(['bytes4', AddLiquidityType], [MethodSignature20.ADDLIQUIDITY, addLiquidityObj])
 }
 
 export const getRemoveLiquidityData = (minCurrency: BigNumber[], minTokens: BigNumber[], deadline: number) => {
@@ -146,7 +109,7 @@ export const getRemoveLiquidityData = (minCurrency: BigNumber[], minTokens: BigN
 
   return ethers.utils.defaultAbiCoder.encode(
     ['bytes4', RemoveLiquidityType],
-    [methodsSignature20.REMOVELIQUIDITY, removeLiquidityObj]
+    [MethodSignature20.REMOVELIQUIDITY, removeLiquidityObj]
   )
 }
 
