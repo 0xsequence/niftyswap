@@ -13,7 +13,7 @@ interface IWrapAndNiftyswap {
 
     /**
      * @notice Accepts only tokenWrapper tokens
-     * @return `bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"))`
+     * @return `bytes4(keccak256("onERC1155Received(address,address,uint256[],uint256[],bytes)"))`
      */
     function onERC1155Received(address _operator, address _from, uint256 _id, uint256 _amount, bytes calldata _data)
         external
