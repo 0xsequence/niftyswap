@@ -59,7 +59,7 @@ contract ERC721FloorWrapper is IERC721FloorWrapper, ERC1155MintBurn, IERC1155Met
             token.transferFrom(msg.sender, address(this), tokenIds[i]);
             unchecked {
                 // Can never overflow
-                ++i;
+                i++;
             }
         }
         emit TokensDeposited(tokenIds);
@@ -80,7 +80,7 @@ contract ERC721FloorWrapper is IERC721FloorWrapper, ERC1155MintBurn, IERC1155Met
             token.safeTransferFrom(address(this), recipient, tokenIds[i], data);
             unchecked {
                 // Can never overflow
-                ++i;
+                i++;
             }
         }
     }

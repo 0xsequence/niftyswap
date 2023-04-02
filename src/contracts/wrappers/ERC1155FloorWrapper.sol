@@ -76,8 +76,13 @@ contract ERC1155FloorWrapper is
         emit TokensDeposited(tokenIds, tokenAmounts);
 
         uint256 total;
-        for (uint256 i = 0; i < tokenIds.length; i++) {
+        uint256 length = tokenIds.length;
+        for (uint256 i; i < length;) {
             total += tokenAmounts[i];
+            unchecked {
+                // Can never overflow
+                i++;
+            }
         }
         _mint(recipient, TOKEN_ID, total, data);
     }
@@ -96,8 +101,12 @@ contract ERC1155FloorWrapper is
         bytes calldata data
     ) external {
         uint256 total;
-        for (uint256 i = 0; i < tokenIds.length; i++) {
+        uint256 length = tokenIds.length;
+        for (uint256 i; i < length;) {
             total += tokenAmounts[i];
+            unchecked {
+                i++;
+            }
         }
         _burn(msg.sender, TOKEN_ID, total);
 
