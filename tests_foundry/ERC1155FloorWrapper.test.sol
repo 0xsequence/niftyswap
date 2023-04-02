@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.4;
 
-import {ERC1155FloorWrapper} from "src/contracts/wrappers/ERC1155FloorWrapper.sol";
+import {IERC1155FloorWrapper, ERC1155FloorWrapper} from "src/contracts/wrappers/ERC1155FloorWrapper.sol";
 import {ERC1155FloorFactory} from "src/contracts/wrappers/ERC1155FloorFactory.sol";
 import {ERC1155Mock} from "src/contracts/mocks/ERC1155Mock.sol";
 import {ERC20TokenMock} from "src/contracts/mocks/ERC20TokenMock.sol";
@@ -50,12 +50,6 @@ contract ERC1155FloorWrapperTest is TestHelperBase, WrapperErrors {
         tokenAmounts[2] = 5;
         erc1155.batchMintMock(USER, tokenIds, tokenAmounts, "");
         erc1155.batchMintMock(OPERATOR, tokenIds, tokenAmounts, "");
-
-        // Approvals
-        vm.prank(USER);
-        erc1155.setApprovalForAll(wrapperAddr, true);
-        vm.prank(OPERATOR);
-        erc1155.setApprovalForAll(wrapperAddr, true);
     }
 
     //
@@ -93,7 +87,7 @@ contract ERC1155FloorWrapperTest is TestHelperBase, WrapperErrors {
         vm.prank(USER);
         vm.expectEmit(true, true, true, true, wrapperAddr);
         emit TokensDeposited(tokenIds, tokenAmounts);
-        wrapper.deposit(tokenIds, tokenAmounts, USER, "");
+        erc1155.safeBatchTransferFrom(USER, wrapperAddr, tokenIds, tokenAmounts, encodeDepositRequest(USER, ""));
 
         assertEq(beforeWrapperUserBal + 1, wrapper.balanceOf(USER, wrapperTokenId));
         assertEq(beforeERC1155WrapperBal + 1, erc1155.balanceOf(wrapperAddr, 0));
@@ -117,7 +111,7 @@ contract ERC1155FloorWrapperTest is TestHelperBase, WrapperErrors {
         vm.prank(USER);
         vm.expectEmit(true, true, true, true, wrapperAddr);
         emit TokensDeposited(tokenIds, tokenAmounts);
-        wrapper.deposit(tokenIds, tokenAmounts, OPERATOR, "");
+        erc1155.safeBatchTransferFrom(USER, wrapperAddr, tokenIds, tokenAmounts, encodeDepositRequest(OPERATOR, ""));
 
         assertEq(beforeWrapperOperatorBal + 1, wrapper.balanceOf(OPERATOR, wrapperTokenId));
         assertEq(beforeERC1155WrapperBal + 1, erc1155.balanceOf(wrapperAddr, 0));
@@ -142,7 +136,7 @@ contract ERC1155FloorWrapperTest is TestHelperBase, WrapperErrors {
         vm.prank(USER);
         vm.expectEmit(true, true, true, true, wrapperAddr);
         emit TokensDeposited(tokenIds, tokenAmounts);
-        wrapper.deposit(tokenIds, tokenAmounts, USER, "");
+        erc1155.safeTransferFrom(USER, wrapperAddr, 0, 2, encodeDepositRequest(USER, ""));
 
         assertEq(beforeWrapperUserBal + 2, wrapper.balanceOf(USER, wrapperTokenId));
         assertEq(beforeERC1155WrapperBal + 2, erc1155.balanceOf(wrapperAddr, 0));
@@ -166,26 +160,13 @@ contract ERC1155FloorWrapperTest is TestHelperBase, WrapperErrors {
         vm.prank(USER);
         vm.expectEmit(true, true, true, true, wrapperAddr);
         emit TokensDeposited(tokenIds, tokenAmounts);
-        wrapper.deposit(tokenIds, tokenAmounts, USER, "");
+        erc1155.safeBatchTransferFrom(USER, wrapperAddr, tokenIds, tokenAmounts, encodeDepositRequest(USER, ""));
 
         assertEq(beforeWrapperUserBal + 2, wrapper.balanceOf(USER, wrapperTokenId));
         assertEq(beforeERC1155WrapperBal0 + 1, erc1155.balanceOf(wrapperAddr, 0));
         assertEq(beforeERC1155UserBal0 - 1, erc1155.balanceOf(USER, 0));
         assertEq(beforeERC1155WrapperBal1 + 1, erc1155.balanceOf(wrapperAddr, 1));
         assertEq(beforeERC1155UserBal1 - 1, erc1155.balanceOf(USER, 1));
-    }
-
-    function test_deposit_wrongOwner() external {
-        uint256[] memory tokenIds = new uint256[](2);
-        tokenIds[0] = 0;
-        tokenIds[1] = 5;
-        uint256[] memory tokenAmounts = new uint256[](2);
-        tokenAmounts[0] = 1;
-        tokenAmounts[1] = 1;
-
-        vm.prank(USER);
-        vm.expectRevert(stdError.arithmeticError);
-        wrapper.deposit(tokenIds, tokenAmounts, USER, "");
     }
 
     function test_deposit_andSell() public withDeposit {
@@ -214,8 +195,12 @@ contract ERC1155FloorWrapperTest is TestHelperBase, WrapperErrors {
         uint256[] memory tokenIds = new uint256[](1);
         tokenIds[0] = 0;
         vm.prank(USER);
-        wrapper.deposit(
-            tokenIds, sellAmounts, exchangeAddr, NiftyswapTestHelper.encodeSellTokens(USER, prices[0], block.timestamp)
+        erc1155.safeBatchTransferFrom(
+            USER,
+            wrapperAddr,
+            tokenIds,
+            sellAmounts,
+            encodeDepositRequest(exchangeAddr, NiftyswapTestHelper.encodeSellTokens(USER, prices[0], block.timestamp))
         );
 
         // After bals
@@ -251,11 +236,17 @@ contract ERC1155FloorWrapperTest is TestHelperBase, WrapperErrors {
         uint256[] memory tokenIds = new uint256[](1);
         tokenIds[0] = 0;
         vm.prank(USER);
-        wrapper.deposit(
+        erc1155.safeBatchTransferFrom(
+            USER,
+            wrapperAddr,
             tokenIds,
             sellAmounts,
-            exchangeAddr,
-            Niftyswap20TestHelper.encodeSellTokens(USER, prices[0], new address[](0), new uint256[](0), block.timestamp)
+            encodeDepositRequest(
+                exchangeAddr,
+                Niftyswap20TestHelper.encodeSellTokens(
+                    USER, prices[0], new address[](0), new uint256[](0), block.timestamp
+                )
+            )
         );
 
         // After bals
@@ -263,6 +254,28 @@ contract ERC1155FloorWrapperTest is TestHelperBase, WrapperErrors {
         assertEq(beforeERC1155WrapperBal + 2, erc1155.balanceOf(wrapperAddr, 0));
         assertEq(beforeERC1155UserBal - 2, erc1155.balanceOf(USER, 0));
         assertEq(beforeCurrencyUserBal + prices[0], currency.balanceOf(USER));
+    }
+
+    function test_deposit_invalidData() public {
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = 0;
+        uint256[] memory tokenAmounts = new uint256[](1);
+        tokenAmounts[0] = 1;
+
+        vm.prank(USER);
+        vm.expectRevert();
+        erc1155.safeBatchTransferFrom(USER, wrapperAddr, tokenIds, tokenAmounts, "");
+    }
+
+    function test_deposit_invalidRecipient() public {
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = 0;
+        uint256[] memory tokenAmounts = new uint256[](1);
+        tokenAmounts[0] = 1;
+
+        vm.prank(USER);
+        vm.expectRevert(InvalidDepositRequest.selector);
+        erc1155.safeBatchTransferFrom(USER, wrapperAddr, tokenIds, tokenAmounts, encodeDepositRequest(address(0), ""));
     }
 
     //
@@ -281,7 +294,7 @@ contract ERC1155FloorWrapperTest is TestHelperBase, WrapperErrors {
         vm.prank(USER);
         vm.expectEmit(true, true, true, true, wrapperAddr);
         emit TokensWithdrawn(tokenIds, tokenAmounts);
-        wrapper.withdraw(tokenIds, tokenAmounts, USER, "");
+        wrapper.safeTransferFrom(USER, wrapperAddr, 0, 1, encodeWithdrawRequest(tokenIds, tokenAmounts, USER, ""));
 
         assertEq(beforeWrapperUserBal - 1, wrapper.balanceOf(USER, wrapperTokenId));
         assertEq(beforeERC1155WrapperBal - 1, erc1155.balanceOf(wrapperAddr, 0));
@@ -305,7 +318,7 @@ contract ERC1155FloorWrapperTest is TestHelperBase, WrapperErrors {
         vm.prank(USER);
         vm.expectEmit(true, true, true, true, wrapperAddr);
         emit TokensWithdrawn(tokenIds, tokenAmounts);
-        wrapper.withdraw(tokenIds, tokenAmounts, OPERATOR, "");
+        wrapper.safeTransferFrom(USER, wrapperAddr, 0, 1, encodeWithdrawRequest(tokenIds, tokenAmounts, OPERATOR, ""));
 
         assertEq(beforeWrapperUserBal - 1, wrapper.balanceOf(USER, wrapperTokenId));
         assertEq(beforeERC1155WrapperBal - 1, erc1155.balanceOf(wrapperAddr, 0));
@@ -320,7 +333,7 @@ contract ERC1155FloorWrapperTest is TestHelperBase, WrapperErrors {
 
         vm.prank(USER);
         vm.expectRevert(stdError.arithmeticError);
-        wrapper.withdraw(tokenIds, tokenAmounts, USER, "");
+        wrapper.safeTransferFrom(USER, wrapperAddr, 0, 1, encodeWithdrawRequest(tokenIds, tokenAmounts, USER, ""));
     }
 
     function test_withdraw_twice() external {
@@ -338,7 +351,7 @@ contract ERC1155FloorWrapperTest is TestHelperBase, WrapperErrors {
         vm.prank(USER);
         vm.expectEmit(true, true, true, true, wrapperAddr);
         emit TokensWithdrawn(tokenIds, tokenAmounts);
-        wrapper.withdraw(tokenIds, tokenAmounts, OPERATOR, "");
+        wrapper.safeTransferFrom(USER, wrapperAddr, 0, 1, encodeWithdrawRequest(tokenIds, tokenAmounts, OPERATOR, ""));
 
         assertEq(beforeWrapperUserBal - 1, wrapper.balanceOf(USER, wrapperTokenId));
         assertEq(beforeERC1155WrapperBal - 1, erc1155.balanceOf(wrapperAddr, 0));
@@ -358,7 +371,7 @@ contract ERC1155FloorWrapperTest is TestHelperBase, WrapperErrors {
         vm.prank(USER);
         vm.expectEmit(true, true, true, true, wrapperAddr);
         emit TokensWithdrawn(tokenIds, tokenAmounts);
-        wrapper.withdraw(tokenIds, tokenAmounts, USER, "");
+        wrapper.safeTransferFrom(USER, wrapperAddr, 0, 2, encodeWithdrawRequest(tokenIds, tokenAmounts, USER, ""));
 
         assertEq(beforeWrapperUserBal - 2, wrapper.balanceOf(USER, wrapperTokenId));
         assertEq(beforeERC1155WrapperBal - 2, erc1155.balanceOf(wrapperAddr, 0));
@@ -382,7 +395,7 @@ contract ERC1155FloorWrapperTest is TestHelperBase, WrapperErrors {
         vm.prank(USER);
         vm.expectEmit(true, true, true, true, wrapperAddr);
         emit TokensWithdrawn(tokenIds, tokenAmounts);
-        wrapper.withdraw(tokenIds, tokenAmounts, USER, "");
+        wrapper.safeTransferFrom(USER, wrapperAddr, 0, 2, encodeWithdrawRequest(tokenIds, tokenAmounts, USER, ""));
 
         assertEq(beforeWrapperUserBal - 2, wrapper.balanceOf(USER, wrapperTokenId));
         assertEq(beforeERC1155WrapperBal0 - 1, erc1155.balanceOf(wrapperAddr, 0));
@@ -391,7 +404,35 @@ contract ERC1155FloorWrapperTest is TestHelperBase, WrapperErrors {
         assertEq(beforeERC1155UserBal1 + 1, erc1155.balanceOf(USER, 1));
     }
 
-    function test_withdraw_invalidTokenAddr() external {
+    function test_withdraw_invalidAmount() external withDeposit {
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = 0;
+        uint256[] memory tokenAmounts = new uint256[](1);
+        tokenAmounts[0] = 2;
+
+        // Too few
+        vm.prank(USER);
+        vm.expectRevert(InvalidWithdrawRequest.selector);
+        wrapper.safeTransferFrom(USER, wrapperAddr, 0, 1, encodeWithdrawRequest(tokenIds, tokenAmounts, USER, ""));
+
+        // Too many
+        vm.prank(USER);
+        vm.expectRevert(InvalidWithdrawRequest.selector);
+        wrapper.safeTransferFrom(USER, wrapperAddr, 0, 3, encodeWithdrawRequest(tokenIds, tokenAmounts, USER, ""));
+    }
+
+    function test_withdraw_insufficientBalance() external {
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = 0;
+        uint256[] memory tokenAmounts = new uint256[](1);
+        tokenAmounts[0] = 6;
+
+        vm.prank(USER);
+        vm.expectRevert(stdError.arithmeticError);
+        wrapper.safeTransferFrom(USER, wrapperAddr, 0, 6, encodeWithdrawRequest(tokenIds, tokenAmounts, USER, ""));
+    }
+
+    function test_withdraw_invalidData() public {
         uint256[] memory tokenIds = new uint256[](1);
         tokenIds[0] = 0;
         uint256[] memory tokenAmounts = new uint256[](1);
@@ -399,24 +440,30 @@ contract ERC1155FloorWrapperTest is TestHelperBase, WrapperErrors {
 
         vm.prank(USER);
         vm.expectRevert();
-        wrapper.withdraw(tokenIds, tokenAmounts, USER, "");
+        wrapper.safeBatchTransferFrom(USER, wrapperAddr, tokenIds, tokenAmounts, "");
     }
 
-    function test_withdraw_insufficientBalance() external {
+    function test_withdraw_invalidReceiver() public {
         uint256[] memory tokenIds = new uint256[](1);
         tokenIds[0] = 0;
         uint256[] memory tokenAmounts = new uint256[](1);
         tokenAmounts[0] = 1;
 
         vm.prank(USER);
-        vm.expectRevert(stdError.arithmeticError);
-        wrapper.withdraw(tokenIds, tokenAmounts, USER, "");
+        vm.expectRevert();
+        wrapper.safeBatchTransferFrom(
+            USER, wrapperAddr, tokenIds, tokenAmounts, encodeWithdrawRequest(tokenIds, tokenAmounts, address(0), "")
+        );
     }
 
     //
     // Transfers
     //
     function test_transfers_invalidTransfer() external {
+        // New token
+        erc1155 = new ERC1155Mock();
+        erc1155.mintMock(USER, 0, 5, "");
+
         vm.prank(USER);
         vm.expectRevert(InvalidERC1155Received.selector);
         erc1155.safeTransferFrom(USER, wrapperAddr, 0, 1, "");
@@ -432,12 +479,6 @@ contract ERC1155FloorWrapperTest is TestHelperBase, WrapperErrors {
         wrapperAddr = address(wrapper);
         wrapperTokenId = wrapper.TOKEN_ID();
 
-        // Approvals
-        vm.prank(USER);
-        erc1155.setApprovalForAll(wrapperAddr, true);
-        vm.prank(OPERATOR);
-        erc1155.setApprovalForAll(wrapperAddr, true);
-
         _;
     }
 
@@ -450,9 +491,9 @@ contract ERC1155FloorWrapperTest is TestHelperBase, WrapperErrors {
         tokenAmounts[1] = 2;
 
         vm.prank(USER);
-        wrapper.deposit(tokenIds, tokenAmounts, USER, "");
+        erc1155.safeBatchTransferFrom(USER, wrapperAddr, tokenIds, tokenAmounts, encodeDepositRequest(USER, ""));
         vm.prank(OPERATOR);
-        wrapper.deposit(tokenIds, tokenAmounts, OPERATOR, "");
+        erc1155.safeBatchTransferFrom(OPERATOR, wrapperAddr, tokenIds, tokenAmounts, encodeDepositRequest(OPERATOR, ""));
 
         _;
     }
@@ -508,6 +549,19 @@ contract ERC1155FloorWrapperTest is TestHelperBase, WrapperErrors {
             tokensToAdd,
             Niftyswap20TestHelper.encodeAddLiquidity(currencyToAdd, block.timestamp)
         );
+    }
+
+    function encodeDepositRequest(address recipient, bytes memory data) private pure returns (bytes memory) {
+        return abi.encode(IERC1155FloorWrapper.DepositRequestObj(recipient, data));
+    }
+
+    function encodeWithdrawRequest(
+        uint256[] memory tokenIds,
+        uint256[] memory tokenAmounts,
+        address recipient,
+        bytes memory data
+    ) private pure returns (bytes memory) {
+        return abi.encode(IERC1155FloorWrapper.WithdrawRequestObj(tokenIds, tokenAmounts, recipient, data));
     }
 
     /**

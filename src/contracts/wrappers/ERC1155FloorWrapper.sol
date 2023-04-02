@@ -3,10 +3,9 @@ pragma solidity ^0.8.4;
 
 import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 import {IERC1155} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
-import {IERC1155TokenReceiver} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155TokenReceiver.sol";
 import {ERC1155} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155.sol";
 import {ERC1155MintBurn} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC1155MintBurn.sol";
-import {IERC1155FloorWrapper} from "../interfaces/IERC1155FloorWrapper.sol";
+import {IERC1155FloorWrapper, IERC1155TokenReceiver} from "../interfaces/IERC1155FloorWrapper.sol";
 import {IERC1155Metadata} from "../interfaces/IERC1155Metadata.sol";
 import {IDelegatedERC1155Metadata} from "../interfaces/IDelegatedERC1155Metadata.sol";
 import {WrapperErrors} from "../utils/WrapperErrors.sol";
@@ -15,37 +14,21 @@ import {WrapperErrors} from "../utils/WrapperErrors.sol";
  * @notice Allows users to wrap any amount of a ERC-1155 token with a 1:1 ratio.
  * Therefore each ERC-1155 within a collection can be treated as if fungible.
  */
-contract ERC1155FloorWrapper is
-    IERC1155FloorWrapper,
-    ERC1155MintBurn,
-    IERC1155Metadata,
-    IERC1155TokenReceiver,
-    WrapperErrors
-{
+contract ERC1155FloorWrapper is IERC1155FloorWrapper, ERC1155MintBurn, IERC1155Metadata, WrapperErrors {
     address internal immutable factory;
-    IERC1155 public token;
+    address public tokenAddr;
     // This contract only supports a single token id
     uint256 public constant TOKEN_ID = 0;
-
-    bool private isDepositing;
 
     constructor() {
         factory = msg.sender;
     }
 
-    function initialize(address tokenAddr) external {
-        if (msg.sender != factory || address(token) != address(0)) {
+    function initialize(address _tokenAddr) external {
+        if (msg.sender != factory || tokenAddr != address(0)) {
             revert InvalidInitialization();
         }
-        token = IERC1155(tokenAddr);
-    }
-
-    modifier onlyDepositing() {
-        if (!isDepositing) {
-            revert InvalidERC1155Received();
-        }
-        delete isDepositing;
-        _;
+        tokenAddr = _tokenAddr;
     }
 
     /**
@@ -56,23 +39,75 @@ contract ERC1155FloorWrapper is
     }
 
     /**
-     * Deposit and wrap ERC-1155 tokens.
-     * @param tokenIds The ERC-1155 token ids to deposit.
-     * @param tokenAmounts The amount of each token to deposit.
-     * @param recipient The recipient of the wrapped tokens.
-     * @param data Data to pass to ERC-1155 receiver.
-     * @notice Users must first approve this contract address on the ERC-1155 contract.
+     * Accepts ERC-1155 tokens to wrap and wrapped ERC-1155 tokens to unwrap.
+     * @param id The ID of the token being transferred.
+     * @param amount The amount of tokens being transferred.
+     * @param data Additional data formatted as DepositRequestObj or WithdrawRequestObj.
+     * @return `bytes4(keccak256("onERC1155Received(address,address,uint256[],uint256[],bytes)"))`
      */
-    function deposit(
-        uint256[] calldata tokenIds,
-        uint256[] calldata tokenAmounts,
-        address recipient,
-        bytes calldata data
-    ) external {
-        isDepositing = true;
-        token.safeBatchTransferFrom(msg.sender, address(this), tokenIds, tokenAmounts, "");
-        delete isDepositing;
+    function onERC1155Received(address, address, uint256 id, uint256 amount, bytes calldata data)
+        external
+        returns (bytes4)
+    {
+        if (msg.sender == tokenAddr) {
+            // Deposit
+            uint256[] memory ids = new uint256[](1);
+            ids[0] = id;
+            uint256[] memory amounts = new uint256[](1);
+            amounts[0] = amount;
+            _deposit(ids, amounts, data);
+        } else if (msg.sender == address(this)) {
+            // Withdraw
+            _withdraw(amount, data);
+        } else {
+            revert InvalidERC1155Received();
+        }
 
+        return IERC1155TokenReceiver.onERC1155Received.selector;
+    }
+
+    /**
+     * Accepts ERC-1155 tokens to wrap and wrapped ERC-1155 tokens to unwrap.
+     * @param ids The IDs of the tokens being transferred.
+     * @param amounts The amounts of tokens being transferred.
+     * @param data Additional data formatted as DepositRequestObj or WithdrawRequestObj.
+     * @return `bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"))`
+     */
+    function onERC1155BatchReceived(
+        address,
+        address,
+        uint256[] calldata ids,
+        uint256[] calldata amounts,
+        bytes calldata data
+    ) public returns (bytes4) {
+        if (msg.sender == tokenAddr) {
+            // Deposit
+            _deposit(ids, amounts, data);
+        } else if (msg.sender == address(this)) {
+            // Withdraw
+            if (ids.length != 1) {
+                revert InvalidERC1155Received();
+            }
+            // Either ids[0] == TOKEN_ID or amounts[0] == 0
+            _withdraw(amounts[0], data);
+        } else {
+            revert InvalidERC1155Received();
+        }
+
+        return IERC1155TokenReceiver.onERC1155BatchReceived.selector;
+    }
+
+    /**
+     * Wrap deposited ERC-1155 tokens.
+     * @param tokenIds The ERC-1155 token ids deposited.
+     * @param tokenAmounts The amount of each token deposited.
+     * @param data Data received during deposit.
+     */
+    function _deposit(
+        uint256[] memory tokenIds, //FIXME Use calldata with _depositBatch
+        uint256[] memory tokenAmounts, //FIXME Use calldata with _depositBatch
+        bytes calldata data
+    ) private {
         emit TokensDeposited(tokenIds, tokenAmounts);
 
         uint256 total;
@@ -84,59 +119,49 @@ contract ERC1155FloorWrapper is
                 i++;
             }
         }
-        _mint(recipient, TOKEN_ID, total, data);
+
+        DepositRequestObj memory obj;
+        (obj) = abi.decode(data, (DepositRequestObj));
+        if (obj.recipient == address(0)) {
+            // Don't allow deposits to the zero address
+            revert InvalidDepositRequest();
+        }
+
+        _mint(obj.recipient, TOKEN_ID, total, obj.data);
     }
 
     /**
-     * Unwrap and withdraw ERC-1155 tokens.
-     * @param tokenIds The ERC-1155 token ids to withdraw.
-     * @param tokenAmounts The amount of each token to deposit.
-     * @param recipient The recipient of the unwrapped tokens.
-     * @param data Data to pass to ERC-1155 receiver.
+     * Unwrap withdrawn ERC-1155 tokens.
+     * @param amount The amount of wrapped tokens received for withdraw.
+     * @param data Data received during unwrap ERC-1155 receiver request.
      */
-    function withdraw(
-        uint256[] calldata tokenIds,
-        uint256[] calldata tokenAmounts,
-        address recipient,
-        bytes calldata data
-    ) external {
+    function _withdraw(uint256 amount, bytes calldata data) private {
+        _burn(address(this), TOKEN_ID, amount);
+
+        WithdrawRequestObj memory obj;
+        (obj) = abi.decode(data, (WithdrawRequestObj));
+        if (obj.recipient == address(0)) {
+            // Don't allow withdraws to the zero address
+            revert InvalidWithdrawRequest();
+        }
+
         uint256 total;
-        uint256 length = tokenIds.length;
+        uint256 length = obj.tokenAmounts.length;
         for (uint256 i; i < length;) {
-            total += tokenAmounts[i];
+            total += obj.tokenAmounts[i];
             unchecked {
                 i++;
             }
         }
-        _burn(msg.sender, TOKEN_ID, total);
 
-        emit TokensWithdrawn(tokenIds, tokenAmounts);
+        if (total != amount) {
+            revert InvalidWithdrawRequest();
+        }
 
-        token.safeBatchTransferFrom(address(this), recipient, tokenIds, tokenAmounts, data);
-    }
-
-    /**
-     * Handle the receipt of a single ERC-1155 token type.
-     * @dev This function can only be called when deposits are in progress.
-     */
-    function onERC1155Received(address, address, uint256, uint256, bytes calldata)
-        external
-        onlyDepositing
-        returns (bytes4)
-    {
-        return IERC1155TokenReceiver.onERC1155BatchReceived.selector;
-    }
-
-    /**
-     * Handle the receipt of multiple ERC-1155 token types.
-     * @dev This function can only be called when deposits are in progress.
-     */
-    function onERC1155BatchReceived(address, address, uint256[] calldata, uint256[] calldata, bytes calldata)
-        external
-        onlyDepositing
-        returns (bytes4)
-    {
-        return IERC1155TokenReceiver.onERC1155BatchReceived.selector;
+        IERC1155(tokenAddr).safeBatchTransferFrom(
+            address(this), obj.recipient, obj.tokenIds, obj.tokenAmounts, obj.data
+        );
+        emit TokensWithdrawn(obj.tokenIds, obj.tokenAmounts);
     }
 
     /**
@@ -157,6 +182,7 @@ contract ERC1155FloorWrapper is
      */
     function supportsInterface(bytes4 interfaceId) public pure override(IERC165, ERC1155) returns (bool supported) {
         return interfaceId == type(IERC165).interfaceId || interfaceId == type(IERC1155).interfaceId
-            || interfaceId == type(IERC1155Metadata).interfaceId || super.supportsInterface(interfaceId);
+            || interfaceId == type(IERC1155Metadata).interfaceId || interfaceId == type(IERC1155FloorWrapper).interfaceId
+            || super.supportsInterface(interfaceId);
     }
 }

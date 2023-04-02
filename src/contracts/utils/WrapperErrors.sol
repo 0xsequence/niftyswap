@@ -11,6 +11,8 @@ abstract contract WrapperErrors {
 
     // ERC1155
     error InvalidERC1155Received();
+    error InvalidDepositRequest();
+    error InvalidWithdrawRequest();
 
     // General
     error UnsupportedMethod();
