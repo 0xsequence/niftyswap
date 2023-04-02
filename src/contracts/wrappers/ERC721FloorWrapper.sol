@@ -28,7 +28,7 @@ contract ERC721FloorWrapper is IERC721FloorWrapper, ERC1155MintBurn, IERC1155Met
     }
 
     function initialize(address tokenAddr) external {
-        if (msg.sender != factory) {
+        if (msg.sender != factory || address(token) != address(0)) {
             revert InvalidInitialization();
         }
         token = IERC721(tokenAddr);

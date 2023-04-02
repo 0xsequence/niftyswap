@@ -10,6 +10,7 @@ import {INiftyswapExchange} from "src/contracts/interfaces/INiftyswapExchange.so
 import {INiftyswapExchange20} from "src/contracts/interfaces/INiftyswapExchange20.sol";
 import {NiftyswapFactory} from "src/contracts/exchange/NiftyswapFactory.sol";
 import {NiftyswapFactory20} from "src/contracts/exchange/NiftyswapFactory20.sol";
+import {WrapperErrors} from "src/contracts/utils/WrapperErrors.sol";
 
 import {USER, OPERATOR} from "./utils/Constants.test.sol";
 import {NiftyswapTestHelper} from "./utils/NiftyswapTestHelper.test.sol";
@@ -19,7 +20,7 @@ import {TestHelperBase} from "./utils/TestHelperBase.test.sol";
 import {console} from "forge-std/Test.sol";
 import {stdError} from "forge-std/StdError.sol";
 
-contract ERC721FloorWrapperTest is TestHelperBase {
+contract ERC721FloorWrapperTest is TestHelperBase, WrapperErrors {
     // Redeclare events
     event TokensDeposited(uint256[] tokenIds);
     event TokensWithdrawn(uint256[] tokenIds);
@@ -46,6 +47,25 @@ contract ERC721FloorWrapperTest is TestHelperBase {
         erc721.setApprovalForAll(wrapperAddr, true);
         vm.prank(OPERATOR);
         erc721.setApprovalForAll(wrapperAddr, true);
+    }
+
+    //
+    // Initialization
+    //
+    function test_initialize_invalid() public {
+        wrapper = new ERC721FloorWrapper();
+
+        // Invalid caller
+        vm.expectRevert(InvalidInitialization.selector);
+        vm.prank(USER);
+        wrapper.initialize(address(erc721));
+
+        // Correct
+        wrapper.initialize(address(erc721));
+
+        // Already init
+        vm.expectRevert(InvalidInitialization.selector);
+        wrapper.initialize(address(erc721));
     }
 
     //

@@ -59,6 +59,25 @@ contract ERC1155FloorWrapperTest is TestHelperBase, WrapperErrors {
     }
 
     //
+    // Initialization
+    //
+    function test_initialize_invalid() public {
+        wrapper = new ERC1155FloorWrapper();
+
+        // Invalid caller
+        vm.expectRevert(InvalidInitialization.selector);
+        vm.prank(USER);
+        wrapper.initialize(address(erc1155));
+
+        // Correct
+        wrapper.initialize(address(erc1155));
+
+        // Already init
+        vm.expectRevert(InvalidInitialization.selector);
+        wrapper.initialize(address(erc1155));
+    }
+
+    //
     // Deposit
     //
     function test_deposit_happyPath() public {

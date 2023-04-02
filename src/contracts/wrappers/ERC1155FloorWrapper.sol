@@ -34,7 +34,7 @@ contract ERC1155FloorWrapper is
     }
 
     function initialize(address tokenAddr) external {
-        if (msg.sender != factory) {
+        if (msg.sender != factory || address(token) != address(0)) {
             revert InvalidInitialization();
         }
         token = IERC1155(tokenAddr);
