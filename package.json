@@ -28,8 +28,8 @@
     "format": "yarn format:ts && yarn format:sol",
     "format:ts": "prettier --write \"./**/*.ts\"",
     "format:sol": "forge fmt",
-    "release": "yarn publish src --access public",
-    "release-list": "cd src && yarn release-list",
+    "release": "yarn build && yarn publish src --access public",
+    "release-list": "yarn build && cd src && yarn release-list",
     "verify": "hardhat tenderly:verify"
   },
   "devDependencies": {
