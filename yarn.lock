@@ -2,21 +2,21 @@
 # yarn lockfile v1
 
 
-"@0xsequence/erc-1155@^4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@0xsequence/erc-1155/-/erc-1155-4.0.0.tgz#187d13ce84c95b4348fde09535cd83b0151c42e4"
-  integrity sha512-N0lR3qnryAMEWeiIvfI413LZYSdFwkZ+AxBgch23DwFdo7ugr2n5g/SsmhPsMoray3Syf78MCRKNDMuDU7t26Q==
+"@0xsequence/erc-1155@^4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@0xsequence/erc-1155/-/erc-1155-4.0.1.tgz#c991fe06b6ae385146e69cd9d1c4982b06487c10"
+  integrity sha512-KFLxBfiocOuHmPUkGYiWw5fLZ8uCDhXhcyzFFv8oe/KWXdxL37NTD7n6CmMSRiUxr4qaXuFV5u38vPFWFdOY0g==
   optionalDependencies:
     "@ethersproject/abi" "^5.7.0"
     "@ethersproject/providers" "^5.7.2"
     ethers "^5.7.2"
 
-"@0xsequence/erc20-meta-token@^4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@0xsequence/erc20-meta-token/-/erc20-meta-token-4.0.0.tgz#326958d9c6db535b820bad166c45699fd3986ed9"
-  integrity sha512-e4+sN5V2rv7xCcLHvPN2nC7N/6WrL9EUc9cFbVBQE01yUCsBMH4UDHuvKPKS9CFBVfP0LSeeXZNlxJr3SaqzHA==
+"@0xsequence/erc20-meta-token@^4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@0xsequence/erc20-meta-token/-/erc20-meta-token-4.0.1.tgz#44fe77822af0ff3b1111466615c9958e92aca782"
+  integrity sha512-q3yIR5OwsTK+HnTQVXTDlknMo2kE65rBwZN6ymPeoe1CW+RE9XqUM3QCvxTlLGuAnsIaL6/ABG2ePX4crMvbaw==
   dependencies:
-    "@0xsequence/erc-1155" "^4.0.0"
+    "@0xsequence/erc-1155" "^4.0.1"
 
 "@babel/code-frame@^7.0.0":
   version "7.12.13"
