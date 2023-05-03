@@ -23,15 +23,24 @@ contract ERC721FloorWrapper is IERC721FloorWrapper, ERC1155MintBurn, IERC1155Met
     // This contract only supports a single token id
     uint256 public constant TOKEN_ID = 0;
 
+    /**
+     * Creates an ERC-721 Floor Factory.
+     * @dev This contract is expected to be deployed by the ERC-721 Floor Factory.
+     */
     constructor() {
         factory = msg.sender;
     }
 
-    function initialize(address tokenAddr) external {
+    /**
+     * Initializes the contract with the token address.
+     * @param _tokenAddr The address of the ERC-721 token to wrap.
+     * @dev This is expected to be called immediately after contract creation.
+     */
+    function initialize(address _tokenAddr) external {
         if (msg.sender != factory || address(token) != address(0)) {
             revert InvalidInitialization();
         }
-        token = IERC721(tokenAddr);
+        token = IERC721(_tokenAddr);
     }
 
     /**
@@ -47,37 +56,45 @@ contract ERC721FloorWrapper is IERC721FloorWrapper, ERC1155MintBurn, IERC1155Met
 
     /**
      * Deposit and wrap ERC-721 tokens.
-     * @param tokenIds The ERC-721 token ids to deposit.
-     * @param recipient The recipient of the wrapped tokens.
-     * @param data Data to pass to ERC-1155 receiver.
+     * @param _tokenIds The ERC-721 token ids to deposit.
+     * @param _recipient The recipient of the wrapped tokens.
+     * @param _data Data to pass to ERC-1155 receiver.
      * @notice Users must first approve this contract address on the ERC-721 contract.
      */
-    function deposit(uint256[] calldata tokenIds, address recipient, bytes calldata data) external {
-        uint256 length = tokenIds.length;
+    function deposit(uint256[] calldata _tokenIds, address _recipient, bytes calldata _data) external {
+        if (_recipient == address(0)) {
+            revert InvalidDepositRequest();
+        }
+
+        uint256 length = _tokenIds.length;
         for (uint256 i; i < length;) {
             // Intentionally unsafe transfer
-            token.transferFrom(msg.sender, address(this), tokenIds[i]);
+            token.transferFrom(msg.sender, address(this), _tokenIds[i]);
             unchecked {
                 // Can never overflow
                 i++;
             }
         }
-        emit TokensDeposited(tokenIds);
-        _mint(recipient, TOKEN_ID, tokenIds.length, data);
+        emit TokensDeposited(_tokenIds);
+        _mint(_recipient, TOKEN_ID, length, _data);
     }
 
     /**
      * Unwrap and withdraw ERC-721 tokens.
-     * @param tokenIds The ERC-721 token ids to withdraw.
-     * @param recipient The recipient of the unwrapped tokens.
-     * @param data Data to pass to ERC-1155 receiver.
+     * @param _tokenIds The ERC-721 token ids to withdraw.
+     * @param _recipient The recipient of the unwrapped tokens.
+     * @param _data Data to pass to ERC-721 receiver.
      */
-    function withdraw(uint256[] calldata tokenIds, address recipient, bytes calldata data) external {
-        _burn(msg.sender, TOKEN_ID, tokenIds.length);
-        emit TokensWithdrawn(tokenIds);
-        uint256 length = tokenIds.length;
+    function withdraw(uint256[] calldata _tokenIds, address _recipient, bytes calldata _data) external {
+        if (_recipient == address(0)) {
+            revert InvalidWithdrawRequest();
+        }
+
+        uint256 length = _tokenIds.length;
+        _burn(msg.sender, TOKEN_ID, length);
+        emit TokensWithdrawn(_tokenIds);
         for (uint256 i; i < length;) {
-            token.safeTransferFrom(address(this), recipient, tokenIds[i], data);
+            token.safeTransferFrom(address(this), _recipient, _tokenIds[i], _data);
             unchecked {
                 // Can never overflow
                 i++;
@@ -102,11 +119,11 @@ contract ERC721FloorWrapper is IERC721FloorWrapper, ERC1155MintBurn, IERC1155Met
 
     /**
      * Query if a contract supports an interface.
-     * @param  interfaceId The interfaceId to test.
+     * @param _interfaceId The interfaceId to test.
      * @return supported Whether the interfaceId is supported.
      */
-    function supportsInterface(bytes4 interfaceId) public pure override(IERC165, ERC1155) returns (bool supported) {
-        return interfaceId == type(IERC165).interfaceId || interfaceId == type(IERC1155).interfaceId
-            || interfaceId == type(IERC1155Metadata).interfaceId || super.supportsInterface(interfaceId);
+    function supportsInterface(bytes4 _interfaceId) public pure override(IERC165, ERC1155) returns (bool supported) {
+        return _interfaceId == type(IERC165).interfaceId || _interfaceId == type(IERC1155).interfaceId
+            || _interfaceId == type(IERC1155Metadata).interfaceId || super.supportsInterface(_interfaceId);
     }
 }

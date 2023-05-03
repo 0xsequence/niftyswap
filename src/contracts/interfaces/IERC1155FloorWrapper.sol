@@ -24,32 +24,32 @@ interface IERC1155FloorWrapper is IERC1155, IERC1155TokenReceiver {
     /**
      * Accepts ERC-1155 tokens to wrap and wrapped ERC-1155 tokens to unwrap.
      * @notice Unwrapped ERC-1155 tokens are treated as deposits. Wrapped ERC-1155 tokens are treated as withdrawals.
-     * @param operator The address which called `safeTransferFrom` function.
-     * @param from The address which previously owned the token.
-     * @param id The ID of the token being transferred.
-     * @param amount The amount of tokens being transferred.
-     * @param data Additional data with no specified format.
-     * @return `bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"))`
+     * @param _operator The address which called `safeTransferFrom` function.
+     * @param _from The address which previously owned the token.
+     * @param _id The ID of the token being transferred.
+     * @param _amount The amount of tokens being transferred.
+     * @param _data Additional data with no specified format.
+     * @return `bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)`
      */
-    function onERC1155Received(address operator, address from, uint256 id, uint256 amount, bytes calldata data)
+    function onERC1155Received(address _operator, address _from, uint256 _id, uint256 _amount, bytes calldata _data)
         external
         returns (bytes4);
 
     /**
      * Accepts ERC-1155 tokens to wrap and wrapped ERC-1155 tokens to unwrap.
      * @notice Unwrapped ERC-1155 tokens are treated as deposits. Wrapped ERC-1155 tokens are treated as withdrawals.
-     * @param operator The address which called `safeTransferFrom` function.
-     * @param from The address which previously owned the token.
-     * @param ids The IDs of the tokens being transferred.
-     * @param amounts The amounts of tokens being transferred.
-     * @param data Additional data with no specified format.
+     * @param _operator The address which called `safeTransferFrom` function.
+     * @param _from The address which previously owned the token.
+     * @param _ids The IDs of the tokens being transferred.
+     * @param _amounts The amounts of tokens being transferred.
+     * @param _data Additional data with no specified format.
      * @return `bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"))`
      */
     function onERC1155BatchReceived(
-        address operator,
-        address from,
-        uint256[] calldata ids,
-        uint256[] calldata amounts,
-        bytes calldata data
+        address _operator,
+        address _from,
+        uint256[] calldata _ids,
+        uint256[] calldata _amounts,
+        bytes calldata _data
     ) external returns (bytes4);
 }

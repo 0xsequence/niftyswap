@@ -4,18 +4,30 @@ pragma solidity ^0.8.4;
 contract Proxy {
     address public implementation;
 
+    /**
+     * Initializes the contract, setting proxy implementation address.
+     */
     constructor(address _implementation) {
         implementation = _implementation;
     }
 
+    /**
+     * Forward calls to the proxy implementation contract.
+     */
     receive() external payable {
         proxy();
     }
 
+    /**
+     * Forward calls to the proxy implementation contract.
+     */
     fallback() external payable {
         proxy();
     }
 
+    /**
+     * Forward calls to the proxy implementation contract.
+     */
     function proxy() private {
         address target;
         assembly {

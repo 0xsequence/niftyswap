@@ -12,7 +12,11 @@ contract ERC1155FloorFactory is IERC1155FloorFactory, Ownable, IDelegatedERC1155
     address private immutable implAddr; // Address of the wrapper implementation
     IERC1155Metadata internal metadataContract; // address of the ERC-1155 Metadata contract
 
-    constructor(address _admin) Ownable(_admin) {
+    /**
+     * Creates an ERC-1155 Floor Factory.
+     * @param admin The address of the admin of the factory
+     */
+    constructor(address admin) Ownable(admin) {
         ERC1155FloorWrapper wrapperImpl = new ERC1155FloorWrapper();
         implAddr = address(wrapperImpl);
     }
@@ -50,11 +54,11 @@ contract ERC1155FloorFactory is IERC1155FloorFactory, Ownable, IDelegatedERC1155
     /**
      * Changes the implementation of the ERC-1155 Metadata contract
      * @dev This function changes the implementation for all child wrapper of this factory
-     * @param _contract The address of the ERC-1155 Metadata contract
+     * @param metadataAddr The address of the ERC-1155 Metadata contract
      */
-    function setMetadataContract(IERC1155Metadata _contract) external onlyOwner {
-        emit MetadataContractChanged(address(_contract));
-        metadataContract = _contract;
+    function setMetadataContract(IERC1155Metadata metadataAddr) external onlyOwner {
+        emit MetadataContractChanged(address(metadataAddr));
+        metadataContract = metadataAddr;
     }
 
     /**

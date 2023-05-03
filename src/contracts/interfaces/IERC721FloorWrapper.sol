@@ -10,19 +10,19 @@ interface IERC721FloorWrapper is IERC1155 {
 
     /**
      * Deposit and wrap ERC-721 tokens.
-     * @param tokenIds The ERC-721 token ids to deposit.
-     * @param recipient The recipient of the wrapped tokens.
-     * @param data Data to pass to ERC-1155 receiver.
+     * @param _tokenIds The ERC-721 token ids to deposit.
+     * @param _recipient The recipient of the wrapped tokens.
+     * @param _data Data to pass to ERC-1155 receiver.
      * @notice Users must first approve this contract address on the ERC-721 contract.
      * @dev This contract intentionally does not support IERC721Receiver for gas optimisations.
      */
-    function deposit(uint256[] calldata tokenIds, address recipient, bytes calldata data) external;
+    function deposit(uint256[] calldata _tokenIds, address _recipient, bytes calldata _data) external;
 
     /**
      * Unwrap and withdraw ERC-721 tokens.
-     * @param tokenIds The ERC-721 token ids to withdraw.
-     * @param recipient The recipient of the unwrapped tokens.
-     * @param data Data to pass to ERC-1155 receiver.
+     * @param _tokenIds The ERC-721 token ids to withdraw.
+     * @param _recipient The recipient of the unwrapped tokens.
+     * @param _data Data to pass to ERC-1155 receiver.
      */
-    function withdraw(uint256[] calldata tokenIds, address recipient, bytes calldata data) external;
+    function withdraw(uint256[] calldata _tokenIds, address _recipient, bytes calldata _data) external;
 }

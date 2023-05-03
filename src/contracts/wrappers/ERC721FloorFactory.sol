@@ -12,6 +12,10 @@ contract ERC721FloorFactory is IERC721FloorFactory, Ownable, IDelegatedERC1155Me
     address private immutable implAddr; // Address of the wrapper implementation
     IERC1155Metadata internal metadataContract; // Address of the ERC-1155 Metadata contract
 
+    /**
+     * Creates an ERC-721 Floor Factory.
+     * @param _admin The address of the admin of the factory
+     */
     constructor(address _admin) Ownable(_admin) {
         ERC721FloorWrapper wrapperImpl = new ERC721FloorWrapper();
         implAddr = address(wrapperImpl);
@@ -19,23 +23,23 @@ contract ERC721FloorFactory is IERC721FloorFactory, Ownable, IDelegatedERC1155Me
 
     /**
      * Creates an ERC-721 Floor Wrapper for given token contract
-     * @param tokenAddr The address of the ERC-721 token contract
+     * @param _tokenAddr The address of the ERC-721 token contract
      * @return wrapperAddr The address of the ERC-721 Floor Wrapper
      */
-    function createWrapper(address tokenAddr) external returns (address wrapperAddr) {
-        wrapperAddr = deployProxy(implAddr, tokenAddr);
-        ERC721FloorWrapper(wrapperAddr).initialize(tokenAddr);
-        emit NewERC721FloorWrapper(tokenAddr);
+    function createWrapper(address _tokenAddr) external returns (address wrapperAddr) {
+        wrapperAddr = deployProxy(implAddr, _tokenAddr);
+        ERC721FloorWrapper(wrapperAddr).initialize(_tokenAddr);
+        emit NewERC721FloorWrapper(_tokenAddr);
         return wrapperAddr;
     }
 
     /**
      * Return address of the ERC-721 Floor Wrapper for a given token contract
-     * @param tokenAddr The address of the ERC-721 token contract
+     * @param _tokenAddr The address of the ERC-721 token contract
      * @return wrapperAddr The address of the ERC-721 Floor Wrapper
      */
-    function tokenToWrapper(address tokenAddr) public view returns (address wrapperAddr) {
-        wrapperAddr = predictWrapperAddress(implAddr, tokenAddr);
+    function tokenToWrapper(address _tokenAddr) public view returns (address wrapperAddr) {
+        wrapperAddr = predictWrapperAddress(implAddr, _tokenAddr);
         if (!isContract(wrapperAddr)) {
             return address(0);
         }

@@ -7,15 +7,15 @@ interface IERC721FloorFactory {
 
     /**
      * Creates an ERC-721 Floor Wrapper for given token contract
-     * @param tokenAddr The address of the ERC-721 token contract
+     * @param _tokenAddr The address of the ERC-721 token contract
      * @return The address of the ERC-721 Floor Wrapper
      */
-    function createWrapper(address tokenAddr) external returns (address);
+    function createWrapper(address _tokenAddr) external returns (address);
 
     /**
      * Return address of the ERC-721 Floor Wrapper for a given token contract
-     * @param tokenAddr The address of the ERC-721 token contract
+     * @param _tokenAddr The address of the ERC-721 token contract
      * @return The address of the ERC-721 Floor Wrapper
      */
-    function tokenToWrapper(address tokenAddr) external view returns (address);
+    function tokenToWrapper(address _tokenAddr) external view returns (address);
 }

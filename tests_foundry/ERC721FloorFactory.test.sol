@@ -40,9 +40,7 @@ contract ERC721FloorFactoryTest is TestHelperBase, IERC721FloorFactory, WrapperE
         address tokenAddr = address(1);
         test_createWrapper_happyPath(tokenAddr);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(WrapperAlreadyCreated.selector, tokenAddr, factory.tokenToWrapper(tokenAddr))
-        );
+        vm.expectRevert(abi.encodeWithSelector(WrapperCreationFailed.selector, tokenAddr));
         factory.createWrapper(tokenAddr);
     }
 

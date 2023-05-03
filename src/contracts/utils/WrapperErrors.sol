@@ -6,7 +6,6 @@ pragma solidity ^0.8.4;
  */
 abstract contract WrapperErrors {
     // Factories
-    error WrapperAlreadyCreated(address tokenAddr, address wrapperAddr);
     error WrapperCreationFailed(address tokenAddr);
 
     // ERC1155
