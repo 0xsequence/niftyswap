@@ -1,14 +1,18 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.4;
 
-contract Proxy {
-    address public implementation;
+import {IERC1967} from "./IERC1967.sol";
+import {StorageSlot} from "./StorageSlot.sol";
+
+contract Proxy is IERC1967 {
+    bytes32 private constant _IMPLEMENTATION_SLOT = bytes32(uint256(keccak256("eip1967.proxy.implementation")) - 1);
 
     /**
      * Initializes the contract, setting proxy implementation address.
      */
     constructor(address _implementation) {
-        implementation = _implementation;
+        StorageSlot.getAddressSlot(_IMPLEMENTATION_SLOT).value = _implementation;
+        emit Upgraded(_implementation);
     }
 
     /**
@@ -29,10 +33,7 @@ contract Proxy {
      * Forward calls to the proxy implementation contract.
      */
     function proxy() private {
-        address target;
-        assembly {
-            target := sload(implementation.slot)
-        }
+        address target = StorageSlot.getAddressSlot(_IMPLEMENTATION_SLOT).value;
         assembly {
             let ptr := mload(0x40)
             calldatacopy(ptr, 0, calldatasize())
