@@ -47,6 +47,10 @@ contract ERC1155FloorWrapper is IERC1155FloorWrapper, ERC1155MintBurn, IERC1155M
         revert UnsupportedMethod();
     }
 
+    //
+    // Tokens
+    //
+
     /**
      * Accepts ERC-1155 tokens to wrap and wrapped ERC-1155 tokens to unwrap.
      * @param _id The ID of the token being transferred.
@@ -167,6 +171,10 @@ contract ERC1155FloorWrapper is IERC1155FloorWrapper, ERC1155MintBurn, IERC1155M
         );
         emit TokensWithdrawn(obj.tokenIds, obj.tokenAmounts);
     }
+
+    //
+    // Views
+    //
 
     /**
      * A distinct Uniform Resource Identifier (URI) for a given token.

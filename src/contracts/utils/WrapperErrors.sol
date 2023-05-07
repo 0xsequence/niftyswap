@@ -8,7 +8,8 @@ abstract contract WrapperErrors {
     // Factories
     error WrapperCreationFailed(address tokenAddr);
 
-    // ERC1155
+    // Wrappers
+    error InvalidERC721Received();
     error InvalidERC1155Received();
     error InvalidDepositRequest();
     error InvalidWithdrawRequest();

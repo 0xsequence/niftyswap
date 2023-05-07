@@ -32,9 +32,9 @@ The rest of the contracts in the repositories are assumed to be audited.
 
 ## General Notes
 
-The _ERC1155FloorWrapper_ wraps and unwraps tokens using the `onERC1155Received` and `onERC1155BatchReceived` functions, but the _ERC721FloorWrapper_ uses specific `deposit` and `withdraw` functions with no support to `onERC721Received`. Using different strategies for the same outcome makes the contract harder to follow and costly for the users in the case of the _ERC721FloorWrapper_. They need an extra transaction to `approve` each token or an `approvalForAll` before depositing. Consider using the same strategy for both wrappers.
+The _ERC1155FloorWrapper_ wraps and unwraps tokens using the `onERC1155Received` and `onERC1155BatchReceived` functions, but the _ERC721FloorWrapper_ uses specific `deposit` and `withdraw` functions with no support to `onERC721Received`. Using different strategies for the same outcome makes the contract harder to follow and costly for the users in the case of the _ERC721FloorWrapper_. They need an extra transaction to `approve` each token or an `approvalForAll` before depositing. Consider using the same strategy for both wrappers. **ADDRESSED: Updated ERC721FloorWrapper to use receiver functions. Have kept deposit to enable multiple deposits in a single transaction.**
 
-Another thing to have in mind is that the users can claim unwrapped tokens if someone, by mistake, doesn't use the wrappers as expected. This has been addressed before the audit started[here by the team](https://github.com/0xsequence/niftyswap/pull/79#pullrequestreview-1362003788)
+Another thing to have in mind is that the users can claim unwrapped tokens if someone, by mistake, doesn't use the wrappers as expected. This has been addressed before the audit started[here by the team](https://github.com/0xsequence/niftyswap/pull/79#pullrequestreview-1362003788). **IGNORED: Intentional, as stated.**
 
 ## Interfaces
 

@@ -279,6 +279,10 @@ contract ERC1155FloorWrapperTest is TestHelperBase, WrapperErrors {
     }
 
     //
+    // Deposit with Batch Receiver
+    //
+
+    //
     // Withdraw
     //
     function test_withdraw_happyPath() public withDeposit {
@@ -455,6 +459,10 @@ contract ERC1155FloorWrapperTest is TestHelperBase, WrapperErrors {
             USER, wrapperAddr, tokenIds, tokenAmounts, encodeWithdrawRequest(tokenIds, tokenAmounts, address(0), "")
         );
     }
+
+    //
+    // Withdraw with Batch Receiver
+    //
 
     //
     // Transfers

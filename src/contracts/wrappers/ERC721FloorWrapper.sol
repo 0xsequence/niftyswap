@@ -11,7 +11,7 @@ import {ERC1155MintBurn} from "@0xsequence/erc-1155/contracts/tokens/ERC1155/ERC
 import {WrapperErrors} from "../utils/WrapperErrors.sol";
 
 import {IERC721} from "../interfaces/IERC721.sol";
-import {IERC721FloorWrapper} from "../interfaces/IERC721FloorWrapper.sol";
+import {IERC721FloorWrapper, IERC1155TokenReceiver, IERC721Receiver} from "../interfaces/IERC721FloorWrapper.sol";
 
 /**
  * @notice Allows users to wrap any amount of a ERC-721 token with a 1:1 ratio.
@@ -51,8 +51,35 @@ contract ERC721FloorWrapper is IERC721FloorWrapper, ERC1155MintBurn, IERC1155Met
     }
 
     //
-    // Tokens
+    // Deposit
     //
+
+    /**
+     * Accepts ERC-721 tokens to wrap.
+     * @param _tokenId The ID of the token being transferred.
+     * @param _data Additional data formatted as DepositRequestObj.
+     * @return `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
+     * @notice This is the preferred method for wrapping a single token.
+     */
+    function onERC721Received(address, address, uint256 _tokenId, bytes calldata _data) external returns (bytes4) {
+        if (msg.sender != address(token)) {
+            revert InvalidERC721Received();
+        }
+        DepositRequestObj memory obj;
+        (obj) = abi.decode(_data, (DepositRequestObj));
+        if (obj.recipient == address(0)) {
+            // Don't allow deposits to the zero address
+            revert InvalidWithdrawRequest();
+        }
+
+        uint256[] memory tokenIds = new uint256[](1);
+        tokenIds[0] = _tokenId;
+        emit TokensDeposited(tokenIds);
+
+        _mint(obj.recipient, TOKEN_ID, 1, obj.data);
+
+        return IERC721Receiver.onERC721Received.selector;
+    }
 
     /**
      * Deposit and wrap ERC-721 tokens.
@@ -60,6 +87,7 @@ contract ERC721FloorWrapper is IERC721FloorWrapper, ERC1155MintBurn, IERC1155Met
      * @param _recipient The recipient of the wrapped tokens.
      * @param _data Data to pass to ERC-1155 receiver.
      * @notice Users must first approve this contract address on the ERC-721 contract.
+     * @notice This function can wrap multiple ERC-721 tokens at once.
      */
     function deposit(uint256[] calldata _tokenIds, address _recipient, bytes calldata _data) external {
         if (_recipient == address(0)) {
@@ -79,22 +107,78 @@ contract ERC721FloorWrapper is IERC721FloorWrapper, ERC1155MintBurn, IERC1155Met
         _mint(_recipient, TOKEN_ID, length, _data);
     }
 
+    //
+    // Withdraw
+    //
+
+    /**
+     * Accepts wrapped ERC-1155 tokens to unwrap.
+     * @param _amount The amount of tokens being transferred.
+     * @param _data Additional data with no specified format.
+     * @return `bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)`
+     */
+    function onERC1155Received(address, address, uint256, uint256 _amount, bytes calldata _data)
+        external
+        returns (bytes4)
+    {
+        if (msg.sender != address(this)) {
+            revert InvalidERC1155Received();
+        }
+        _withdraw(_amount, _data);
+
+        return IERC1155TokenReceiver.onERC1155Received.selector;
+    }
+
+    /**
+     * Accepts wrapped ERC-1155 tokens to unwrap.
+     * @param _ids The IDs of the tokens being transferred.
+     * @param _amounts The amounts of tokens being transferred.
+     * @param _data Additional data formatted as WithdrawRequestObj.
+     * @return `bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"))`
+     */
+    function onERC1155BatchReceived(
+        address,
+        address,
+        uint256[] calldata _ids,
+        uint256[] calldata _amounts,
+        bytes calldata _data
+    ) public returns (bytes4) {
+        if (msg.sender != address(this)) {
+            revert InvalidERC1155Received();
+        }
+
+        if (_ids.length != 1) {
+            revert InvalidERC1155Received();
+        }
+        // Either ids[0] == TOKEN_ID or amounts[0] == 0
+        _withdraw(_amounts[0], _data);
+
+        return IERC1155TokenReceiver.onERC1155BatchReceived.selector;
+    }
+
     /**
      * Unwrap and withdraw ERC-721 tokens.
-     * @param _tokenIds The ERC-721 token ids to withdraw.
-     * @param _recipient The recipient of the unwrapped tokens.
-     * @param _data Data to pass to ERC-721 receiver.
+     * @param _amount The amount of ERC-1155 tokens recieved.
+     * @param _data Additional data formatted as WithdrawRequestObj.
      */
-    function withdraw(uint256[] calldata _tokenIds, address _recipient, bytes calldata _data) external {
-        if (_recipient == address(0)) {
+    function _withdraw(uint256 _amount, bytes calldata _data) private {
+        WithdrawRequestObj memory obj;
+        (obj) = abi.decode(_data, (WithdrawRequestObj));
+        if (obj.recipient == address(0)) {
+            // Don't allow deposits to the zero address
             revert InvalidWithdrawRequest();
         }
 
-        uint256 length = _tokenIds.length;
+        uint256 length = obj.tokenIds.length;
+        if (_amount != length) {
+            // The amount of tokens received must match the amount of tokens being withdrawn
+            revert InvalidWithdrawRequest();
+        }
+
         _burn(msg.sender, TOKEN_ID, length);
-        emit TokensWithdrawn(_tokenIds);
+        emit TokensWithdrawn(obj.tokenIds);
         for (uint256 i; i < length;) {
-            token.safeTransferFrom(address(this), _recipient, _tokenIds[i], _data);
+            token.safeTransferFrom(address(this), obj.recipient, obj.tokenIds[i], obj.data);
             unchecked {
                 // Can never overflow
                 i++;
@@ -103,7 +187,7 @@ contract ERC721FloorWrapper is IERC721FloorWrapper, ERC1155MintBurn, IERC1155Met
     }
 
     //
-    // Metadata
+    // Views
     //
 
     /**
