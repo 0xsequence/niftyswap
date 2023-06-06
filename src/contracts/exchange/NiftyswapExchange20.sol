@@ -85,9 +85,11 @@ contract NiftyswapExchange20 is
         FEE_MULTIPLIER = 1000 - _lpFee;
 
         // If global royalty, lets check for ERC-2981 support
+        bool supportsERC2981 = false;
         try IERC1155(_tokenAddr).supportsInterface(type(IERC2981).interfaceId) returns (bool supported) {
-            IS_ERC2981 = supported;
+            supportsERC2981 = supported;
         } catch {} // solhint-disable-line no-empty-blocks
+        IS_ERC2981 = supportsERC2981;
     }
 
     //
