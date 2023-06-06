@@ -1,6 +1,6 @@
 {
   "name": "@0xsequence/niftyswap",
-  "version": "6.0.1",
+  "version": "6.0.2",
   "description": "Swap protocol for ERC-1155 tokens, inspired by Uniswap",
   "repository": "https://github.com/0xsequence/niftyswap",
   "homepage": "https://sequence.build",
@@ -23,10 +23,11 @@
     "ethers": "^5.0.32"
   },
   "dependencies": {
-    "@0xsequence/erc-1155": "^4.0.1",
+    "@0xsequence/erc-1155": "^4.0.3",
     "@0xsequence/erc20-meta-token": "^4.0.1",
     "@uniswap/lib": "^4.0.1-alpha"
   },
   "devDependencies": {
+    "@openzeppelin/contracts": "^4.8.2"
   }
 }

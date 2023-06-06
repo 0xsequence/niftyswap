@@ -9,13 +9,15 @@ import {INiftyswapExchange} from "src/contracts/interfaces/INiftyswapExchange.so
 import {NiftyswapFactory} from "src/contracts/exchange/NiftyswapFactory.sol";
 import {ERC1155Mock} from "src/contracts/mocks/ERC1155Mock.sol";
 
+import {USER, OPERATOR} from "./utils/Constants.test.sol";
+import {TestHelperBase} from "./utils/TestHelperBase.test.sol";
 import {NiftyswapTestHelper} from "./utils/NiftyswapTestHelper.test.sol";
 import {console} from "forge-std/Test.sol";
 import {stdError} from "forge-std/StdError.sol";
 
 interface IERC1155Exchange is INiftyswapExchange, IERC1155 {}
 
-contract NiftyswapExchangeTest is NiftyswapTestHelper {
+contract NiftyswapExchangeTest is TestHelperBase {
     // Events can't be imported
     // IERC1155
     event TransferSingle(
@@ -151,7 +153,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         emit LiquidityAdded(OPERATOR, types, tokensToAdd, currencyToAdd);
         vm.prank(OPERATOR);
         erc1155AMock.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types, tokensToAdd, encodeAddLiquidity(currencyToAdd, block.timestamp)
+            OPERATOR,
+            exchangeAddr,
+            types,
+            tokensToAdd,
+            NiftyswapTestHelper.encodeAddLiquidity(currencyToAdd, block.timestamp)
         );
 
         // Check balances
@@ -188,7 +194,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         // Add liq
         vm.prank(OPERATOR);
         erc1155AMock.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types, tokensToAdd, encodeAddLiquidity(currencyToAdd, block.timestamp)
+            OPERATOR,
+            exchangeAddr,
+            types,
+            tokensToAdd,
+            NiftyswapTestHelper.encodeAddLiquidity(currencyToAdd, block.timestamp)
         );
 
         // Reserves rounds up
@@ -220,7 +230,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.expectRevert("NE#23");
         // Using contract A instead of B
         erc1155AMock.safeBatchTransferFrom(
-            OPERATOR, excAddr, types, tokensToAdd, encodeAddLiquidity(currencyToAdd, block.timestamp)
+            OPERATOR,
+            excAddr,
+            types,
+            tokensToAdd,
+            NiftyswapTestHelper.encodeAddLiquidity(currencyToAdd, block.timestamp)
         );
     }
 
@@ -240,7 +254,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.prank(OPERATOR);
         vm.expectRevert("NE#12");
         erc1155BMock.safeBatchTransferFrom(
-            OPERATOR, excAddr, types, tokensToAdd, encodeAddLiquidity(currencyToAdd, block.timestamp)
+            OPERATOR,
+            excAddr,
+            types,
+            tokensToAdd,
+            NiftyswapTestHelper.encodeAddLiquidity(currencyToAdd, block.timestamp)
         );
     }
 
@@ -255,7 +273,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.prank(OPERATOR);
         vm.expectRevert("NE#09");
         erc1155AMock.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types, tokensToAdd, encodeAddLiquidity(currencyToAdd, block.timestamp - 1)
+            OPERATOR,
+            exchangeAddr,
+            types,
+            tokensToAdd,
+            NiftyswapTestHelper.encodeAddLiquidity(currencyToAdd, block.timestamp - 1)
         );
     }
 
@@ -273,7 +295,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.prank(OPERATOR);
         vm.expectRevert("NE#10");
         erc1155AMock.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types, tokensToAdd, encodeAddLiquidity(currencyToAdd, block.timestamp)
+            OPERATOR,
+            exchangeAddr,
+            types,
+            tokensToAdd,
+            NiftyswapTestHelper.encodeAddLiquidity(currencyToAdd, block.timestamp)
         );
     }
 
@@ -291,7 +317,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.prank(OPERATOR);
         vm.expectRevert("NE#11");
         erc1155AMock.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types, tokensToAdd, encodeAddLiquidity(currencyToAdd, block.timestamp)
+            OPERATOR,
+            exchangeAddr,
+            types,
+            tokensToAdd,
+            NiftyswapTestHelper.encodeAddLiquidity(currencyToAdd, block.timestamp)
         );
     }
 
@@ -315,15 +345,27 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.startPrank(OPERATOR);
         vm.expectRevert("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH");
         erc1155AMock.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types1, tokens2, encodeAddLiquidity(currencies2, block.timestamp)
+            OPERATOR,
+            exchangeAddr,
+            types1,
+            tokens2,
+            NiftyswapTestHelper.encodeAddLiquidity(currencies2, block.timestamp)
         );
         vm.expectRevert("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH");
         erc1155AMock.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types2, tokens1, encodeAddLiquidity(currencies2, block.timestamp)
+            OPERATOR,
+            exchangeAddr,
+            types2,
+            tokens1,
+            NiftyswapTestHelper.encodeAddLiquidity(currencies2, block.timestamp)
         );
         vm.expectRevert(stdError.indexOOBError);
         erc1155AMock.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types2, tokens2, encodeAddLiquidity(currencies1, block.timestamp)
+            OPERATOR,
+            exchangeAddr,
+            types2,
+            tokens2,
+            NiftyswapTestHelper.encodeAddLiquidity(currencies1, block.timestamp)
         );
         vm.stopPrank();
     }
@@ -342,7 +384,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.prank(OPERATOR);
         vm.expectRevert("NE#29");
         erc1155AMock.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types, tokensToAdd, encodeAddLiquidity(currencyToAdd, block.timestamp)
+            OPERATOR,
+            exchangeAddr,
+            types,
+            tokensToAdd,
+            NiftyswapTestHelper.encodeAddLiquidity(currencyToAdd, block.timestamp)
         );
     }
 
@@ -357,7 +403,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.prank(OPERATOR);
         vm.expectRevert("NE#13");
         erc1155AMock.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types, tokensToAdd, encodeAddLiquidity(currencyToAdd, block.timestamp)
+            OPERATOR,
+            exchangeAddr,
+            types,
+            tokensToAdd,
+            NiftyswapTestHelper.encodeAddLiquidity(currencyToAdd, block.timestamp)
         );
     }
 
@@ -375,7 +425,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.prank(OPERATOR);
         vm.expectRevert(stdError.arithmeticError);
         exchange.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types, tokens, encodeRemoveLiquidity(currencies, tokens, block.timestamp + 1)
+            OPERATOR,
+            exchangeAddr,
+            types,
+            tokens,
+            NiftyswapTestHelper.encodeRemoveLiquidity(currencies, tokens, block.timestamp + 1)
         );
     }
 
@@ -392,7 +446,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.prank(OPERATOR);
         vm.expectRevert("NE#16");
         exchange.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types, liquidity, encodeRemoveLiquidity(currencies, tokens, block.timestamp + 1)
+            OPERATOR,
+            exchangeAddr,
+            types,
+            liquidity,
+            NiftyswapTestHelper.encodeRemoveLiquidity(currencies, tokens, block.timestamp + 1)
         );
     }
 
@@ -410,7 +468,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
 
         vm.prank(OPERATOR);
         exchange.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types, liquidity, encodeRemoveLiquidity(currencies, tokens, block.timestamp + 1)
+            OPERATOR,
+            exchangeAddr,
+            types,
+            liquidity,
+            NiftyswapTestHelper.encodeRemoveLiquidity(currencies, tokens, block.timestamp + 1)
         );
 
         // Check balances
@@ -428,7 +490,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.prank(OPERATOR);
         vm.expectRevert("NE#17");
         exchange.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types, tokens, encodeRemoveLiquidity(currencies, tokens, block.timestamp + 1)
+            OPERATOR,
+            exchangeAddr,
+            types,
+            tokens,
+            NiftyswapTestHelper.encodeRemoveLiquidity(currencies, tokens, block.timestamp + 1)
         );
     }
 
@@ -443,7 +509,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.prank(OPERATOR);
         vm.expectRevert("NE#18");
         exchange.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types, tokens, encodeRemoveLiquidity(currencies, tokens, block.timestamp + 1)
+            OPERATOR,
+            exchangeAddr,
+            types,
+            tokens,
+            NiftyswapTestHelper.encodeRemoveLiquidity(currencies, tokens, block.timestamp + 1)
         );
     }
 
@@ -461,7 +531,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.prank(OPERATOR);
         vm.expectRevert("NE#29");
         exchange.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types, tokens, encodeRemoveLiquidity(currencies, tokens, block.timestamp + 1)
+            OPERATOR,
+            exchangeAddr,
+            types,
+            tokens,
+            NiftyswapTestHelper.encodeRemoveLiquidity(currencies, tokens, block.timestamp + 1)
         );
     }
 
@@ -485,11 +559,19 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.startPrank(OPERATOR);
         vm.expectRevert("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH");
         exchange.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types1, tokens2, encodeRemoveLiquidity(currencies2, tokens2, block.timestamp + 1)
+            OPERATOR,
+            exchangeAddr,
+            types1,
+            tokens2,
+            NiftyswapTestHelper.encodeRemoveLiquidity(currencies2, tokens2, block.timestamp + 1)
         );
         vm.expectRevert("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH");
         exchange.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types2, tokens1, encodeRemoveLiquidity(currencies2, tokens2, block.timestamp + 1)
+            OPERATOR,
+            exchangeAddr,
+            types2,
+            tokens1,
+            NiftyswapTestHelper.encodeRemoveLiquidity(currencies2, tokens2, block.timestamp + 1)
         );
         vm.stopPrank();
     }
@@ -516,7 +598,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.expectEmit(true, true, true, true, exchangeAddr);
         emit CurrencyPurchase(USER, USER, types, sellAmounts, prices);
         erc1155AMock.safeBatchTransferFrom(
-            USER, exchangeAddr, types, sellAmounts, encodeSellTokens(USER, prices[0], block.timestamp)
+            USER,
+            exchangeAddr,
+            types,
+            sellAmounts,
+            NiftyswapTestHelper.encodeSellTokens(USER, prices[0], block.timestamp)
         );
 
         // Check balances
@@ -540,7 +626,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.prank(USER);
         vm.expectRevert("NE#06");
         erc1155AMock.safeBatchTransferFrom(
-            USER, exchangeAddr, types, sellAmounts, encodeSellTokens(USER, prices[0], block.timestamp)
+            USER,
+            exchangeAddr,
+            types,
+            sellAmounts,
+            NiftyswapTestHelper.encodeSellTokens(USER, prices[0], block.timestamp)
         );
     }
 
@@ -556,7 +646,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.prank(USER);
         vm.expectRevert(stdError.arithmeticError);
         erc1155AMock.safeBatchTransferFrom(
-            USER, exchangeAddr, types, sellAmounts, encodeSellTokens(USER, prices[0], block.timestamp)
+            USER,
+            exchangeAddr,
+            types,
+            sellAmounts,
+            NiftyswapTestHelper.encodeSellTokens(USER, prices[0], block.timestamp)
         );
     }
 
@@ -570,7 +664,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.prank(USER);
         vm.expectRevert("NE#05");
         erc1155AMock.safeBatchTransferFrom(
-            USER, exchangeAddr, types, sellAmounts, encodeSellTokens(USER, prices[0], block.timestamp - 1)
+            USER,
+            exchangeAddr,
+            types,
+            sellAmounts,
+            NiftyswapTestHelper.encodeSellTokens(USER, prices[0], block.timestamp - 1)
         );
     }
 
@@ -585,7 +683,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.prank(USER);
         vm.expectRevert("NE#07");
         erc1155AMock.safeBatchTransferFrom(
-            USER, exchangeAddr, types, sellAmounts, encodeSellTokens(USER, prices[0], block.timestamp)
+            USER,
+            exchangeAddr,
+            types,
+            sellAmounts,
+            NiftyswapTestHelper.encodeSellTokens(USER, prices[0], block.timestamp)
         );
     }
 
@@ -601,7 +703,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.prank(USER);
         vm.expectRevert("NE#05");
         erc1155AMock.safeBatchTransferFrom(
-            USER, exchangeAddr, types, sellAmounts, encodeSellTokens(USER, prices[0], block.timestamp - 1)
+            USER,
+            exchangeAddr,
+            types,
+            sellAmounts,
+            NiftyswapTestHelper.encodeSellTokens(USER, prices[0], block.timestamp - 1)
         );
     }
 
@@ -618,7 +724,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.startPrank(USER);
         vm.expectRevert("ERC1155#_safeBatchTransferFrom: INVALID_ARRAYS_LENGTH");
         erc1155AMock.safeBatchTransferFrom(
-            USER, exchangeAddr, types1, sellAmounts2, encodeSellTokens(USER, prices[0], block.timestamp - 1)
+            USER,
+            exchangeAddr,
+            types1,
+            sellAmounts2,
+            NiftyswapTestHelper.encodeSellTokens(USER, prices[0], block.timestamp - 1)
         );
         vm.stopPrank();
     }
@@ -645,7 +755,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.expectEmit(true, true, true, true, exchangeAddr);
         emit TokensPurchase(USER, USER, types, tokens, prices);
         erc1155BMock.safeTransferFrom(
-            USER, exchangeAddr, CURRENCY_ID, prices[0], encodeBuyTokens(USER, types, tokens, block.timestamp)
+            USER,
+            exchangeAddr,
+            CURRENCY_ID,
+            prices[0],
+            NiftyswapTestHelper.encodeBuyTokens(USER, types, tokens, block.timestamp)
         );
 
         // Check balances
@@ -669,7 +783,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.prank(USER);
         vm.expectRevert("NE#03");
         erc1155BMock.safeTransferFrom(
-            USER, exchangeAddr, CURRENCY_ID, prices[0], encodeBuyTokens(USER, types, tokens, block.timestamp)
+            USER,
+            exchangeAddr,
+            CURRENCY_ID,
+            prices[0],
+            NiftyswapTestHelper.encodeBuyTokens(USER, types, tokens, block.timestamp)
         );
     }
 
@@ -686,7 +804,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.prank(USER);
         vm.expectRevert(stdError.arithmeticError);
         erc1155BMock.safeTransferFrom(
-            USER, exchangeAddr, CURRENCY_ID, prices[0], encodeBuyTokens(USER, types, tokens, block.timestamp)
+            USER,
+            exchangeAddr,
+            CURRENCY_ID,
+            prices[0],
+            NiftyswapTestHelper.encodeBuyTokens(USER, types, tokens, block.timestamp)
         );
     }
 
@@ -700,7 +822,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.prank(USER);
         vm.expectRevert("NE#02");
         erc1155BMock.safeTransferFrom(
-            USER, exchangeAddr, CURRENCY_ID, prices[0], encodeBuyTokens(USER, types, tokens, block.timestamp - 1)
+            USER,
+            exchangeAddr,
+            CURRENCY_ID,
+            prices[0],
+            NiftyswapTestHelper.encodeBuyTokens(USER, types, tokens, block.timestamp - 1)
         );
     }
 
@@ -715,7 +841,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.prank(USER);
         vm.expectRevert(stdError.arithmeticError);
         erc1155BMock.safeTransferFrom(
-            USER, exchangeAddr, CURRENCY_ID, prices[0], encodeBuyTokens(USER, types, tokens, block.timestamp)
+            USER,
+            exchangeAddr,
+            CURRENCY_ID,
+            prices[0],
+            NiftyswapTestHelper.encodeBuyTokens(USER, types, tokens, block.timestamp)
         );
     }
 
@@ -731,7 +861,11 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
         vm.prank(USER);
         vm.expectRevert("NE#29");
         erc1155BMock.safeTransferFrom(
-            USER, exchangeAddr, CURRENCY_ID, prices[0], encodeBuyTokens(USER, types, tokens, block.timestamp)
+            USER,
+            exchangeAddr,
+            CURRENCY_ID,
+            prices[0],
+            NiftyswapTestHelper.encodeBuyTokens(USER, types, tokens, block.timestamp)
         );
     }
 
@@ -748,7 +882,7 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
 
         vm.prank(OPERATOR);
         erc1155AMock.safeBatchTransferFrom(
-            OPERATOR, exchangeAddr, types, tokens, encodeAddLiquidity(currencies, block.timestamp)
+            OPERATOR, exchangeAddr, types, tokens, NiftyswapTestHelper.encodeAddLiquidity(currencies, block.timestamp)
         );
 
         vm.expectRevert(stdError.divisionError);
@@ -765,7 +899,7 @@ contract NiftyswapExchangeTest is NiftyswapTestHelper {
             exchangeAddr,
             TOKEN_TYPES,
             TOKEN_AMTS_TO_ADD,
-            encodeAddLiquidity(CURRENCIES_PER_TYPE, block.timestamp)
+            NiftyswapTestHelper.encodeAddLiquidity(CURRENCIES_PER_TYPE, block.timestamp)
         );
         _;
     }

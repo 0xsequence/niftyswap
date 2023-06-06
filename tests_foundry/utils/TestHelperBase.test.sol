@@ -4,10 +4,10 @@ pragma solidity ^0.8.4;
 import {INiftyswapExchange} from "src/contracts/interfaces/INiftyswapExchange.sol";
 import {IERC1155} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
 
-import {Constants} from "./Constants.test.sol";
+import {GasHelper} from "./GasHelper.test.sol";
 import {Test} from "forge-std/Test.sol";
 
-abstract contract TestHelperBase is Test, Constants {
+abstract contract TestHelperBase is Test, GasHelper {
     /**
      * Get token balances.
      */
