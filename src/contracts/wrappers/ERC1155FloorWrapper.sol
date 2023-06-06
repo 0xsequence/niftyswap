@@ -100,10 +100,7 @@ contract ERC1155FloorWrapper is IERC1155FloorWrapper, ERC1155MintBurn, IERC1155M
             _deposit(_amounts, _data);
         } else if (msg.sender == address(this)) {
             // Withdraw
-            if (_ids.length != 1) {
-                revert InvalidERC1155Received();
-            }
-            // Either ids[0] == TOKEN_ID or amounts[0] == 0
+            assert(_ids.length == 1); // Always true, see transfer override
             _withdraw(_amounts[0], _data);
         } else {
             revert InvalidERC1155Received();
@@ -173,6 +170,53 @@ contract ERC1155FloorWrapper is IERC1155FloorWrapper, ERC1155MintBurn, IERC1155M
     }
 
     //
+    // Transfer overrides
+    //
+
+    /**
+     * Transfers amount amount of an _id from the _from address to the _to address specified
+     * @param _from Source address
+     * @param _to Target address
+     * @param _id ID of the token type
+     * @param _amount Transfered amount
+     * @param _data Additional data with no specified format, sent in call to `_to`
+     */
+    function safeTransferFrom(address _from, address _to, uint256 _id, uint256 _amount, bytes memory _data)
+        public
+        override(ERC1155, IERC1155)
+    {
+        if (_amount == 0) {
+            revert InvalidTransferRequest();
+        }
+
+        super.safeTransferFrom(_from, _to, _id, _amount, _data);
+    }
+
+    /**
+     * Send multiple types of Tokens from the _from address to the _to address (with safety call)
+     * @param _from Source addresses
+     * @param _to Target addresses
+     * @param _ids IDs of each token type
+     * @param _amounts Transfer amounts per token type
+     * @param _data Additional data with no specified format, sent in call to `_to`
+     * @dev As this contract only supports a single token id, this function requires a single transfer.
+     * @dev Prefer using `safeTransferFrom` over this function.
+     */
+    function safeBatchTransferFrom(
+        address _from,
+        address _to,
+        uint256[] memory _ids,
+        uint256[] memory _amounts,
+        bytes memory _data
+    ) public override(ERC1155, IERC1155) {
+        if (_ids.length != 1 || _ids[0] != TOKEN_ID || _amounts.length != 1 || _amounts[0] == 0) {
+            revert InvalidTransferRequest();
+        }
+
+        super.safeBatchTransferFrom(_from, _to, _ids, _amounts, _data);
+    }
+
+    //
     // Views
     //
 
@@ -192,7 +236,7 @@ contract ERC1155FloorWrapper is IERC1155FloorWrapper, ERC1155MintBurn, IERC1155M
      * @param _interfaceId The interfaceId to test.
      * @return supported Whether the interfaceId is supported.
      */
-    function supportsInterface(bytes4 _interfaceId) public pure override(IERC165, ERC1155) returns (bool supported) {
+    function supportsInterface(bytes4 _interfaceId) public view override(IERC165, ERC1155) returns (bool supported) {
         return _interfaceId == type(IERC165).interfaceId || _interfaceId == type(IERC1155).interfaceId
             || _interfaceId == type(IERC1155Metadata).interfaceId || _interfaceId == type(IERC1155FloorWrapper).interfaceId
             || super.supportsInterface(_interfaceId);

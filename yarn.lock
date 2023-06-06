@@ -11,6 +11,15 @@
     "@ethersproject/providers" "^5.7.2"
     ethers "^5.7.2"
 
+"@0xsequence/erc-1155@^4.0.3":
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/@0xsequence/erc-1155/-/erc-1155-4.0.3.tgz#b9b890c1ced04a84f36be22dd20424b43b9e1da2"
+  integrity sha512-vDh4OEuq0bR3iIqhsxpuRpczH5GxwH/mjBWm9uP6VYKnKM36ZBLApSNUlIOCXYRCS0DYFxsdvYjAemb3w1l4ow==
+  optionalDependencies:
+    "@ethersproject/abi" "^5.7.0"
+    "@ethersproject/providers" "^5.7.2"
+    ethers "^5.7.2"
+
 "@0xsequence/erc20-meta-token@^4.0.1":
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/@0xsequence/erc20-meta-token/-/erc20-meta-token-4.0.1.tgz#44fe77822af0ff3b1111466615c9958e92aca782"
