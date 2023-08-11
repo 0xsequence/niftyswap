@@ -55,6 +55,10 @@ interface INiftyswapOrderbookFunctions is INiftyswapOrderbookStorage {
 }
 
 interface INiftyswapOrderbookSignals {
+    //
+    // Events
+    //
+
     // See INiftyswapOrderbookFunctions.createListing
     event ListingCreated(
         uint256 indexed listingId,
@@ -71,6 +75,19 @@ interface INiftyswapOrderbookSignals {
 
     // See INiftyswapOrderbookFunctions.cancelListing
     event ListingCancelled(uint256 indexed listingId);
+
+    //
+    // Errors
+    //
+
+    // Thrown when the token contract is invalid.
+    error InvalidTokenContract(address tokenContract);
+
+    // Thrown when the token approval fails.
+    error InvalidTokenApproval(address tokenContract, uint256 amount);
+
+    // Thrown when the seller does not own the token.
+    error InvalidTokenOwner();
 
     // Thrown when listing creation fails.
     error InvalidListing(string reason);

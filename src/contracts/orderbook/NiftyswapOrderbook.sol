@@ -2,6 +2,9 @@
 pragma solidity ^0.8.4;
 
 import {INiftyswapOrderbook} from "../interfaces/INiftyswapOrderbook.sol";
+import {IERC721} from "../interfaces/IERC721.sol";
+import {IERC20} from "@0xsequence/erc-1155/contracts/interfaces/IERC20.sol";
+import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 import {IERC1155} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
 import {TransferHelper} from "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 
@@ -39,8 +42,30 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         if (expiresAt <= block.timestamp) {
             revert InvalidListing("Invalid expiration");
         }
-        //TODO Check tokenContract type (or pass it in?)
-        //TODO Check currency contract is ERC20.
+
+        // Check currency is ERC20
+        _requireERC20(currency);
+
+        // Check token type
+        bool isERC1155 = _isERC1155(tokenContract);
+        // Check valid listing
+        if (isERC1155) {
+            if (IERC1155(tokenContract).balanceOf(msg.sender, tokenId) < quantity) {
+                revert InvalidQuantity();
+            }
+            if (!IERC1155(tokenContract).isApprovedForAll(msg.sender, address(this))) {
+                revert InvalidTokenApproval(tokenContract, quantity);
+            }
+        } else {
+            if (IERC721(tokenContract).ownerOf(tokenId) != msg.sender) {
+                //FIXME This check should be done on accept listing as well
+                revert InvalidTokenOwner();
+            }
+            if (!IERC721(tokenContract).isApprovedForAll(msg.sender, address(this))) {
+                revert InvalidTokenApproval(tokenContract, quantity);
+            }
+        }
+
         //TODO Check ownership and approved status of token.
 
         listings[totalListings] = Listing({
@@ -77,9 +102,11 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         TransferHelper.safeTransferFrom(listing.currency, msg.sender, listing.creator, listing.pricePerToken * quantity);
 
         // Transfer token
-        //FIXME Don't assume erc1155
-        IERC1155(listing.tokenContract).safeTransferFrom(listing.creator, msg.sender, listing.tokenId, quantity, "");
-
+        if (_isERC1155(listing.tokenContract)) {
+            IERC1155(listing.tokenContract).safeTransferFrom(listing.creator, msg.sender, listing.tokenId, quantity, "");
+        } else {
+            IERC721(listing.tokenContract).transferFrom(listing.creator, msg.sender, listing.tokenId);
+        }
         // Update listing state
         if (listing.quantity == quantity) {
             // Refund some gas
@@ -117,5 +144,32 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
      */
     function getListing(uint256 listingId) external view returns (Listing memory listing) {
         return listings[listingId];
+    }
+
+    /**
+     * Checks if a token contract is ERC1155 or ERC721.
+     * @param tokenContract The address of the token contract.
+     * @return isERC1155 True if the token contract is ERC1155, false if ERC721.
+     * @dev Throws if the token contract is not ERC1155 or ERC721.
+     */
+    function _isERC1155(address tokenContract) internal view returns (bool isERC1155) {
+        if (IERC165(tokenContract).supportsInterface(type(IERC1155).interfaceId)) {
+            return true;
+        } else if (IERC165(tokenContract).supportsInterface(type(IERC721).interfaceId)) {
+            return false;
+        }
+        revert InvalidTokenContract(tokenContract);
+    }
+
+    /**
+     * Checks if a token contract is ERC20.
+     * @param tokenContract The address of the token contract.
+     * @dev Throws if the token contract is not ERC20.
+     */
+    function _requireERC20(address tokenContract) internal view {
+        if (IERC165(tokenContract).supportsInterface(type(IERC20).interfaceId)) {
+            return;
+        }
+        revert InvalidTokenContract(tokenContract);
     }
 }

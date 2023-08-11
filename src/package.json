@@ -23,10 +23,11 @@
     "ethers": "^5.0.32"
   },
   "dependencies": {
-    "@0xsequence/erc-1155": "^4.0.1",
-    "@0xsequence/erc20-meta-token": "^4.0.1",
+    "@0xsequence/erc-1155": "^4.0.2",
+    "@0xsequence/erc20-meta-token": "^4.0.2",
     "@uniswap/lib": "^4.0.1-alpha"
   },
   "devDependencies": {
+    "@openzeppelin/contracts": "^4.8.2"
   }
 }
