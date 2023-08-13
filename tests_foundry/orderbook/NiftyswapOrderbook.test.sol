@@ -63,6 +63,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
 
     // This is tested and fuzzed through internal calls
     function test_createListing(bool isERC1155, uint256 quantity, uint256 pricePerToken, uint256 expiry) internal {
+        vm.assume(pricePerToken != 0);
         vm.assume(expiry > block.timestamp);
         if (isERC1155) {
             vm.assume(quantity > 0 && quantity <= erc1155.balanceOf(USER, TOKEN_ID));
@@ -93,6 +94,68 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.prank(USER);
         vm.expectRevert(abi.encodeWithSelector(InvalidTokenContract.selector, badContract));
         orderbook.createListing(badContract, TOKEN_ID, 1, address(erc20), 1, block.timestamp + 1);
+    }
+
+    function test_createListing_invalidCurrency(address badContract) internal {
+        vm.assume(badContract != address(erc20));
+
+        vm.prank(USER);
+        vm.expectRevert(abi.encodeWithSelector(InvalidTokenContract.selector, badContract));
+        orderbook.createListing(address(erc1155), TOKEN_ID, 1, badContract, 1, block.timestamp + 1);
+    }
+
+    function test_createListing_invalidExpiry(uint256 expiry) internal {
+        vm.assume(expiry <= block.timestamp);
+
+        vm.prank(USER);
+        vm.expectRevert(abi.encodeWithSelector(InvalidListing.selector, "Invalid expiration"));
+        orderbook.createListing(address(erc1155), TOKEN_ID, 1, address(erc20), 1, expiry);
+    }
+
+    function test_createListing_invalidQuantity() internal {
+        vm.prank(USER);
+        vm.expectRevert(abi.encodeWithSelector(InvalidListing.selector, "Invalid quantity"));
+        orderbook.createListing(address(erc1155), TOKEN_ID, 0, address(erc20), 1, block.timestamp + 1);
+    }
+
+    function test_createListing_invalidPrice() internal {
+        vm.prank(USER);
+        vm.expectRevert(abi.encodeWithSelector(InvalidListing.selector, "Invalid price"));
+        orderbook.createListing(address(erc1155), TOKEN_ID, 1, address(erc20), 0, block.timestamp + 1);
+    }
+
+    function test_createListing_erc1155_invalidQuantity(uint256 quantity) internal {
+        vm.assume(quantity > TOKEN_QUANTITY || quantity == 0);
+
+        vm.prank(USER);
+        vm.expectRevert(InvalidQuantity.selector);
+        orderbook.createListing(address(erc1155), TOKEN_ID, quantity, address(erc20), 1, block.timestamp + 1);
+    }
+
+    function test_createListing_erc1155_invalidApproval(uint256 quantity) internal {
+        vm.assume(quantity <= TOKEN_QUANTITY);
+
+        vm.prank(USER);
+        erc1155.setApprovalForAll(address(orderbook), false);
+
+        vm.prank(USER);
+        vm.expectRevert(InvalidQuantity.selector);
+        orderbook.createListing(address(erc1155), TOKEN_ID, quantity, address(erc20), 1, block.timestamp + 1);
+    }
+
+    function test_createListing_erc721_noToken(uint256 tokenId) internal {
+        vm.prank(PURCHASER);
+        vm.expectRevert(InvalidTokenOwner.selector);
+        orderbook.createListing(address(erc721), tokenId, 1, address(erc20), 1, block.timestamp + 1);
+    }
+
+    function test_createListing_erc721_invalidApproval() internal {
+        vm.prank(USER);
+        erc721.setApprovalForAll(address(orderbook), false);
+
+        vm.prank(USER);
+        vm.expectRevert(InvalidQuantity.selector);
+        orderbook.createListing(address(erc721), TOKEN_ID, 1, address(erc20), 1, block.timestamp + 1);
     }
 
     //

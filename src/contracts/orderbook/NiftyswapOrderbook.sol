@@ -31,13 +31,9 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         uint256 pricePerToken,
         uint256 expiresAt
     ) external returns (uint256 listingId) {
-        if (quantity == 0) {
-            revert InvalidListing("Invalid quantity");
+        if (pricePerToken == 0) {
+            revert InvalidListing("Invalid price");
         }
-        //FIXME Do we allow free listings?
-        // if (pricePerToken == 0) {
-        //   revert InvalidListing('Invalid price');
-        // }
         // solhint-disable-next-line not-rely-on-time
         if (expiresAt <= block.timestamp) {
             revert InvalidListing("Invalid expiration");
@@ -48,25 +44,12 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
 
         // Check token type
         bool isERC1155 = _isERC1155(tokenContract);
-        // Check valid listing
+        // Check valid token for listing
         if (isERC1155) {
-            if (IERC1155(tokenContract).balanceOf(msg.sender, tokenId) < quantity) {
-                revert InvalidQuantity();
-            }
-            if (!IERC1155(tokenContract).isApprovedForAll(msg.sender, address(this))) {
-                revert InvalidTokenApproval(tokenContract, quantity);
-            }
+            _requireApprovedERC1155Tokens(tokenContract, tokenId, quantity, msg.sender);
         } else {
-            if (IERC721(tokenContract).ownerOf(tokenId) != msg.sender) {
-                //FIXME This check should be done on accept listing as well
-                revert InvalidTokenOwner();
-            }
-            if (!IERC721(tokenContract).isApprovedForAll(msg.sender, address(this))) {
-                revert InvalidTokenApproval(tokenContract, quantity);
-            }
+            _requireApprovedERC721Tokens(tokenContract, tokenId, quantity, msg.sender);
         }
-
-        //TODO Check ownership and approved status of token.
 
         listings[totalListings] = Listing({
             creator: msg.sender,
@@ -102,6 +85,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         TransferHelper.safeTransferFrom(listing.currency, msg.sender, listing.creator, listing.pricePerToken * quantity);
 
         // Transfer token
+        // FIXME Check listing owner is still token owner
         if (_isERC1155(listing.tokenContract)) {
             IERC1155(listing.tokenContract).safeTransferFrom(listing.creator, msg.sender, listing.tokenId, quantity, "");
         } else {
@@ -171,5 +155,51 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
             return;
         }
         revert InvalidTokenContract(tokenContract);
+    }
+
+    /**
+     * Checks if the owner has enough approved ERC1155 tokens.
+     * @param tokenContract The address of the token contract.
+     * @param tokenId The ID of the token.
+     * @param quantity The quantity of tokens to list.
+     * @param owner The address of the owner.
+     * @dev Throws if the owner does not have enough approved tokens.
+     */
+    function _requireApprovedERC1155Tokens(address tokenContract, uint256 tokenId, uint256 quantity, address owner)
+        internal
+        view
+    {
+        if (quantity == 0) {
+            revert InvalidListing("Invalid quantity");
+        }
+        if (IERC1155(tokenContract).balanceOf(owner, tokenId) < quantity) {
+            revert InvalidQuantity();
+        }
+        if (!IERC1155(tokenContract).isApprovedForAll(owner, address(this))) {
+            revert InvalidTokenApproval(tokenContract, quantity);
+        }
+    }
+
+    /**
+     * Checks if the owner has enough approved ERC721 tokens.
+     * @param tokenContract The address of the token contract.
+     * @param tokenId The ID of the token.
+     * @param quantity The quantity of tokens to list. Must be 1.
+     * @param owner The address of the owner.
+     * @dev Throws if the owner does not have enough approved tokens.
+     */
+    function _requireApprovedERC721Tokens(address tokenContract, uint256 tokenId, uint256 quantity, address owner)
+        internal
+        view
+    {
+        if (quantity != 1) {
+            revert InvalidListing("Invalid quantity");
+        }
+        if (IERC721(tokenContract).ownerOf(tokenId) != owner) {
+            revert InvalidTokenOwner();
+        }
+        if (!IERC721(tokenContract).isApprovedForAll(owner, address(this))) {
+            revert InvalidTokenApproval(tokenContract, 1);
+        }
     }
 }
