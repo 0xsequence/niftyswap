@@ -84,10 +84,7 @@ interface INiftyswapOrderbookSignals {
     error InvalidTokenContract(address tokenContract);
 
     // Thrown when the token approval fails.
-    error InvalidTokenApproval(address tokenContract, uint256 amount);
-
-    // Thrown when the seller does not own the token.
-    error InvalidTokenOwner();
+    error InvalidTokenApproval(address tokenContract, uint256 tokenId, uint256 quantity, address owner);
 
     // Thrown when listing creation fails.
     error InvalidListing(string reason);

@@ -96,15 +96,15 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         orderbook.createListing(badContract, TOKEN_ID, 1, address(erc20), 1, block.timestamp + 1);
     }
 
-    function test_createListing_invalidCurrency(address badContract) internal {
+    function test_createListing_invalidCurrency(address badContract) external {
         vm.assume(badContract != address(erc20));
 
         vm.prank(USER);
-        vm.expectRevert(abi.encodeWithSelector(InvalidTokenContract.selector, badContract));
+        vm.expectRevert();
         orderbook.createListing(address(erc1155), TOKEN_ID, 1, badContract, 1, block.timestamp + 1);
     }
 
-    function test_createListing_invalidExpiry(uint256 expiry) internal {
+    function test_createListing_invalidExpiry(uint256 expiry) external {
         vm.assume(expiry <= block.timestamp);
 
         vm.prank(USER);
@@ -112,49 +112,53 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         orderbook.createListing(address(erc1155), TOKEN_ID, 1, address(erc20), 1, expiry);
     }
 
-    function test_createListing_invalidQuantity() internal {
+    function test_createListing_invalidQuantity() external {
         vm.prank(USER);
-        vm.expectRevert(abi.encodeWithSelector(InvalidListing.selector, "Invalid quantity"));
+        vm.expectRevert(abi.encodeWithSelector(InvalidTokenApproval.selector, address(erc1155), TOKEN_ID, 0, USER));
         orderbook.createListing(address(erc1155), TOKEN_ID, 0, address(erc20), 1, block.timestamp + 1);
     }
 
-    function test_createListing_invalidPrice() internal {
+    function test_createListing_invalidPrice() external {
         vm.prank(USER);
         vm.expectRevert(abi.encodeWithSelector(InvalidListing.selector, "Invalid price"));
         orderbook.createListing(address(erc1155), TOKEN_ID, 1, address(erc20), 0, block.timestamp + 1);
     }
 
-    function test_createListing_erc1155_invalidQuantity(uint256 quantity) internal {
+    function test_createListing_erc1155_invalidQuantity(uint256 quantity) external {
         vm.assume(quantity > TOKEN_QUANTITY || quantity == 0);
 
         vm.prank(USER);
-        vm.expectRevert(InvalidQuantity.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(InvalidTokenApproval.selector, address(erc1155), TOKEN_ID, quantity, USER)
+        );
         orderbook.createListing(address(erc1155), TOKEN_ID, quantity, address(erc20), 1, block.timestamp + 1);
     }
 
-    function test_createListing_erc1155_invalidApproval(uint256 quantity) internal {
+    function test_createListing_erc1155_invalidApproval(uint256 quantity) external {
         vm.assume(quantity <= TOKEN_QUANTITY);
 
         vm.prank(USER);
         erc1155.setApprovalForAll(address(orderbook), false);
 
         vm.prank(USER);
-        vm.expectRevert(InvalidQuantity.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(InvalidTokenApproval.selector, address(erc1155), TOKEN_ID, quantity, USER)
+        );
         orderbook.createListing(address(erc1155), TOKEN_ID, quantity, address(erc20), 1, block.timestamp + 1);
     }
 
-    function test_createListing_erc721_noToken(uint256 tokenId) internal {
+    function test_createListing_erc721_noToken(uint256 tokenId) external {
         vm.prank(PURCHASER);
-        vm.expectRevert(InvalidTokenOwner.selector);
+        vm.expectRevert(abi.encodeWithSelector(InvalidTokenApproval.selector, address(erc721), tokenId, 1, PURCHASER));
         orderbook.createListing(address(erc721), tokenId, 1, address(erc20), 1, block.timestamp + 1);
     }
 
-    function test_createListing_erc721_invalidApproval() internal {
+    function test_createListing_erc721_invalidApproval() external {
         vm.prank(USER);
         erc721.setApprovalForAll(address(orderbook), false);
 
         vm.prank(USER);
-        vm.expectRevert(InvalidQuantity.selector);
+        vm.expectRevert(abi.encodeWithSelector(InvalidTokenApproval.selector, address(erc721), TOKEN_ID, 1, USER));
         orderbook.createListing(address(erc721), TOKEN_ID, 1, address(erc20), 1, block.timestamp + 1);
     }
 
@@ -273,6 +277,20 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.prank(PURCHASER);
         vm.expectRevert("TransferHelper::transferFrom: transferFrom failed");
         orderbook.acceptListing(0, quantity);
+    }
+
+    function test_acceptListing_invalidERC721Owner(uint256 pricePerToken, uint256 expiry) external {
+        uint256 erc20BalPurchaser = erc20.balanceOf(PURCHASER);
+        vm.assume(pricePerToken <= erc20BalPurchaser);
+
+        test_createListing(false, 1, pricePerToken, expiry);
+
+        vm.prank(USER);
+        erc721.transferFrom(USER, PURCHASER, TOKEN_ID);
+
+        vm.prank(PURCHASER);
+        vm.expectRevert("ERC721: caller is not token owner or approved");
+        orderbook.acceptListing(0, 1);
     }
 
     //

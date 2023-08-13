@@ -42,13 +42,9 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         // Check currency is ERC20
         _requireERC20(currency);
 
-        // Check token type
-        bool isERC1155 = _isERC1155(tokenContract);
         // Check valid token for listing
-        if (isERC1155) {
-            _requireApprovedERC1155Tokens(tokenContract, tokenId, quantity, msg.sender);
-        } else {
-            _requireApprovedERC721Tokens(tokenContract, tokenId, quantity, msg.sender);
+        if (!_hasApprovedTokens(tokenContract, tokenId, quantity, msg.sender)) {
+            revert InvalidTokenApproval(tokenContract, tokenId, quantity, msg.sender);
         }
 
         listings[totalListings] = Listing({
@@ -85,7 +81,6 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         TransferHelper.safeTransferFrom(listing.currency, msg.sender, listing.creator, listing.pricePerToken * quantity);
 
         // Transfer token
-        // FIXME Check listing owner is still token owner
         if (_isERC1155(listing.tokenContract)) {
             IERC1155(listing.tokenContract).safeTransferFrom(listing.creator, msg.sender, listing.tokenId, quantity, "");
         } else {
@@ -137,11 +132,17 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
      * @dev Throws if the token contract is not ERC1155 or ERC721.
      */
     function _isERC1155(address tokenContract) internal view returns (bool isERC1155) {
-        if (IERC165(tokenContract).supportsInterface(type(IERC1155).interfaceId)) {
-            return true;
-        } else if (IERC165(tokenContract).supportsInterface(type(IERC721).interfaceId)) {
-            return false;
-        }
+        try IERC165(tokenContract).supportsInterface(type(IERC1155).interfaceId) returns (bool supported) {
+            if (supported) {
+                return true;
+            }
+        } catch {}
+        try IERC165(tokenContract).supportsInterface(type(IERC721).interfaceId) returns (bool supported) {
+            if (supported) {
+                return false;
+            }
+        } catch {}
+        // Fail out
         revert InvalidTokenContract(tokenContract);
     }
 
@@ -151,55 +152,39 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
      * @dev Throws if the token contract is not ERC20.
      */
     function _requireERC20(address tokenContract) internal view {
-        if (IERC165(tokenContract).supportsInterface(type(IERC20).interfaceId)) {
-            return;
-        }
+        try IERC165(tokenContract).supportsInterface(type(IERC20).interfaceId) returns (bool supported) {
+            if (supported) {
+                return;
+            }
+        } catch {}
+        // Fail out
         revert InvalidTokenContract(tokenContract);
     }
 
-    /**
-     * Checks if the owner has enough approved ERC1155 tokens.
-     * @param tokenContract The address of the token contract.
-     * @param tokenId The ID of the token.
-     * @param quantity The quantity of tokens to list.
-     * @param owner The address of the owner.
-     * @dev Throws if the owner does not have enough approved tokens.
-     */
-    function _requireApprovedERC1155Tokens(address tokenContract, uint256 tokenId, uint256 quantity, address owner)
+    function _hasApprovedTokens(address tokenContract, uint256 tokenId, uint256 quantity, address owner)
         internal
         view
+        returns (bool isValid)
     {
-        if (quantity == 0) {
-            revert InvalidListing("Invalid quantity");
-        }
-        if (IERC1155(tokenContract).balanceOf(owner, tokenId) < quantity) {
-            revert InvalidQuantity();
-        }
-        if (!IERC1155(tokenContract).isApprovedForAll(owner, address(this))) {
-            revert InvalidTokenApproval(tokenContract, quantity);
-        }
-    }
+        address orderbook = address(this);
 
-    /**
-     * Checks if the owner has enough approved ERC721 tokens.
-     * @param tokenContract The address of the token contract.
-     * @param tokenId The ID of the token.
-     * @param quantity The quantity of tokens to list. Must be 1.
-     * @param owner The address of the owner.
-     * @dev Throws if the owner does not have enough approved tokens.
-     */
-    function _requireApprovedERC721Tokens(address tokenContract, uint256 tokenId, uint256 quantity, address owner)
-        internal
-        view
-    {
-        if (quantity != 1) {
-            revert InvalidListing("Invalid quantity");
+        if (_isERC1155(tokenContract)) {
+            return quantity > 0 && IERC1155(tokenContract).balanceOf(owner, tokenId) >= quantity
+                && IERC1155(tokenContract).isApprovedForAll(owner, orderbook);
         }
-        if (IERC721(tokenContract).ownerOf(tokenId) != owner) {
-            revert InvalidTokenOwner();
-        }
-        if (!IERC721(tokenContract).isApprovedForAll(owner, address(this))) {
-            revert InvalidTokenApproval(tokenContract, 1);
-        }
+        // ERC721
+        address tokenOwner;
+        address operator;
+
+        try IERC721(tokenContract).ownerOf(tokenId) returns (address _tokenOwner) {
+            tokenOwner = _tokenOwner;
+
+            try IERC721(tokenContract).getApproved(tokenId) returns (address _operator) {
+                operator = _operator;
+            } catch {}
+        } catch {}
+
+        return quantity == 1 && owner == tokenOwner
+            && (operator == orderbook || IERC721(tokenContract).isApprovedForAll(owner, orderbook));
     }
 }
