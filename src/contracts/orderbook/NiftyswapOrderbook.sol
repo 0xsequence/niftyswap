@@ -39,9 +39,6 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
             revert InvalidListing("Invalid expiration");
         }
 
-        // Check currency is ERC20
-        _requireERC20(currency);
-
         // Check valid token for listing
         if (!_hasApprovedTokens(tokenContract, tokenId, quantity, msg.sender)) {
             revert InvalidTokenApproval(tokenContract, tokenId, quantity, msg.sender);
@@ -147,20 +144,42 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
     }
 
     /**
-     * Checks if a token contract is ERC20.
+     * Checks if a token contract supports ERC1155 or ERC721.
      * @param tokenContract The address of the token contract.
      * @dev Throws if the token contract is not ERC20.
      */
-    function _requireERC20(address tokenContract) internal view {
-        try IERC165(tokenContract).supportsInterface(type(IERC20).interfaceId) returns (bool supported) {
-            if (supported) {
-                return;
-            }
-        } catch {}
-        // Fail out
-        revert InvalidTokenContract(tokenContract);
+    function _getTokenType(address tokenContract) internal view returns (TokenType tokenType) {
+        if (_safelyCall165(tokenContract, type(IERC1155).interfaceId)) {
+            return TokenType.ERC1155;
+        }
+        if (_safelyCall165(tokenContract, type(IERC721).interfaceId)) {
+            return TokenType.ERC721;
+        }
+        // Note we can't check for ERC20 this way as most do not support ERC165
+        return TokenType.UNKNOWN;
     }
 
+    /**
+     * Checks if a token contract supports an interface.
+     * @param tokenContract The address of the token contract.
+     * @param interfaceId The interface ID.
+     * @return supported True if the token contract supports the interface.
+     */
+    function _safelyCall165(address tokenContract, bytes4 interfaceId) private view returns (bool supported) {
+        bytes memory data = abi.encodeWithSelector(IERC165.supportsInterface.selector, interfaceId);
+        (bool success, bytes memory returnData) = tokenContract.staticcall(data);
+        return success && returnData.length == 32 && abi.decode(returnData, (bool));
+    }
+
+    /**
+     * Checks if a token contract is ERC1155 or ERC721 and if the token is owned and approved for transfer.
+     * @param tokenContract The address of the token contract.
+     * @param tokenId The ID of the token.
+     * @param quantity The quantity of tokens to list.
+     * @param owner The address of the owner of the token.
+     * @return isValid True if the token is owned and approved for transfer.
+     * @dev Returns false if the token contract is not ERC1155 or ERC721.
+     */
     function _hasApprovedTokens(address tokenContract, uint256 tokenId, uint256 quantity, address owner)
         internal
         view

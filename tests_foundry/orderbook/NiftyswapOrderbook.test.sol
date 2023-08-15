@@ -96,14 +96,6 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         orderbook.createListing(badContract, TOKEN_ID, 1, address(erc20), 1, block.timestamp + 1);
     }
 
-    function test_createListing_invalidCurrency(address badContract) external {
-        vm.assume(badContract != address(erc20));
-
-        vm.prank(USER);
-        vm.expectRevert();
-        orderbook.createListing(address(erc1155), TOKEN_ID, 1, badContract, 1, block.timestamp + 1);
-    }
-
     function test_createListing_invalidExpiry(uint256 expiry) external {
         vm.assume(expiry <= block.timestamp);
 

@@ -11,6 +11,12 @@ interface INiftyswapOrderbookStorage {
         uint256 pricePerToken;
         uint256 expiresAt;
     }
+
+    enum TokenType {
+        UNKNOWN,
+        ERC1155,
+        ERC721
+    }
 }
 
 interface INiftyswapOrderbookFunctions is INiftyswapOrderbookStorage {
