@@ -67,9 +67,16 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
      * Purchases a token.
      * @param listingId The ID of the listing.
      * @param quantity The quantity of tokens to purchase.
+     * @param additionalFees The additional fees to pay.
+     * @param additionalFeeRecievers The addresses to send the additional fees to.
      * @dev Royalties are taken from the listing cost.
      */
-    function acceptListing(uint256 listingId, uint256 quantity) external {
+    function acceptListing(
+        uint256 listingId,
+        uint256 quantity,
+        uint256[] memory additionalFees,
+        address[] memory additionalFeeRecievers
+    ) external {
         Listing storage listing = listings[listingId];
         if (listing.creator == address(0)) {
             // Cancelled or completed
@@ -77,6 +84,9 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         }
         if (quantity == 0 || quantity > listing.quantity) {
             revert InvalidQuantity();
+        }
+        if (additionalFees.length != additionalFeeRecievers.length) {
+            revert InvalidAdditionalFees();
         }
 
         // Calculate payables
@@ -90,6 +100,14 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
 
         // Transfer currency
         TransferHelper.safeTransferFrom(listing.currency, msg.sender, listing.creator, totalCost - royaltyAmount);
+
+        // Transfer additional fees
+        for (uint256 i; i < additionalFees.length; i++) {
+            if (additionalFeeRecievers[i] == address(0) || additionalFees[i] == 0) {
+                revert InvalidAdditionalFees();
+            }
+            TransferHelper.safeTransferFrom(listing.currency, msg.sender, additionalFeeRecievers[i], additionalFees[i]);
+        }
 
         // Transfer token
         if (_isERC1155(listing.tokenContract)) {

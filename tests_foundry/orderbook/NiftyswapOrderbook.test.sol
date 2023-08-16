@@ -28,6 +28,10 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
     address private constant USER = address(uint160(uint256(keccak256("user"))));
     address private constant PURCHASER = address(uint160(uint256(keccak256("purchaser"))));
     address private constant ROYALTY_RECEIVER = address(uint160(uint256(keccak256("royalty_receiver"))));
+    address private constant FEE_RECEIVER = address(uint160(uint256(keccak256("fee_receiver"))));
+
+    uint256[] private emptyFees;
+    address[] private emptyFeeReceivers;
 
     function setUp() external {
         orderbook = new NiftyswapOrderbook();
@@ -181,7 +185,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.expectEmit(true, true, true, true, address(orderbook));
         emit ListingAccepted(0, PURCHASER, quantity);
         vm.prank(PURCHASER);
-        orderbook.acceptListing(0, quantity);
+        orderbook.acceptListing(0, quantity, emptyFees, emptyFeeReceivers);
 
         assertEq(erc1155.balanceOf(PURCHASER, TOKEN_ID), quantity);
         assertEq(erc20.balanceOf(PURCHASER), erc20BalPurchaser - totalPrice);
@@ -189,7 +193,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         assertEq(erc20.balanceOf(ROYALTY_RECEIVER), erc20BalRoyal + royalty);
     }
 
-    function test_acceptListing_erc721(uint256 royaltyFee, uint256 pricePerToken, uint256 expiry) public {
+    function test_acceptListing_erc721(uint256 pricePerToken, uint256 expiry) public {
         vm.assume(pricePerToken <= TOKEN_QUANTITY);
         uint256 royalty = (pricePerToken * ROYALTY_FEE) / 10000;
 
@@ -203,11 +207,95 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.expectEmit(true, true, true, true, address(orderbook));
         emit ListingAccepted(0, PURCHASER, 1);
         vm.prank(PURCHASER);
-        orderbook.acceptListing(0, 1);
+        orderbook.acceptListing(0, 1, emptyFees, emptyFeeReceivers);
 
         assertEq(erc721.ownerOf(TOKEN_ID), PURCHASER);
         assertEq(erc20.balanceOf(PURCHASER), erc20BalPurchaser - pricePerToken);
         assertEq(erc20.balanceOf(USER), erc20BalUser + pricePerToken - royalty);
+        assertEq(erc20.balanceOf(ROYALTY_RECEIVER), erc20BalRoyal + royalty);
+    }
+
+    function test_acceptListing_erc1155_additionalFees(
+        uint256 quantity,
+        uint256 pricePerToken,
+        uint256 expiry,
+        uint256[] memory additionalFees
+    ) public {
+        vm.assume(pricePerToken <= 1 ether && quantity <= TOKEN_QUANTITY); // Prevent overflow
+        uint256 totalPrice = pricePerToken * quantity;
+        uint256 royalty = (totalPrice * ROYALTY_FEE) / 10000;
+
+        if (additionalFees.length > 2) {
+            // Cap at 2 fees
+            assembly {
+                mstore(additionalFees, 2)
+            }
+        }
+        address[] memory additionalFeeRecievers = new address[](additionalFees.length);
+        uint256 totalFees;
+        for (uint256 i; i < additionalFees.length; i++) {
+            additionalFeeRecievers[i] = FEE_RECEIVER;
+            additionalFees[i] = bound(additionalFees[i], 1, 1 ether);
+            totalFees += additionalFees[i];
+        }
+
+        uint256 erc20BalPurchaser = erc20.balanceOf(PURCHASER);
+        vm.assume(totalPrice < erc20BalPurchaser);
+        uint256 erc20BalUser = erc20.balanceOf(USER);
+        uint256 erc20BalRoyal = erc20.balanceOf(ROYALTY_RECEIVER);
+
+        test_createListing(true, quantity, pricePerToken, expiry);
+
+        vm.expectEmit(true, true, true, true, address(orderbook));
+        emit ListingAccepted(0, PURCHASER, quantity);
+        vm.prank(PURCHASER);
+        orderbook.acceptListing(0, quantity, additionalFees, additionalFeeRecievers);
+
+        assertEq(erc1155.balanceOf(PURCHASER, TOKEN_ID), quantity);
+        assertEq(erc20.balanceOf(PURCHASER), erc20BalPurchaser - totalPrice - totalFees);
+        assertEq(erc20.balanceOf(FEE_RECEIVER), totalFees); // Assume no starting value
+        assertEq(erc20.balanceOf(USER), erc20BalUser + totalPrice - royalty);
+        assertEq(erc20.balanceOf(ROYALTY_RECEIVER), erc20BalRoyal + royalty);
+    }
+
+    function test_acceptListing_erc721_additionalFees(
+        uint256 pricePerToken,
+        uint256 expiry,
+        uint256[] memory additionalFees
+    ) public {
+        vm.assume(pricePerToken <= TOKEN_QUANTITY);
+        uint256 royalty = (pricePerToken * ROYALTY_FEE) / 10000;
+
+        if (additionalFees.length > 2) {
+            // Cap at 2 fees
+            assembly {
+                mstore(additionalFees, 2)
+            }
+        }
+        address[] memory additionalFeeRecievers = new address[](additionalFees.length);
+        uint256 totalFees;
+        for (uint256 i; i < additionalFees.length; i++) {
+            additionalFeeRecievers[i] = FEE_RECEIVER;
+            additionalFees[i] = bound(additionalFees[i], 1, 1 ether);
+            totalFees += additionalFees[i];
+        }
+
+        uint256 erc20BalPurchaser = erc20.balanceOf(PURCHASER);
+        vm.assume(pricePerToken <= erc20BalPurchaser);
+        uint256 erc20BalUser = erc20.balanceOf(USER);
+        uint256 erc20BalRoyal = erc20.balanceOf(ROYALTY_RECEIVER);
+
+        test_createListing(false, 1, pricePerToken, expiry);
+
+        vm.expectEmit(true, true, true, true, address(orderbook));
+        emit ListingAccepted(0, PURCHASER, 1);
+        vm.prank(PURCHASER);
+        orderbook.acceptListing(0, 1, additionalFees, additionalFeeRecievers);
+
+        assertEq(erc721.ownerOf(TOKEN_ID), PURCHASER);
+        assertEq(erc20.balanceOf(PURCHASER), erc20BalPurchaser - pricePerToken - totalFees);
+        assertEq(erc20.balanceOf(USER), erc20BalUser + pricePerToken - royalty);
+        assertEq(erc20.balanceOf(FEE_RECEIVER), totalFees); // Assume no starting value
         assertEq(erc20.balanceOf(ROYALTY_RECEIVER), erc20BalRoyal + royalty);
     }
 
@@ -235,7 +323,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.expectEmit(true, true, true, true, address(orderbook));
         emit ListingAccepted(0, PURCHASER, quantity);
         vm.prank(PURCHASER);
-        orderbook.acceptListing(0, quantity);
+        orderbook.acceptListing(0, quantity, emptyFees, emptyFeeReceivers);
 
         assertEq(erc1155.balanceOf(PURCHASER, TOKEN_ID), quantity);
         assertEq(erc20.balanceOf(PURCHASER), erc20BalPurchaser - totalPrice);
@@ -262,12 +350,48 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.expectEmit(true, true, true, true, address(orderbook));
         emit ListingAccepted(0, PURCHASER, 1);
         vm.prank(PURCHASER);
-        orderbook.acceptListing(0, 1);
+        orderbook.acceptListing(0, 1, emptyFees, emptyFeeReceivers);
 
         assertEq(erc721.ownerOf(TOKEN_ID), PURCHASER);
         assertEq(erc20.balanceOf(PURCHASER), erc20BalPurchaser - pricePerToken);
         assertEq(erc20.balanceOf(USER), erc20BalUser + pricePerToken - royalty);
         assertEq(erc20.balanceOf(ROYALTY_RECEIVER), erc20BalRoyal + royalty);
+    }
+
+    function test_acceptListing_invalidAdditionalFees(bool isERC1155) public {
+        test_createListing(isERC1155, 1, 1 ether, block.timestamp + 1);
+
+        // Zero fee
+        uint256[] memory additionalFees = new uint256[](1);
+        address[] memory additionalFeeRecievers = new address[](1);
+        additionalFeeRecievers[0] = FEE_RECEIVER;
+        vm.prank(PURCHASER);
+        vm.expectRevert(InvalidAdditionalFees.selector);
+        orderbook.acceptListing(0, 1, additionalFees, additionalFeeRecievers);
+
+        // Zero address
+        additionalFees[0] = 1 ether;
+        additionalFeeRecievers[0] = address(0);
+        vm.prank(PURCHASER);
+        vm.expectRevert(InvalidAdditionalFees.selector);
+        orderbook.acceptListing(0, 1, additionalFees, additionalFeeRecievers);
+
+        // Invalid length (larger receivers)
+        additionalFeeRecievers = new address[](2);
+        additionalFeeRecievers[0] = FEE_RECEIVER;
+        additionalFeeRecievers[1] = FEE_RECEIVER;
+        vm.prank(PURCHASER);
+        vm.expectRevert(InvalidAdditionalFees.selector);
+        orderbook.acceptListing(0, 1, additionalFees, additionalFeeRecievers);
+
+        // Invalid length (larger fees)
+        additionalFees = new uint256[](3);
+        additionalFees[0] = 1;
+        additionalFees[1] = 2;
+        additionalFees[2] = 3;
+        vm.prank(PURCHASER);
+        vm.expectRevert(InvalidAdditionalFees.selector);
+        orderbook.acceptListing(0, 1, additionalFees, additionalFeeRecievers);
     }
 
     function test_acceptListing_invalidQuantity_zero(
@@ -280,7 +404,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
 
         vm.prank(PURCHASER);
         vm.expectRevert(InvalidQuantity.selector);
-        orderbook.acceptListing(0, 0);
+        orderbook.acceptListing(0, 0, emptyFees, emptyFeeReceivers);
     }
 
     function test_acceptListing_invalidQuantity_tooHigh(
@@ -294,7 +418,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
 
         vm.prank(PURCHASER);
         vm.expectRevert(InvalidQuantity.selector);
-        orderbook.acceptListing(0, quantity + 1);
+        orderbook.acceptListing(0, quantity + 1, emptyFees, emptyFeeReceivers);
     }
 
     function test_acceptListing_twice(uint256 quantity, uint256 pricePerToken, uint256 expiry) external {
@@ -314,8 +438,8 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.expectEmit(true, true, true, true, address(orderbook));
         emit ListingAccepted(0, PURCHASER, quantity / 2);
         vm.startPrank(PURCHASER);
-        orderbook.acceptListing(0, quantity / 2);
-        orderbook.acceptListing(0, quantity / 2);
+        orderbook.acceptListing(0, quantity / 2, emptyFees, emptyFeeReceivers);
+        orderbook.acceptListing(0, quantity / 2, emptyFees, emptyFeeReceivers);
         vm.stopPrank();
 
         assertEq(erc1155.balanceOf(PURCHASER, TOKEN_ID), quantity);
@@ -329,7 +453,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
 
         vm.prank(PURCHASER);
         vm.expectRevert(abi.encodeWithSelector(InvalidListingId.selector, 0));
-        orderbook.acceptListing(0, 1);
+        orderbook.acceptListing(0, 1, emptyFees, emptyFeeReceivers);
     }
 
     function test_acceptListing_noFunds(bool isERC1155, uint256 quantity, uint256 pricePerToken, uint256 expiry)
@@ -346,7 +470,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
 
         vm.prank(PURCHASER);
         vm.expectRevert("TransferHelper::transferFrom: transferFrom failed");
-        orderbook.acceptListing(0, quantity);
+        orderbook.acceptListing(0, quantity, emptyFees, emptyFeeReceivers);
     }
 
     function test_acceptListing_invalidERC721Owner(uint256 pricePerToken, uint256 expiry) external {
@@ -360,7 +484,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
 
         vm.prank(PURCHASER);
         vm.expectRevert("ERC721: caller is not token owner or approved");
-        orderbook.acceptListing(0, 1);
+        orderbook.acceptListing(0, 1, emptyFees, emptyFeeReceivers);
     }
 
     //
@@ -387,7 +511,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         // Accept fails
         vm.prank(PURCHASER);
         vm.expectRevert(abi.encodeWithSelector(InvalidListingId.selector, 0));
-        orderbook.acceptListing(0, 1);
+        orderbook.acceptListing(0, 1, emptyFees, emptyFeeReceivers);
     }
 
     //

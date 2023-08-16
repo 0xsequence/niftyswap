@@ -43,8 +43,15 @@ interface INiftyswapOrderbookFunctions is INiftyswapOrderbookStorage {
      * Purchases a token.
      * @param listingId The ID of the listing.
      * @param quantity The quantity of tokens to purchase.
+     * @param additionalFees The additional fees to pay.
+     * @param additionalFeeRecievers The addresses to send the additional fees to.
      */
-    function acceptListing(uint256 listingId, uint256 quantity) external;
+    function acceptListing(
+        uint256 listingId,
+        uint256 quantity,
+        uint256[] memory additionalFees,
+        address[] memory additionalFeeRecievers
+    ) external;
 
     /**
      * Cancels a listing.
@@ -100,6 +107,9 @@ interface INiftyswapOrderbookSignals {
 
     // Thrown when quantity supplied is invalid.
     error InvalidQuantity();
+
+    // Thrown when the additional fees supplied are invalid.
+    error InvalidAdditionalFees();
 }
 
 // solhint-disable-next-line no-empty-blocks
