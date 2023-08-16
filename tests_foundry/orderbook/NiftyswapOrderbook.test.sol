@@ -5,9 +5,9 @@ import {NiftyswapOrderbook} from "src/contracts/orderbook/NiftyswapOrderbook.sol
 import {
     INiftyswapOrderbookSignals, INiftyswapOrderbookStorage
 } from "src/contracts/interfaces/INiftyswapOrderbook.sol";
-import {ERC1155Mock} from "src/contracts/mocks/ERC1155Mock.sol";
+import {ERC1155RoyaltyMock} from "src/contracts/mocks/ERC1155RoyaltyMock.sol";
+import {ERC721RoyaltyMock} from "src/contracts/mocks/ERC721RoyaltyMock.sol";
 import {ERC20TokenMock} from "src/contracts/mocks/ERC20TokenMock.sol";
-import {ERC721Mock} from "src/contracts/mocks/ERC721Mock.sol";
 
 import {Test, console} from "forge-std/Test.sol";
 
@@ -15,21 +15,24 @@ import {Test, console} from "forge-std/Test.sol";
 
 contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbookStorage, Test {
     NiftyswapOrderbook private orderbook;
-    ERC1155Mock private erc1155;
-    ERC721Mock private erc721;
+    ERC1155RoyaltyMock private erc1155;
+    ERC721RoyaltyMock private erc721;
     ERC20TokenMock private erc20;
 
     uint256 private constant TOKEN_ID = 1;
     uint256 private constant TOKEN_QUANTITY = 100;
     uint256 private constant CURRENCY_QUANTITY = 10 ether;
 
+    uint256 private constant ROYALTY_FEE = 200; // 2%
+
     address private constant USER = address(uint160(uint256(keccak256("user"))));
     address private constant PURCHASER = address(uint160(uint256(keccak256("purchaser"))));
+    address private constant ROYALTY_RECEIVER = address(uint160(uint256(keccak256("royalty_receiver"))));
 
     function setUp() external {
         orderbook = new NiftyswapOrderbook();
-        erc1155 = new ERC1155Mock();
-        erc721 = new ERC721Mock();
+        erc1155 = new ERC1155RoyaltyMock();
+        erc721 = new ERC721RoyaltyMock();
         erc20 = new ERC20TokenMock();
 
         vm.label(USER, "user");
@@ -55,6 +58,12 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.stopPrank();
         vm.prank(PURCHASER);
         erc20.approve(address(orderbook), CURRENCY_QUANTITY);
+
+        // Royalty
+        erc1155.setFee(ROYALTY_FEE);
+        erc1155.setFeeRecipient(ROYALTY_RECEIVER);
+        erc721.setFee(ROYALTY_FEE);
+        erc721.setFeeRecipient(ROYALTY_RECEIVER);
     }
 
     //
@@ -160,10 +169,12 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
     function test_acceptListing_erc1155(uint256 quantity, uint256 pricePerToken, uint256 expiry) public {
         vm.assume(pricePerToken <= 1 ether && quantity <= TOKEN_QUANTITY); // Prevent overflow
         uint256 totalPrice = pricePerToken * quantity;
+        uint256 royalty = (totalPrice * ROYALTY_FEE) / 10000;
 
         uint256 erc20BalPurchaser = erc20.balanceOf(PURCHASER);
         vm.assume(totalPrice < erc20BalPurchaser);
         uint256 erc20BalUser = erc20.balanceOf(USER);
+        uint256 erc20BalRoyal = erc20.balanceOf(ROYALTY_RECEIVER);
 
         test_createListing(true, quantity, pricePerToken, expiry);
 
@@ -174,15 +185,18 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
 
         assertEq(erc1155.balanceOf(PURCHASER, TOKEN_ID), quantity);
         assertEq(erc20.balanceOf(PURCHASER), erc20BalPurchaser - totalPrice);
-        assertEq(erc20.balanceOf(USER), erc20BalUser + totalPrice);
+        assertEq(erc20.balanceOf(USER), erc20BalUser + totalPrice - royalty);
+        assertEq(erc20.balanceOf(ROYALTY_RECEIVER), erc20BalRoyal + royalty);
     }
 
-    function test_acceptListing_erc721(uint256 pricePerToken, uint256 expiry) public {
+    function test_acceptListing_erc721(uint256 royaltyFee, uint256 pricePerToken, uint256 expiry) public {
         vm.assume(pricePerToken <= TOKEN_QUANTITY);
+        uint256 royalty = (pricePerToken * ROYALTY_FEE) / 10000;
 
         uint256 erc20BalPurchaser = erc20.balanceOf(PURCHASER);
         vm.assume(pricePerToken <= erc20BalPurchaser);
         uint256 erc20BalUser = erc20.balanceOf(USER);
+        uint256 erc20BalRoyal = erc20.balanceOf(ROYALTY_RECEIVER);
 
         test_createListing(false, 1, pricePerToken, expiry);
 
@@ -193,7 +207,67 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
 
         assertEq(erc721.ownerOf(TOKEN_ID), PURCHASER);
         assertEq(erc20.balanceOf(PURCHASER), erc20BalPurchaser - pricePerToken);
-        assertEq(erc20.balanceOf(USER), erc20BalUser + pricePerToken);
+        assertEq(erc20.balanceOf(USER), erc20BalUser + pricePerToken - royalty);
+        assertEq(erc20.balanceOf(ROYALTY_RECEIVER), erc20BalRoyal + royalty);
+    }
+
+    function test_acceptListing_erc1155_cappedRoyalty(
+        uint256 royaltyFee,
+        uint256 quantity,
+        uint256 pricePerToken,
+        uint256 expiry
+    ) public {
+        vm.assume(pricePerToken <= 1 ether && quantity <= TOKEN_QUANTITY); // Prevent overflow
+        royaltyFee = bound(royaltyFee, 2500, 9999);
+
+        erc1155.setFee(royaltyFee);
+
+        uint256 totalPrice = pricePerToken * quantity;
+        uint256 royalty = totalPrice / 4; // 25%
+
+        uint256 erc20BalPurchaser = erc20.balanceOf(PURCHASER);
+        vm.assume(totalPrice < erc20BalPurchaser);
+        uint256 erc20BalUser = erc20.balanceOf(USER);
+        uint256 erc20BalRoyal = erc20.balanceOf(ROYALTY_RECEIVER);
+
+        test_createListing(true, quantity, pricePerToken, expiry);
+
+        vm.expectEmit(true, true, true, true, address(orderbook));
+        emit ListingAccepted(0, PURCHASER, quantity);
+        vm.prank(PURCHASER);
+        orderbook.acceptListing(0, quantity);
+
+        assertEq(erc1155.balanceOf(PURCHASER, TOKEN_ID), quantity);
+        assertEq(erc20.balanceOf(PURCHASER), erc20BalPurchaser - totalPrice);
+        assertEq(erc20.balanceOf(USER), erc20BalUser + totalPrice - royalty);
+        assertEq(erc20.balanceOf(ROYALTY_RECEIVER), erc20BalRoyal + royalty);
+    }
+
+    function test_acceptListing_erc721_cappedRoyalty(uint256 royaltyFee, uint256 pricePerToken, uint256 expiry)
+        public
+    {
+        royaltyFee = bound(royaltyFee, 2500, 9999);
+
+        erc721.setFee(royaltyFee);
+
+        uint256 royalty = pricePerToken / 4;
+
+        uint256 erc20BalPurchaser = erc20.balanceOf(PURCHASER);
+        vm.assume(pricePerToken <= erc20BalPurchaser);
+        uint256 erc20BalUser = erc20.balanceOf(USER);
+        uint256 erc20BalRoyal = erc20.balanceOf(ROYALTY_RECEIVER);
+
+        test_createListing(false, 1, pricePerToken, expiry);
+
+        vm.expectEmit(true, true, true, true, address(orderbook));
+        emit ListingAccepted(0, PURCHASER, 1);
+        vm.prank(PURCHASER);
+        orderbook.acceptListing(0, 1);
+
+        assertEq(erc721.ownerOf(TOKEN_ID), PURCHASER);
+        assertEq(erc20.balanceOf(PURCHASER), erc20BalPurchaser - pricePerToken);
+        assertEq(erc20.balanceOf(USER), erc20BalUser + pricePerToken - royalty);
+        assertEq(erc20.balanceOf(ROYALTY_RECEIVER), erc20BalRoyal + royalty);
     }
 
     function test_acceptListing_invalidQuantity_zero(
@@ -224,13 +298,16 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
     }
 
     function test_acceptListing_twice(uint256 quantity, uint256 pricePerToken, uint256 expiry) external {
-        quantity = (quantity / 2) * 2; // Cater for rounding error
+        // Cater for rounding error with / 2 * 2
+        quantity = (quantity / 2) * 2;
         vm.assume(pricePerToken <= 1 ether && quantity > 1 && quantity <= TOKEN_QUANTITY); // Prevent overflow
-        uint256 totalPrice = pricePerToken * quantity;
+        uint256 totalPrice = pricePerToken * quantity / 2 * 2;
+        uint256 royalty = (totalPrice * ROYALTY_FEE) / 10000 / 2 * 2;
 
         uint256 erc20BalPurchaser = erc20.balanceOf(PURCHASER);
         vm.assume(totalPrice < erc20BalPurchaser);
         uint256 erc20BalUser = erc20.balanceOf(USER);
+        uint256 erc20BalRoyal = erc20.balanceOf(ROYALTY_RECEIVER);
 
         test_createListing(true, quantity, pricePerToken, expiry);
 
@@ -243,7 +320,8 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
 
         assertEq(erc1155.balanceOf(PURCHASER, TOKEN_ID), quantity);
         assertEq(erc20.balanceOf(PURCHASER), erc20BalPurchaser - totalPrice);
-        assertEq(erc20.balanceOf(USER), erc20BalUser + totalPrice);
+        assertEq(erc20.balanceOf(USER), erc20BalUser + totalPrice - royalty);
+        assertEq(erc20.balanceOf(ROYALTY_RECEIVER), erc20BalRoyal + royalty);
     }
 
     function test_acceptListing_twice_overQuantity(uint256 quantity, uint256 pricePerToken, uint256 expiry) external {

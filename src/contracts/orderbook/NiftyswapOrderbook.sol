@@ -3,12 +3,16 @@ pragma solidity ^0.8.4;
 
 import {INiftyswapOrderbook} from "../interfaces/INiftyswapOrderbook.sol";
 import {IERC721} from "../interfaces/IERC721.sol";
+import {IERC2981} from "../interfaces/IERC2981.sol";
 import {IERC20} from "@0xsequence/erc-1155/contracts/interfaces/IERC20.sol";
 import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 import {IERC1155} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
 import {TransferHelper} from "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 
 contract NiftyswapOrderbook is INiftyswapOrderbook {
+    // Maximum royalties capped to 25%
+    uint256 internal constant MAX_ROYALTY_DIVISOR = 4;
+
     uint256 public totalListings = 0;
     mapping(uint256 => Listing) internal listings;
 
@@ -18,7 +22,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
      * @param tokenId The ID of the token.
      * @param quantity The quantity of tokens to list.
      * @param currency The address of the currency to list the token for.
-     * @param pricePerToken The price per token.
+     * @param pricePerToken The price per token. Note this includes royalties.
      * @param expiresAt The timestamp at which the listing expires.
      * @return listingId The ID of the listing.
      * @notice Listings cannot be created for unowned or unapproved tokens.
@@ -63,6 +67,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
      * Purchases a token.
      * @param listingId The ID of the listing.
      * @param quantity The quantity of tokens to purchase.
+     * @dev Royalties are taken from the listing cost.
      */
     function acceptListing(uint256 listingId, uint256 quantity) external {
         Listing storage listing = listings[listingId];
@@ -74,8 +79,17 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
             revert InvalidQuantity();
         }
 
+        // Calculate payables
+        uint256 totalCost = listing.pricePerToken * quantity;
+        (address royaltyRecipient, uint256 royaltyAmount) =
+            getRoyaltyInfo(listing.tokenContract, listing.tokenId, totalCost);
+        if (royaltyAmount > 0) {
+            // Transfer royalties
+            TransferHelper.safeTransferFrom(listing.currency, msg.sender, royaltyRecipient, royaltyAmount);
+        }
+
         // Transfer currency
-        TransferHelper.safeTransferFrom(listing.currency, msg.sender, listing.creator, listing.pricePerToken * quantity);
+        TransferHelper.safeTransferFrom(listing.currency, msg.sender, listing.creator, totalCost - royaltyAmount);
 
         // Transfer token
         if (_isERC1155(listing.tokenContract)) {
@@ -141,6 +155,28 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         } catch {}
         // Fail out
         revert InvalidTokenContract(tokenContract);
+    }
+
+    /**
+     * Will return how much of currency need to be paid for the royalty.
+     * @notice Royalty is capped at 25% of the total amount of currency
+     * @param tokenContract Address of the erc-1155 token being traded
+     * @param tokenId ID of the erc-1155 token being traded
+     * @param cost Amount of currency sent/received for the trade
+     * @return recipient Address that will be able to claim the royalty
+     * @return royalty Amount of currency that will be sent to royalty recipient
+     */
+    function getRoyaltyInfo(address tokenContract, uint256 tokenId, uint256 cost)
+        public
+        view
+        returns (address recipient, uint256 royalty)
+    {
+        try IERC2981(address(tokenContract)).royaltyInfo(tokenId, cost) returns (address _r, uint256 _c) {
+            // Cap royalty amount
+            uint256 max = cost / MAX_ROYALTY_DIVISOR;
+            return (_r, _c > max ? max : _c);
+        } catch {}
+        return (address(0), 0);
     }
 
     /**
