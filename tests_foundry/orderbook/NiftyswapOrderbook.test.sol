@@ -95,7 +95,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
             quantity: quantity,
             currency: address(erc20),
             pricePerToken: pricePerToken,
-            expiresAt: expiry
+            expiry: expiry
         });
 
         vm.expectEmit(true, true, true, true, address(orderbook));
@@ -106,7 +106,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
             expected.quantity,
             expected.currency,
             expected.pricePerToken,
-            expected.expiresAt
+            expected.expiry
         );
         vm.prank(USER);
         listingId =
@@ -119,7 +119,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         assertEq(listing.quantity, expected.quantity);
         assertEq(listing.currency, expected.currency);
         assertEq(listing.pricePerToken, expected.pricePerToken);
-        assertEq(listing.expiresAt, listing.expiresAt);
+        assertEq(listing.expiry, listing.expiry);
 
         return listingId;
     }
@@ -570,7 +570,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         assertEq(listing.quantity, 0);
         assertEq(listing.currency, address(0));
         assertEq(listing.pricePerToken, 0);
-        assertEq(listing.expiresAt, 0);
+        assertEq(listing.expiry, 0);
 
         // Accept fails
         vm.prank(PURCHASER);

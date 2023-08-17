@@ -9,7 +9,7 @@ interface INiftyswapOrderbookStorage {
         uint256 quantity;
         address currency;
         uint256 pricePerToken;
-        uint256 expiresAt;
+        uint256 expiry;
     }
 
     enum TokenType {
@@ -27,7 +27,7 @@ interface INiftyswapOrderbookFunctions is INiftyswapOrderbookStorage {
      * @param quantity The quantity of tokens to list.
      * @param currency The address of the currency to list the token for.
      * @param pricePerToken The price per token.
-     * @param expiresAt The timestamp at which the listing expires.
+     * @param expiry The timestamp at which the listing expires.
      * @return listingId The ID of the listing.
      */
     function createListing(
@@ -36,7 +36,7 @@ interface INiftyswapOrderbookFunctions is INiftyswapOrderbookStorage {
         uint256 quantity,
         address currency,
         uint256 pricePerToken,
-        uint256 expiresAt
+        uint256 expiry
     ) external returns (bytes32 listingId);
 
     /**
@@ -88,7 +88,7 @@ interface INiftyswapOrderbookSignals {
         uint256 quantity,
         address currency,
         uint256 pricePerToken,
-        uint256 expiresAt
+        uint256 expiry
     );
 
     // See INiftyswapOrderbookFunctions.acceptListing

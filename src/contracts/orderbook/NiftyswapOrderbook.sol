@@ -22,7 +22,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
      * @param quantity The quantity of tokens to list.
      * @param currency The address of the currency to list the token for.
      * @param pricePerToken The price per token. Note this includes royalties.
-     * @param expiresAt The timestamp at which the listing expires.
+     * @param expiry The timestamp at which the listing expires.
      * @return listingId The ID of the listing.
      * @notice Listings cannot be created for unowned or unapproved tokens.
      */
@@ -32,13 +32,13 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         uint256 quantity,
         address currency,
         uint256 pricePerToken,
-        uint256 expiresAt
+        uint256 expiry
     ) external returns (bytes32 listingId) {
         if (pricePerToken == 0) {
             revert InvalidListing("Invalid price");
         }
         // solhint-disable-next-line not-rely-on-time
-        if (expiresAt <= block.timestamp) {
+        if (expiry <= block.timestamp) {
             revert InvalidListing("Invalid expiration");
         }
 
@@ -54,7 +54,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
             quantity: quantity,
             currency: currency,
             pricePerToken: pricePerToken,
-            expiresAt: expiresAt
+            expiry: expiry
         });
         listingId = hashListing(listing);
         if (listings[listingId].creator != address(0)) {
@@ -63,7 +63,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         }
         listings[listingId] = listing;
 
-        emit ListingCreated(listingId, tokenContract, tokenId, quantity, currency, pricePerToken, expiresAt);
+        emit ListingCreated(listingId, tokenContract, tokenId, quantity, currency, pricePerToken, expiry);
 
         return listingId;
     }
@@ -166,7 +166,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
                 listing.quantity,
                 listing.currency,
                 listing.pricePerToken,
-                listing.expiresAt
+                listing.expiry
             )
         );
     }
@@ -202,7 +202,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
      */
     function _isExpired(Listing storage listing) internal view returns (bool isExpired) {
         // solhint-disable-next-line not-rely-on-time
-        return listing.expiresAt <= block.timestamp;
+        return listing.expiry <= block.timestamp;
     }
 
     /**
