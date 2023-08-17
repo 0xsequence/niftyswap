@@ -13,8 +13,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
     // Maximum royalties capped to 25%
     uint256 internal constant MAX_ROYALTY_DIVISOR = 4;
 
-    uint256 public totalListings = 0;
-    mapping(uint256 => Listing) internal listings;
+    mapping(bytes32 => Listing) internal listings;
 
     /**
      * Lists a token for sale.
@@ -34,7 +33,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         address currency,
         uint256 pricePerToken,
         uint256 expiresAt
-    ) external returns (uint256 listingId) {
+    ) external returns (bytes32 listingId) {
         if (pricePerToken == 0) {
             revert InvalidListing("Invalid price");
         }
@@ -48,7 +47,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
             revert InvalidTokenApproval(tokenContract, tokenId, quantity, msg.sender);
         }
 
-        listings[totalListings] = Listing({
+        Listing memory listing = Listing({
             creator: msg.sender,
             tokenContract: tokenContract,
             tokenId: tokenId,
@@ -57,10 +56,16 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
             pricePerToken: pricePerToken,
             expiresAt: expiresAt
         });
+        listingId = hashListing(listing);
+        if (listings[listingId].creator != address(0)) {
+            // Collision
+            revert InvalidListingId(listingId);
+        }
+        listings[listingId] = listing;
 
-        emit ListingCreated(totalListings, tokenContract, tokenId, quantity, currency, pricePerToken, expiresAt);
+        emit ListingCreated(listingId, tokenContract, tokenId, quantity, currency, pricePerToken, expiresAt);
 
-        return totalListings++;
+        return listingId;
     }
 
     /**
@@ -72,7 +77,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
      * @dev Royalties are taken from the listing cost.
      */
     function acceptListing(
-        uint256 listingId,
+        bytes32 listingId,
         uint256 quantity,
         uint256[] memory additionalFees,
         address[] memory additionalFeeRecievers
@@ -134,7 +139,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
      * Cancels a listing.
      * @param listingId The ID of the listing.
      */
-    function cancelListing(uint256 listingId) external {
+    function cancelListing(bytes32 listingId) external {
         Listing storage listing = listings[listingId];
         if (listing.creator != msg.sender) {
             //FIXME Bad err
@@ -149,11 +154,30 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
     }
 
     /**
+     * Deterministically create the listingId for the given listing.
+     * @param listing The listing.
+     * @return listingId The ID of the listing.
+     */
+    function hashListing(Listing memory listing) public pure returns (bytes32 listingId) {
+        return keccak256(
+            abi.encodePacked(
+                listing.creator,
+                listing.tokenContract,
+                listing.tokenId,
+                listing.quantity,
+                listing.currency,
+                listing.pricePerToken,
+                listing.expiresAt
+            )
+        );
+    }
+
+    /**
      * Gets a listing.
      * @param listingId The ID of the listing.
      * @return listing The listing.
      */
-    function getListing(uint256 listingId) external view returns (Listing memory listing) {
+    function getListing(bytes32 listingId) external view returns (Listing memory listing) {
         return listings[listingId];
     }
 
@@ -163,7 +187,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
      * @return valid The validities of the listings.
      * @notice A listing is valid if it is active, has not expired and tokens are available for transfer.
      */
-    function isListingValid(uint256[] memory listingIds) external view returns (bool[] memory valid) {
+    function isListingValid(bytes32[] memory listingIds) external view returns (bool[] memory valid) {
         valid = new bool[](listingIds.length);
         for (uint256 i; i < listingIds.length; i++) {
             Listing storage listing = listings[listingIds[i]];

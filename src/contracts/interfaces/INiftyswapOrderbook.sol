@@ -37,7 +37,7 @@ interface INiftyswapOrderbookFunctions is INiftyswapOrderbookStorage {
         address currency,
         uint256 pricePerToken,
         uint256 expiresAt
-    ) external returns (uint256 listingId);
+    ) external returns (bytes32 listingId);
 
     /**
      * Purchases a token.
@@ -47,7 +47,7 @@ interface INiftyswapOrderbookFunctions is INiftyswapOrderbookStorage {
      * @param additionalFeeRecievers The addresses to send the additional fees to.
      */
     function acceptListing(
-        uint256 listingId,
+        bytes32 listingId,
         uint256 quantity,
         uint256[] memory additionalFees,
         address[] memory additionalFeeRecievers
@@ -57,14 +57,14 @@ interface INiftyswapOrderbookFunctions is INiftyswapOrderbookStorage {
      * Cancels a listing.
      * @param listingId The ID of the listing.
      */
-    function cancelListing(uint256 listingId) external;
+    function cancelListing(bytes32 listingId) external;
 
     /**
      * Gets a listing.
      * @param listingId The ID of the listing.
      * @return listing The listing.
      */
-    function getListing(uint256 listingId) external view returns (Listing memory listing);
+    function getListing(bytes32 listingId) external view returns (Listing memory listing);
 
     /**
      * Checks if a listing is valid.
@@ -72,7 +72,7 @@ interface INiftyswapOrderbookFunctions is INiftyswapOrderbookStorage {
      * @return valid The validities of the listings.
      * @notice A listing is valid if it is active, has not expired and tokens are available for transfer.
      */
-    function isListingValid(uint256[] memory listingIds) external view returns (bool[] memory valid);
+    function isListingValid(bytes32[] memory listingIds) external view returns (bool[] memory valid);
 }
 
 interface INiftyswapOrderbookSignals {
@@ -82,7 +82,7 @@ interface INiftyswapOrderbookSignals {
 
     // See INiftyswapOrderbookFunctions.createListing
     event ListingCreated(
-        uint256 indexed listingId,
+        bytes32 indexed listingId,
         address indexed tokenContract,
         uint256 indexed tokenId,
         uint256 quantity,
@@ -92,10 +92,10 @@ interface INiftyswapOrderbookSignals {
     );
 
     // See INiftyswapOrderbookFunctions.acceptListing
-    event ListingAccepted(uint256 indexed listingId, address indexed buyer, uint256 quantity);
+    event ListingAccepted(bytes32 indexed listingId, address indexed buyer, uint256 quantity);
 
     // See INiftyswapOrderbookFunctions.cancelListing
-    event ListingCancelled(uint256 indexed listingId);
+    event ListingCancelled(bytes32 indexed listingId);
 
     //
     // Errors
@@ -111,7 +111,7 @@ interface INiftyswapOrderbookSignals {
     error InvalidListing(string reason);
 
     // Thrown when listing id is invalid.
-    error InvalidListingId(uint256 listingId);
+    error InvalidListingId(bytes32 listingId);
 
     // Thrown when quantity supplied is invalid.
     error InvalidQuantity();
