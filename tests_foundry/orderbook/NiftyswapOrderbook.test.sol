@@ -124,12 +124,29 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         return listingId;
     }
 
-    function test_createListing_invalidToken(address badContract) internal {
+    function test_createListing_collision(bool isERC1155, uint256 quantity, uint256 pricePerToken, uint256 expiry)
+        external
+    {
+        address tokenContract = isERC1155 ? address(erc1155) : address(erc721);
+        bytes32 listingId = test_createListing(isERC1155, quantity, pricePerToken, expiry);
+
+        vm.prank(USER);
+        vm.expectRevert(abi.encodeWithSelector(InvalidListingId.selector, listingId));
+        orderbook.createListing(address(tokenContract), TOKEN_ID, quantity, address(erc20), pricePerToken, expiry);
+    }
+
+    function test_createListing_invalidToken(address badContract) external {
         vm.assume(badContract != address(erc1155) && badContract != address(erc721));
 
         vm.prank(USER);
-        vm.expectRevert(abi.encodeWithSelector(InvalidTokenContract.selector, badContract));
+        vm.expectRevert();
         orderbook.createListing(badContract, TOKEN_ID, 1, address(erc20), 1, block.timestamp + 1);
+    }
+
+    function test_createListing_invalidToken_noSupport() external {
+        vm.prank(USER);
+        vm.expectRevert(abi.encodeWithSelector(InvalidTokenContract.selector, address(erc20)));
+        orderbook.createListing(address(erc20), TOKEN_ID, 1, address(erc20), 1, block.timestamp + 1);
     }
 
     function test_createListing_invalidExpiry(uint256 expiry) external {

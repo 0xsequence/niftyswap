@@ -84,7 +84,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
     ) external {
         Listing storage listing = listings[listingId];
         if (listing.creator == address(0)) {
-            // Cancelled or completed
+            // Cancelled, completed or never existed
             revert InvalidListingId(listingId);
         }
         if (quantity == 0 || quantity > listing.quantity) {
@@ -142,8 +142,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
     function cancelListing(bytes32 listingId) external {
         Listing storage listing = listings[listingId];
         if (listing.creator != msg.sender) {
-            //FIXME Bad err
-            revert InvalidListing("Only the creator can cancel a listing");
+            revert InvalidListingId(listingId);
         }
 
         // Refund some gas
