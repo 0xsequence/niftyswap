@@ -86,7 +86,9 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         address tokenContract = isERC1155 ? address(erc1155) : address(erc721);
 
         vm.expectEmit(true, true, true, true, address(orderbook));
-        emit ListingCreated(0, address(tokenContract), TOKEN_ID, quantity, address(erc20), pricePerToken, expiry);
+        emit ListingCreated(
+            orderbook.totalListings(), address(tokenContract), TOKEN_ID, quantity, address(erc20), pricePerToken, expiry
+        );
         vm.prank(USER);
         uint256 listingId =
             orderbook.createListing(address(tokenContract), TOKEN_ID, quantity, address(erc20), pricePerToken, expiry);
@@ -421,6 +423,23 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         orderbook.acceptListing(0, quantity + 1, emptyFees, emptyFeeReceivers);
     }
 
+    function test_acceptListing_invalidExpiry(bool isERC1155, uint256 quantity, uint256 pricePerToken, uint256 expiry)
+        external
+    {
+        if (expiry > type(uint256).max / 2) {
+            // Prevent overflow
+            expiry = type(uint256).max / 2;
+        }
+        quantity = isERC1155 ? quantity : 1;
+        test_createListing(isERC1155, quantity, pricePerToken, expiry);
+
+        vm.warp(expiry + 1);
+
+        vm.prank(PURCHASER);
+        vm.expectRevert(abi.encodeWithSelector(InvalidListing.selector, "Listing expired"));
+        orderbook.acceptListing(0, quantity, emptyFees, emptyFeeReceivers);
+    }
+
     function test_acceptListing_twice(uint256 quantity, uint256 pricePerToken, uint256 expiry) external {
         // Cater for rounding error with / 2 * 2
         quantity = (quantity / 2) * 2;
@@ -512,6 +531,33 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.prank(PURCHASER);
         vm.expectRevert(abi.encodeWithSelector(InvalidListingId.selector, 0));
         orderbook.acceptListing(0, 1, emptyFees, emptyFeeReceivers);
+    }
+
+    //
+    // isValid
+    //
+    function test_isListingValid(uint8 count, bool[] memory expectValid) external {
+        // Bound valid size
+        assembly {
+            mstore(expectValid, count)
+        }
+
+        uint256[] memory listingIds = new uint256[](count);
+        for (uint256 i; i < count; i++) {
+            listingIds[i] = i;
+            test_createListing(true, 1, 1 ether, block.timestamp + 1);
+            if (!expectValid[i]) {
+                // Cancel it
+                vm.prank(USER);
+                orderbook.cancelListing(i);
+            }
+        }
+
+        bool[] memory valid = orderbook.isListingValid(listingIds);
+        assertEq(valid.length, count);
+        for (uint256 i; i < count; i++) {
+            assertEq(valid[i], expectValid[i]);
+        }
     }
 
     //

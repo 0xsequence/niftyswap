@@ -65,6 +65,14 @@ interface INiftyswapOrderbookFunctions is INiftyswapOrderbookStorage {
      * @return listing The listing.
      */
     function getListing(uint256 listingId) external view returns (Listing memory listing);
+
+    /**
+     * Checks if a listing is valid.
+     * @param listingIds The IDs of the listings.
+     * @return valid The validities of the listings.
+     * @notice A listing is valid if it is active, has not expired and tokens are available for transfer.
+     */
+    function isListingValid(uint256[] memory listingIds) external view returns (bool[] memory valid);
 }
 
 interface INiftyswapOrderbookSignals {

@@ -85,6 +85,9 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         if (quantity == 0 || quantity > listing.quantity) {
             revert InvalidQuantity();
         }
+        if (_isExpired(listing)) {
+            revert InvalidListing("Listing expired");
+        }
         if (additionalFees.length != additionalFeeRecievers.length) {
             revert InvalidAdditionalFees();
         }
@@ -152,6 +155,31 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
      */
     function getListing(uint256 listingId) external view returns (Listing memory listing) {
         return listings[listingId];
+    }
+
+    /**
+     * Checks if a listing is valid.
+     * @param listingIds The IDs of the listings.
+     * @return valid The validities of the listings.
+     * @notice A listing is valid if it is active, has not expired and tokens are available for transfer.
+     */
+    function isListingValid(uint256[] memory listingIds) external view returns (bool[] memory valid) {
+        valid = new bool[](listingIds.length);
+        for (uint256 i; i < listingIds.length; i++) {
+            Listing storage listing = listings[listingIds[i]];
+            valid[i] = listing.creator != address(0) && !_isExpired(listing)
+                && _hasApprovedTokens(listing.tokenContract, listing.tokenId, listing.quantity, listing.creator);
+        }
+    }
+
+    /**
+     * Checks if a listing has expired.
+     * @param listing The listing to check.
+     * @return isExpired True if the listing has expired.
+     */
+    function _isExpired(Listing storage listing) internal view returns (bool isExpired) {
+        // solhint-disable-next-line not-rely-on-time
+        return listing.expiresAt <= block.timestamp;
     }
 
     /**
