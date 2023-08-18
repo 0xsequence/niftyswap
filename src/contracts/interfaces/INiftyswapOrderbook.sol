@@ -92,10 +92,12 @@ interface INiftyswapOrderbookSignals {
     );
 
     // See INiftyswapOrderbookFunctions.acceptListing
-    event ListingAccepted(bytes32 indexed listingId, address indexed buyer, uint256 quantity);
+    event ListingAccepted(
+        bytes32 indexed listingId, address indexed buyer, address indexed tokenContract, uint256 quantity
+    );
 
     // See INiftyswapOrderbookFunctions.cancelListing
-    event ListingCancelled(bytes32 indexed listingId);
+    event ListingCancelled(bytes32 indexed listingId, address indexed tokenContract);
 
     //
     // Errors

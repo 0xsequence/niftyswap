@@ -226,7 +226,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         listingId = test_createListing(true, quantity, pricePerToken, expiry);
 
         vm.expectEmit(true, true, true, true, address(orderbook));
-        emit ListingAccepted(listingId, PURCHASER, quantity);
+        emit ListingAccepted(listingId, PURCHASER, address(erc1155), quantity);
         vm.prank(PURCHASER);
         orderbook.acceptListing(listingId, quantity, emptyFees, emptyFeeReceivers);
 
@@ -250,7 +250,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         listingId = test_createListing(false, 1, pricePerToken, expiry);
 
         vm.expectEmit(true, true, true, true, address(orderbook));
-        emit ListingAccepted(listingId, PURCHASER, 1);
+        emit ListingAccepted(listingId, PURCHASER, address(erc721), 1);
         vm.prank(PURCHASER);
         orderbook.acceptListing(listingId, 1, emptyFees, emptyFeeReceivers);
 
@@ -294,7 +294,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         bytes32 listingId = test_createListing(true, quantity, pricePerToken, expiry);
 
         vm.expectEmit(true, true, true, true, address(orderbook));
-        emit ListingAccepted(listingId, PURCHASER, quantity);
+        emit ListingAccepted(listingId, PURCHASER, address(erc1155), quantity);
         vm.prank(PURCHASER);
         orderbook.acceptListing(listingId, quantity, additionalFees, additionalFeeRecievers);
 
@@ -335,7 +335,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         bytes32 listingId = test_createListing(false, 1, pricePerToken, expiry);
 
         vm.expectEmit(true, true, true, true, address(orderbook));
-        emit ListingAccepted(listingId, PURCHASER, 1);
+        emit ListingAccepted(listingId, PURCHASER, address(erc721), 1);
         vm.prank(PURCHASER);
         orderbook.acceptListing(listingId, 1, additionalFees, additionalFeeRecievers);
 
@@ -368,7 +368,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         bytes32 listingId = test_createListing(true, quantity, pricePerToken, expiry);
 
         vm.expectEmit(true, true, true, true, address(orderbook));
-        emit ListingAccepted(listingId, PURCHASER, quantity);
+        emit ListingAccepted(listingId, PURCHASER, address(erc1155), quantity);
         vm.prank(PURCHASER);
         orderbook.acceptListing(listingId, quantity, emptyFees, emptyFeeReceivers);
 
@@ -395,7 +395,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         bytes32 listingId = test_createListing(false, 1, pricePerToken, expiry);
 
         vm.expectEmit(true, true, true, true, address(orderbook));
-        emit ListingAccepted(listingId, PURCHASER, 1);
+        emit ListingAccepted(listingId, PURCHASER, address(erc721), 1);
         vm.prank(PURCHASER);
         orderbook.acceptListing(listingId, 1, emptyFees, emptyFeeReceivers);
 
@@ -500,7 +500,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         bytes32 listingId = test_createListing(true, quantity, pricePerToken, expiry);
 
         vm.expectEmit(true, true, true, true, address(orderbook));
-        emit ListingAccepted(listingId, PURCHASER, quantity / 2);
+        emit ListingAccepted(listingId, PURCHASER, address(erc1155), quantity / 2);
         vm.startPrank(PURCHASER);
         orderbook.acceptListing(listingId, quantity / 2, emptyFees, emptyFeeReceivers);
         orderbook.acceptListing(listingId, quantity / 2, emptyFees, emptyFeeReceivers);
@@ -558,7 +558,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         bytes32 listingId = test_createListing(isERC1155, quantity, pricePerToken, expiry);
 
         vm.expectEmit(true, true, true, true, address(orderbook));
-        emit ListingCancelled(listingId);
+        emit ListingCancelled(listingId, isERC1155 ? address(erc1155) : address(erc721));
         vm.prank(USER);
         orderbook.cancelListing(listingId);
 

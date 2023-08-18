@@ -118,10 +118,11 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         }
 
         // Transfer token
-        if (_isERC1155(listing.tokenContract)) {
-            IERC1155(listing.tokenContract).safeTransferFrom(listing.creator, msg.sender, listing.tokenId, quantity, "");
+        address tokenContract = listing.tokenContract;
+        if (_isERC1155(tokenContract)) {
+            IERC1155(tokenContract).safeTransferFrom(listing.creator, msg.sender, listing.tokenId, quantity, "");
         } else {
-            IERC721(listing.tokenContract).transferFrom(listing.creator, msg.sender, listing.tokenId);
+            IERC721(tokenContract).transferFrom(listing.creator, msg.sender, listing.tokenId);
         }
         // Update listing state
         if (listing.quantity == quantity) {
@@ -132,7 +133,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
             listing.quantity -= quantity;
         }
 
-        emit ListingAccepted(listingId, msg.sender, quantity);
+        emit ListingAccepted(listingId, msg.sender, tokenContract, quantity);
     }
 
     /**
@@ -144,12 +145,13 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         if (listing.creator != msg.sender) {
             revert InvalidListingId(listingId);
         }
+        address tokenContract = listing.tokenContract;
 
         // Refund some gas
         //FIXME Or do we keep this to track history?
         delete listings[listingId];
 
-        emit ListingCancelled(listingId);
+        emit ListingCancelled(listingId, tokenContract);
     }
 
     /**
