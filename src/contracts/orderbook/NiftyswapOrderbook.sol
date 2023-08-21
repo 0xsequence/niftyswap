@@ -13,7 +13,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
     // Maximum royalties capped to 25%
     uint256 internal constant MAX_ROYALTY_DIVISOR = 4;
 
-    mapping(bytes32 => Listing) internal listings;
+    mapping(bytes32 => Order) internal orders;
 
     /**
      * Lists a token for sale.
@@ -34,20 +34,84 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         uint256 pricePerToken,
         uint256 expiry
     ) external returns (bytes32 listingId) {
-        if (pricePerToken == 0) {
-            revert InvalidListing("Invalid price");
-        }
-        // solhint-disable-next-line not-rely-on-time
-        if (expiry <= block.timestamp) {
-            revert InvalidListing("Invalid expiration");
-        }
-
         // Check valid token for listing
         if (!_hasApprovedTokens(tokenContract, tokenId, quantity, msg.sender)) {
             revert InvalidTokenApproval(tokenContract, tokenId, quantity, msg.sender);
         }
 
-        Listing memory listing = Listing({
+        listingId = _createOrder(true, tokenContract, tokenId, quantity, currency, pricePerToken, expiry);
+
+        emit ListingCreated(listingId, tokenContract, tokenId, quantity, currency, pricePerToken, expiry);
+
+        return listingId;
+    }
+
+    /**
+     * Offer a price for a token.
+     * @param tokenContract The address of the token contract.
+     * @param tokenId The ID of the token.
+     * @param quantity The quantity of tokens to buy.
+     * @param currency The address of the currency to offer for the token.
+     * @param pricePerToken The price per token.
+     * @param expiry The timestamp at which the offer expires.
+     * @return offerId The ID of the offer.
+     */
+    function createOffer(
+        address tokenContract,
+        uint256 tokenId,
+        uint256 quantity,
+        address currency,
+        uint256 pricePerToken,
+        uint256 expiry
+    ) external returns (bytes32 offerId) {
+        // Check approved currency for offer
+        uint256 total = quantity * pricePerToken;
+        if (!_hasApprovedCurrency(currency, total, msg.sender)) {
+            revert InvalidCurrencyApproval(currency, total, msg.sender);
+        }
+        // Check quantity
+        bool isERC1155 = _isERC1155(tokenContract);
+        if ((isERC1155 && quantity == 0) || (!isERC1155 && quantity != 1)) {
+            revert InvalidQuantity();
+        }
+
+        offerId = _createOrder(false, tokenContract, tokenId, quantity, currency, pricePerToken, expiry);
+
+        emit OfferCreated(offerId, tokenContract, tokenId, quantity, currency, pricePerToken, expiry);
+
+        return offerId;
+    }
+
+    /**
+     * Create an order, either listing or offer.
+     * @param isListing True if the order is a listing, false if it is an offer.
+     * @param tokenContract The address of the token contract.
+     * @param tokenId The ID of the token.
+     * @param quantity The quantity of tokens to list.
+     * @param currency The address of the currency to list the token for.
+     * @param pricePerToken The price per token. Note this includes royalties.
+     * @param expiry The timestamp at which the listing expires.
+     * @return orderId The ID of the order.
+     */
+    function _createOrder(
+        bool isListing,
+        address tokenContract,
+        uint256 tokenId,
+        uint256 quantity,
+        address currency,
+        uint256 pricePerToken,
+        uint256 expiry
+    ) internal returns (bytes32 orderId) {
+        if (pricePerToken == 0) {
+            revert InvalidPrice();
+        }
+        // solhint-disable-next-line not-rely-on-time
+        if (expiry <= block.timestamp) {
+            revert InvalidExpiry();
+        }
+
+        Order memory order = Order({
+            isListing: isListing,
             creator: msg.sender,
             tokenContract: tokenContract,
             tokenId: tokenId,
@@ -56,16 +120,15 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
             pricePerToken: pricePerToken,
             expiry: expiry
         });
-        listingId = hashListing(listing);
-        if (listings[listingId].creator != address(0)) {
+        orderId = hashOrder(order);
+
+        if (orders[orderId].creator != address(0)) {
             // Collision
-            revert InvalidListingId(listingId);
+            revert InvalidOrderId(orderId);
         }
-        listings[listingId] = listing;
+        orders[orderId] = order;
 
-        emit ListingCreated(listingId, tokenContract, tokenId, quantity, currency, pricePerToken, expiry);
-
-        return listingId;
+        return orderId;
     }
 
     /**
@@ -82,58 +145,97 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         uint256[] memory additionalFees,
         address[] memory additionalFeeRecievers
     ) external {
-        Listing storage listing = listings[listingId];
-        if (listing.creator == address(0)) {
-            // Cancelled, completed or never existed
+        Order memory listing = orders[listingId];
+        if (!listing.isListing || listing.creator == address(0)) {
+            // Is a listing, cancelled, completed or never existed
             revert InvalidListingId(listingId);
         }
-        if (quantity == 0 || quantity > listing.quantity) {
+
+        _acceptOrder(listingId, listing, quantity, additionalFees, additionalFeeRecievers);
+
+        emit ListingAccepted(listingId, msg.sender, listing.tokenContract, quantity);
+    }
+
+    /**
+     * Sells a token.
+     * @param offerId The ID of the listing.
+     * @param quantity The quantity of tokens to sell.
+     * @param additionalFees The additional fees to pay.
+     * @param additionalFeeRecievers The addresses to send the additional fees to.
+     */
+    function acceptOffer(
+        bytes32 offerId,
+        uint256 quantity,
+        uint256[] memory additionalFees,
+        address[] memory additionalFeeRecievers
+    ) external {
+        Order memory offer = orders[offerId];
+        if (offer.isListing || offer.creator == address(0)) {
+            // Is a listing, cancelled, completed or never existed
+            revert InvalidOfferId(offerId);
+        }
+
+        _acceptOrder(offerId, offer, quantity, additionalFees, additionalFeeRecievers);
+
+        emit OfferAccepted(offerId, msg.sender, offer.tokenContract, quantity);
+    }
+
+    function _acceptOrder(
+        bytes32 orderId,
+        Order memory order,
+        uint256 quantity,
+        uint256[] memory additionalFees,
+        address[] memory additionalFeeRecievers
+    ) internal {
+        if (quantity == 0 || quantity > order.quantity) {
             revert InvalidQuantity();
         }
-        if (_isExpired(listing)) {
-            revert InvalidListing("Listing expired");
+        if (_isExpired(order)) {
+            revert InvalidExpiry();
         }
         if (additionalFees.length != additionalFeeRecievers.length) {
             revert InvalidAdditionalFees();
         }
 
         // Calculate payables
-        uint256 totalCost = listing.pricePerToken * quantity;
+        uint256 totalCost = order.pricePerToken * quantity;
         (address royaltyRecipient, uint256 royaltyAmount) =
-            getRoyaltyInfo(listing.tokenContract, listing.tokenId, totalCost);
+            getRoyaltyInfo(order.tokenContract, order.tokenId, totalCost);
+
+        address currencyReceiver = order.isListing ? order.creator : msg.sender;
+        address tokenReceiver = order.isListing ? msg.sender : order.creator;
+
         if (royaltyAmount > 0) {
             // Transfer royalties
-            TransferHelper.safeTransferFrom(listing.currency, msg.sender, royaltyRecipient, royaltyAmount);
+            TransferHelper.safeTransferFrom(order.currency, tokenReceiver, royaltyRecipient, royaltyAmount);
         }
 
         // Transfer currency
-        TransferHelper.safeTransferFrom(listing.currency, msg.sender, listing.creator, totalCost - royaltyAmount);
+        TransferHelper.safeTransferFrom(order.currency, tokenReceiver, currencyReceiver, totalCost - royaltyAmount);
 
         // Transfer additional fees
         for (uint256 i; i < additionalFees.length; i++) {
             if (additionalFeeRecievers[i] == address(0) || additionalFees[i] == 0) {
                 revert InvalidAdditionalFees();
             }
-            TransferHelper.safeTransferFrom(listing.currency, msg.sender, additionalFeeRecievers[i], additionalFees[i]);
+            TransferHelper.safeTransferFrom(order.currency, tokenReceiver, additionalFeeRecievers[i], additionalFees[i]);
         }
 
         // Transfer token
-        address tokenContract = listing.tokenContract;
+        address tokenContract = order.tokenContract;
         if (_isERC1155(tokenContract)) {
-            IERC1155(tokenContract).safeTransferFrom(listing.creator, msg.sender, listing.tokenId, quantity, "");
+            IERC1155(tokenContract).safeTransferFrom(currencyReceiver, tokenReceiver, order.tokenId, quantity, "");
         } else {
-            IERC721(tokenContract).transferFrom(listing.creator, msg.sender, listing.tokenId);
+            IERC721(tokenContract).transferFrom(currencyReceiver, tokenReceiver, order.tokenId);
         }
-        // Update listing state
-        if (listing.quantity == quantity) {
+        // Update order state
+        if (order.quantity == quantity) {
             // Refund some gas
             //FIXME Or do we keep this to track history?
-            delete listings[listingId];
+            delete orders[orderId];
         } else {
-            listing.quantity -= quantity;
+            orders[orderId].quantity -= quantity;
         }
-
-        emit ListingAccepted(listingId, msg.sender, tokenContract, quantity);
     }
 
     /**
@@ -141,7 +243,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
      * @param listingId The ID of the listing.
      */
     function cancelListing(bytes32 listingId) external {
-        Listing storage listing = listings[listingId];
+        Order storage listing = orders[listingId];
         if (listing.creator != msg.sender) {
             revert InvalidListingId(listingId);
         }
@@ -149,62 +251,80 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
 
         // Refund some gas
         //FIXME Or do we keep this to track history?
-        delete listings[listingId];
+        delete orders[listingId];
 
         emit ListingCancelled(listingId, tokenContract);
     }
 
     /**
-     * Deterministically create the listingId for the given listing.
-     * @param listing The listing.
-     * @return listingId The ID of the listing.
+     * Cancels an offer.
+     * @param offerId The ID of the offer.
      */
-    function hashListing(Listing memory listing) public pure returns (bytes32 listingId) {
+    function cancelOffer(bytes32 offerId) external {
+        Order storage offer = orders[offerId];
+        if (offer.creator != msg.sender) {
+            revert InvalidOfferId(offerId);
+        }
+        address tokenContract = offer.tokenContract;
+
+        // Refund some gas
+        //FIXME Or do we keep this to track history?
+        delete orders[offerId];
+
+        emit OfferCancelled(offerId, tokenContract);
+    }
+
+    /**
+     * Deterministically create the orderId for the given order.
+     * @param order The order.
+     * @return orderId The ID of the order.
+     */
+    function hashOrder(Order memory order) public pure returns (bytes32 orderId) {
         return keccak256(
             abi.encodePacked(
-                listing.creator,
-                listing.tokenContract,
-                listing.tokenId,
-                listing.quantity,
-                listing.currency,
-                listing.pricePerToken,
-                listing.expiry
+                order.creator,
+                order.tokenContract,
+                order.tokenId,
+                order.quantity,
+                order.currency,
+                order.pricePerToken,
+                order.expiry
             )
         );
     }
 
     /**
-     * Gets a listing.
-     * @param listingId The ID of the listing.
-     * @return listing The listing.
+     * Gets an order.
+     * @param orderId The ID of the listing or offer.
+     * @return order The order.
      */
-    function getListing(bytes32 listingId) external view returns (Listing memory listing) {
-        return listings[listingId];
+    function getOrder(bytes32 orderId) external view returns (Order memory order) {
+        return orders[orderId];
     }
 
     /**
-     * Checks if a listing is valid.
-     * @param listingIds The IDs of the listings.
-     * @return valid The validities of the listings.
-     * @notice A listing is valid if it is active, has not expired and tokens are available for transfer.
+     * Checks if orders are valid.
+     * @param orderIds The IDs of the orders.
+     * @return valid The validities of the orders.
+     * @notice An order is valid if it is active, has not expired and tokens (currency for offers, tokens for listings) are transferrable.
      */
-    function isListingValid(bytes32[] memory listingIds) external view returns (bool[] memory valid) {
-        valid = new bool[](listingIds.length);
-        for (uint256 i; i < listingIds.length; i++) {
-            Listing storage listing = listings[listingIds[i]];
-            valid[i] = listing.creator != address(0) && !_isExpired(listing)
-                && _hasApprovedTokens(listing.tokenContract, listing.tokenId, listing.quantity, listing.creator);
+    function isOrderValid(bytes32[] memory orderIds) external view returns (bool[] memory valid) {
+        valid = new bool[](orderIds.length);
+        for (uint256 i; i < orderIds.length; i++) {
+            Order memory order = orders[orderIds[i]];
+            valid[i] = order.creator != address(0) && !_isExpired(order)
+                && _hasApprovedTokens(order.tokenContract, order.tokenId, order.quantity, order.creator);
         }
     }
 
     /**
-     * Checks if a listing has expired.
-     * @param listing The listing to check.
-     * @return isExpired True if the listing has expired.
+     * Checks if a order has expired.
+     * @param order The order to check.
+     * @return isExpired True if the order has expired.
      */
-    function _isExpired(Listing storage listing) internal view returns (bool isExpired) {
+    function _isExpired(Order memory order) internal view returns (bool isExpired) {
         // solhint-disable-next-line not-rely-on-time
-        return listing.expiry <= block.timestamp;
+        return order.expiry <= block.timestamp;
     }
 
     /**
@@ -276,6 +396,21 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         bytes memory data = abi.encodeWithSelector(IERC165.supportsInterface.selector, interfaceId);
         (bool success, bytes memory returnData) = tokenContract.staticcall(data);
         return success && returnData.length == 32 && abi.decode(returnData, (bool));
+    }
+
+    /**
+     * Checks if the amount of currency is approved for transfer exceeds the given amount.
+     * @param currency The address of the currency.
+     * @param amount The amount of currency.
+     * @param owner The address of the owner of the currency.
+     * @return isValid True if the amount of currency is approved for transfer.
+     */
+    function _hasApprovedCurrency(address currency, uint256 amount, address owner)
+        internal
+        view
+        returns (bool isValid)
+    {
+        return IERC20(currency).allowance(owner, address(this)) >= amount;
     }
 
     /**
