@@ -70,7 +70,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
             revert InvalidCurrencyApproval(currency, total, msg.sender);
         }
         // Check quantity
-        bool isERC1155 = _isERC1155(tokenContract);
+        bool isERC1155 = _tokenIsERC1155(tokenContract);
         if ((isERC1155 && quantity == 0) || (!isERC1155 && quantity != 1)) {
             revert InvalidQuantity();
         }
@@ -223,7 +223,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
 
         // Transfer token
         address tokenContract = order.tokenContract;
-        if (_isERC1155(tokenContract)) {
+        if (_tokenIsERC1155(tokenContract)) {
             IERC1155(tokenContract).safeTransferFrom(currencyReceiver, tokenReceiver, order.tokenId, quantity, "");
         } else {
             IERC721(tokenContract).transferFrom(currencyReceiver, tokenReceiver, order.tokenId);
@@ -333,17 +333,17 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
      * @return isERC1155 True if the token contract is ERC1155, false if ERC721.
      * @dev Throws if the token contract is not ERC1155 or ERC721.
      */
-    function _isERC1155(address tokenContract) internal view returns (bool isERC1155) {
+    function _tokenIsERC1155(address tokenContract) internal view returns (bool isERC1155) {
         try IERC165(tokenContract).supportsInterface(type(IERC1155).interfaceId) returns (bool supported) {
             if (supported) {
                 return true;
             }
-        } catch {}
+        } catch {} // solhint-disable-line no-empty-blocks
         try IERC165(tokenContract).supportsInterface(type(IERC721).interfaceId) returns (bool supported) {
             if (supported) {
                 return false;
             }
-        } catch {}
+        } catch {} // solhint-disable-line no-empty-blocks
         // Fail out
         revert InvalidTokenContract(tokenContract);
     }
@@ -368,34 +368,6 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
             return (_r, _c > max ? max : _c);
         } catch {}
         return (address(0), 0);
-    }
-
-    /**
-     * Checks if a token contract supports ERC1155 or ERC721.
-     * @param tokenContract The address of the token contract.
-     * @dev Throws if the token contract is not ERC20.
-     */
-    function _getTokenType(address tokenContract) internal view returns (TokenType tokenType) {
-        if (_safelyCall165(tokenContract, type(IERC1155).interfaceId)) {
-            return TokenType.ERC1155;
-        }
-        if (_safelyCall165(tokenContract, type(IERC721).interfaceId)) {
-            return TokenType.ERC721;
-        }
-        // Note we can't check for ERC20 this way as most do not support ERC165
-        return TokenType.UNKNOWN;
-    }
-
-    /**
-     * Checks if a token contract supports an interface.
-     * @param tokenContract The address of the token contract.
-     * @param interfaceId The interface ID.
-     * @return supported True if the token contract supports the interface.
-     */
-    function _safelyCall165(address tokenContract, bytes4 interfaceId) private view returns (bool supported) {
-        bytes memory data = abi.encodeWithSelector(IERC165.supportsInterface.selector, interfaceId);
-        (bool success, bytes memory returnData) = tokenContract.staticcall(data);
-        return success && returnData.length == 32 && abi.decode(returnData, (bool));
     }
 
     /**
@@ -429,7 +401,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
     {
         address orderbook = address(this);
 
-        if (_isERC1155(tokenContract)) {
+        if (_tokenIsERC1155(tokenContract)) {
             return quantity > 0 && IERC1155(tokenContract).balanceOf(owner, tokenId) >= quantity
                 && IERC1155(tokenContract).isApprovedForAll(owner, orderbook);
         }
