@@ -10,9 +10,6 @@ import {IERC1155} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
 import {TransferHelper} from "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 
 contract NiftyswapOrderbook is INiftyswapOrderbook {
-    // Maximum royalties capped to 25%
-    uint256 internal constant MAX_ROYALTY_DIVISOR = 4;
-
     mapping(bytes32 => Order) internal orders;
 
     /**
@@ -350,7 +347,6 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
 
     /**
      * Will return how much of currency need to be paid for the royalty.
-     * @notice Royalty is capped at 25% of the total amount of currency
      * @param tokenContract Address of the erc-1155 token being traded
      * @param tokenId ID of the erc-1155 token being traded
      * @param cost Amount of currency sent/received for the trade
@@ -363,10 +359,8 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         returns (address recipient, uint256 royalty)
     {
         try IERC2981(address(tokenContract)).royaltyInfo(tokenId, cost) returns (address _r, uint256 _c) {
-            // Cap royalty amount
-            uint256 max = cost / MAX_ROYALTY_DIVISOR;
-            return (_r, _c > max ? max : _c);
-        } catch {}
+            return (_r, _c);
+        } catch {} // eslint-disable-line no-empty-blocks
         return (address(0), 0);
     }
 
