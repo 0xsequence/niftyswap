@@ -228,7 +228,6 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         // Update order state
         if (order.quantity == quantity) {
             // Refund some gas
-            //FIXME Or do we keep this to track history?
             delete orders[orderId];
         } else {
             orders[orderId].quantity -= quantity;
@@ -247,7 +246,6 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         address tokenContract = listing.tokenContract;
 
         // Refund some gas
-        //FIXME Or do we keep this to track history?
         delete orders[listingId];
 
         emit ListingCancelled(listingId, tokenContract);
@@ -265,7 +263,6 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         address tokenContract = offer.tokenContract;
 
         // Refund some gas
-        //FIXME Or do we keep this to track history?
         delete orders[offerId];
 
         emit OfferCancelled(offerId, tokenContract);
