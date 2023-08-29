@@ -11,6 +11,8 @@ import {ERC1155Mock} from "src/contracts/mocks/ERC1155Mock.sol";
 import {NiftyswapTestHelper} from "./utils/NiftyswapTestHelper.test.sol";
 import {console} from "forge-std/Test.sol";
 
+// solhint-disable not-rely-on-time
+
 contract WrapAndNiftySwapTest is NiftyswapTestHelper {
     // Events can't be imported
     event NewExchange(

@@ -13,7 +13,9 @@ import {NiftyswapTestHelper} from "./utils/NiftyswapTestHelper.test.sol";
 import {console} from "forge-std/Test.sol";
 import {stdError} from "forge-std/StdError.sol";
 
-interface IERC1155Exchange is INiftyswapExchange, IERC1155 {}
+// solhint-disable not-rely-on-time
+
+interface IERC1155Exchange is INiftyswapExchange, IERC1155 {} // solhint-disable-line no-empty-blocks
 
 contract NiftyswapExchangeTest is NiftyswapTestHelper {
     // Events can't be imported

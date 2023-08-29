@@ -357,7 +357,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
     {
         try IERC2981(address(tokenContract)).royaltyInfo(tokenId, cost) returns (address _r, uint256 _c) {
             return (_r, _c);
-        } catch {} // eslint-disable-line no-empty-blocks
+        } catch {} // solhint-disable-line no-empty-blocks
         return (address(0), 0);
     }
 
@@ -405,8 +405,8 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
 
             try IERC721(tokenContract).getApproved(tokenId) returns (address _operator) {
                 operator = _operator;
-            } catch {}
-        } catch {}
+            } catch {} // solhint-disable-line no-empty-blocks
+        } catch {} // solhint-disable-line no-empty-blocks
 
         return quantity == 1 && owner == tokenOwner
             && (operator == orderbook || IERC721(tokenContract).isApprovedForAll(owner, orderbook));
