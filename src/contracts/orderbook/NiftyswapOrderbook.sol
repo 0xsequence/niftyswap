@@ -194,6 +194,14 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
             revert InvalidAdditionalFees();
         }
 
+        // Update order state
+        if (order.quantity == quantity) {
+            // Refund some gas
+            delete orders[orderId];
+        } else {
+            orders[orderId].quantity -= quantity;
+        }
+
         // Calculate payables
         uint256 totalCost = order.pricePerToken * quantity;
         (address royaltyRecipient, uint256 royaltyAmount) =
@@ -224,13 +232,6 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
             IERC1155(tokenContract).safeTransferFrom(currencyReceiver, tokenReceiver, order.tokenId, quantity, "");
         } else {
             IERC721(tokenContract).transferFrom(currencyReceiver, tokenReceiver, order.tokenId);
-        }
-        // Update order state
-        if (order.quantity == quantity) {
-            // Refund some gas
-            delete orders[orderId];
-        } else {
-            orders[orderId].quantity -= quantity;
         }
     }
 

@@ -8,10 +8,54 @@ import {
 import {ERC1155RoyaltyMock} from "src/contracts/mocks/ERC1155RoyaltyMock.sol";
 import {ERC721RoyaltyMock} from "src/contracts/mocks/ERC721RoyaltyMock.sol";
 import {ERC20TokenMock} from "src/contracts/mocks/ERC20TokenMock.sol";
+import {IERC1155TokenReceiver} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155TokenReceiver.sol";
 
 import {Test, console} from "forge-std/Test.sol";
 
 // solhint-disable not-rely-on-time
+
+contract ERC1155ReentryAttacker is IERC1155TokenReceiver {
+    address private immutable _orderbook;
+
+    bytes32 private _orderId;
+    uint256 private _quantity;
+    bool private _hasAttacked;
+
+    constructor(address orderbook) {
+        _orderbook = orderbook;
+    }
+
+    function acceptListing(bytes32 orderId, uint256 quantity) external {
+        _orderId = orderId;
+        _quantity = quantity;
+        NiftyswapOrderbook(_orderbook).acceptListing(_orderId, _quantity, new uint256[](0), new address[](0));
+    }
+
+    function onERC1155Received(address _operator, address _from, uint256 _id, uint256 _amount, bytes calldata _data)
+        external
+        returns (bytes4)
+    {
+        if (_hasAttacked) {
+            // Done
+            _hasAttacked = false;
+            return IERC1155TokenReceiver.onERC1155Received.selector;
+        }
+        // Attack the orderbook
+        _hasAttacked = true;
+        NiftyswapOrderbook(_orderbook).acceptListing(_orderId, _quantity, new uint256[](0), new address[](0));
+        return IERC1155TokenReceiver.onERC1155Received.selector;
+    }
+
+    function onERC1155BatchReceived(
+        address _operator,
+        address _from,
+        uint256[] calldata _ids,
+        uint256[] calldata _amounts,
+        bytes calldata _data
+    ) external returns (bytes4) {
+        return IERC1155TokenReceiver.onERC1155BatchReceived.selector;
+    }
+}
 
 contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbookStorage, Test {
     NiftyswapOrderbook private orderbook;
@@ -495,6 +539,18 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.prank(CURRENCY_OWNER);
         vm.expectRevert("ERC721: caller is not token owner or approved");
         orderbook.acceptListing(listingId, 1, emptyFees, emptyFeeReceivers);
+    }
+
+    function test_acceptListing_reentry() external {
+        ERC1155ReentryAttacker attacker = new ERC1155ReentryAttacker(address(orderbook));
+        erc20.mockMint(address(attacker), CURRENCY_QUANTITY);
+        vm.prank(address(attacker));
+        erc20.approve(address(orderbook), CURRENCY_QUANTITY);
+
+        bytes32 listingId = test_createListing(true, 1, 1 ether, block.timestamp + 1);
+
+        vm.expectRevert(abi.encodeWithSelector(InvalidListingId.selector, listingId));
+        attacker.acceptListing(listingId, 1);
     }
 
     //
