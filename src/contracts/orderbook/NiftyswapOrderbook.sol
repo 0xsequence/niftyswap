@@ -203,9 +203,9 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         }
 
         // Calculate payables
-        uint256 totalCost = order.pricePerToken * quantity;
+        uint256 remainingCost = order.pricePerToken * quantity;
         (address royaltyRecipient, uint256 royaltyAmount) =
-            getRoyaltyInfo(order.tokenContract, order.tokenId, totalCost);
+            getRoyaltyInfo(order.tokenContract, order.tokenId, remainingCost);
 
         address currencyReceiver = order.isListing ? order.creator : msg.sender;
         address tokenReceiver = order.isListing ? msg.sender : order.creator;
@@ -213,18 +213,25 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         if (royaltyAmount > 0) {
             // Transfer royalties
             TransferHelper.safeTransferFrom(order.currency, tokenReceiver, royaltyRecipient, royaltyAmount);
+            remainingCost -= royaltyAmount;
+        }
+
+        // Transfer additional fees
+        uint256 feesPaid = 0;
+        for (uint256 i; i < additionalFees.length; i++) {
+            uint256 fee = additionalFees[i];
+            if (additionalFeeRecievers[i] == address(0) || fee == 0) {
+                revert InvalidAdditionalFees();
+            }
+            TransferHelper.safeTransferFrom(order.currency, tokenReceiver, additionalFeeRecievers[i], fee);
+            if (!order.isListing) {
+                // Fees are paid by the taker. This reduces the cost for offers.
+                remainingCost -= fee;
+            }
         }
 
         // Transfer currency
-        TransferHelper.safeTransferFrom(order.currency, tokenReceiver, currencyReceiver, totalCost - royaltyAmount);
-
-        // Transfer additional fees
-        for (uint256 i; i < additionalFees.length; i++) {
-            if (additionalFeeRecievers[i] == address(0) || additionalFees[i] == 0) {
-                revert InvalidAdditionalFees();
-            }
-            TransferHelper.safeTransferFrom(order.currency, tokenReceiver, additionalFeeRecievers[i], additionalFees[i]);
-        }
+        TransferHelper.safeTransferFrom(order.currency, tokenReceiver, currencyReceiver, remainingCost);
 
         // Transfer token
         address tokenContract = order.tokenContract;

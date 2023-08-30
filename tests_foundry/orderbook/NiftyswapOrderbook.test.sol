@@ -313,11 +313,11 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
 
     function test_acceptListing_erc1155_additionalFees(
         uint256 quantity,
-        uint256 pricePerToken,
         uint256 expiry,
         uint256[] memory additionalFees
     ) public {
-        vm.assume(pricePerToken <= 1 ether && quantity <= TOKEN_QUANTITY); // Prevent overflow
+        uint256 pricePerToken = 1 ether;
+        vm.assume(quantity <= TOKEN_QUANTITY); // Prevent overflow
         uint256 totalPrice = pricePerToken * quantity;
         uint256 royalty = (totalPrice * ROYALTY_FEE) / 10000;
 
@@ -331,7 +331,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         uint256 totalFees;
         for (uint256 i; i < additionalFees.length; i++) {
             additionalFeeRecievers[i] = FEE_RECEIVER;
-            additionalFees[i] = bound(additionalFees[i], 1, 1 ether);
+            additionalFees[i] = bound(additionalFees[i], 1, 0.25 ether);
             totalFees += additionalFees[i];
         }
 
@@ -348,18 +348,15 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         orderbook.acceptListing(listingId, quantity, additionalFees, additionalFeeRecievers);
 
         assertEq(erc1155.balanceOf(CURRENCY_OWNER, TOKEN_ID), quantity);
+        // Fees paid by taker
         assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - totalPrice - totalFees);
         assertEq(erc20.balanceOf(FEE_RECEIVER), totalFees); // Assume no starting value
         assertEq(erc20.balanceOf(TOKEN_OWNER), erc20BalTokenOwner + totalPrice - royalty);
         assertEq(erc20.balanceOf(ROYALTY_RECEIVER), erc20BalRoyal + royalty);
     }
 
-    function test_acceptListing_erc721_additionalFees(
-        uint256 pricePerToken,
-        uint256 expiry,
-        uint256[] memory additionalFees
-    ) public {
-        vm.assume(pricePerToken <= TOKEN_QUANTITY);
+    function test_acceptListing_erc721_additionalFees(uint256 expiry, uint256[] memory additionalFees) public {
+        uint256 pricePerToken = 1 ether;
         uint256 royalty = (pricePerToken * ROYALTY_FEE) / 10000;
 
         if (additionalFees.length > 2) {
@@ -372,7 +369,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         uint256 totalFees;
         for (uint256 i; i < additionalFees.length; i++) {
             additionalFeeRecievers[i] = FEE_RECEIVER;
-            additionalFees[i] = bound(additionalFees[i], 1, 1 ether);
+            additionalFees[i] = bound(additionalFees[i], 1, 0.25 ether);
             totalFees += additionalFees[i];
         }
 
@@ -389,6 +386,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         orderbook.acceptListing(listingId, 1, additionalFees, additionalFeeRecievers);
 
         assertEq(erc721.ownerOf(TOKEN_ID), CURRENCY_OWNER);
+        // Fees paid by taker
         assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - pricePerToken - totalFees);
         assertEq(erc20.balanceOf(TOKEN_OWNER), erc20BalTokenOwner + pricePerToken - royalty);
         assertEq(erc20.balanceOf(FEE_RECEIVER), totalFees); // Assume no starting value
@@ -734,13 +732,11 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         return offerId;
     }
 
-    function test_acceptOffer_erc1155_additionalFees(
-        uint256 quantity,
-        uint256 pricePerToken,
-        uint256 expiry,
-        uint256[] memory additionalFees
-    ) public {
-        vm.assume(pricePerToken <= 1 ether && quantity <= TOKEN_QUANTITY); // Prevent overflow
+    function test_acceptOffer_erc1155_additionalFees(uint256 quantity, uint256 expiry, uint256[] memory additionalFees)
+        public
+    {
+        uint256 pricePerToken = 1 ether;
+        vm.assume(quantity <= TOKEN_QUANTITY); // Prevent overflow
         uint256 totalPrice = pricePerToken * quantity;
         uint256 royalty = (totalPrice * ROYALTY_FEE) / 10000;
 
@@ -754,7 +750,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         uint256 totalFees;
         for (uint256 i; i < additionalFees.length; i++) {
             additionalFeeRecievers[i] = FEE_RECEIVER;
-            additionalFees[i] = bound(additionalFees[i], 1, 1 ether);
+            additionalFees[i] = bound(additionalFees[i], 1, 0.25 ether);
             totalFees += additionalFees[i];
         }
 
@@ -771,18 +767,15 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         orderbook.acceptOffer(offerId, quantity, additionalFees, additionalFeeRecievers);
 
         assertEq(erc1155.balanceOf(CURRENCY_OWNER, TOKEN_ID), quantity);
-        assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - totalPrice - totalFees);
+        assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - totalPrice);
         assertEq(erc20.balanceOf(FEE_RECEIVER), totalFees); // Assume no starting value
-        assertEq(erc20.balanceOf(TOKEN_OWNER), erc20BalTokenOwner + totalPrice - royalty);
+        // Fees paid by taker
+        assertEq(erc20.balanceOf(TOKEN_OWNER), erc20BalTokenOwner + totalPrice - royalty - totalFees);
         assertEq(erc20.balanceOf(ROYALTY_RECEIVER), erc20BalRoyal + royalty);
     }
 
-    function test_acceptOffer_erc721_additionalFees(
-        uint256 pricePerToken,
-        uint256 expiry,
-        uint256[] memory additionalFees
-    ) public {
-        vm.assume(pricePerToken <= TOKEN_QUANTITY);
+    function test_acceptOffer_erc721_additionalFees(uint256 expiry, uint256[] memory additionalFees) public {
+        uint256 pricePerToken = 1 ether;
         uint256 royalty = (pricePerToken * ROYALTY_FEE) / 10000;
 
         if (additionalFees.length > 2) {
@@ -795,7 +788,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         uint256 totalFees;
         for (uint256 i; i < additionalFees.length; i++) {
             additionalFeeRecievers[i] = FEE_RECEIVER;
-            additionalFees[i] = bound(additionalFees[i], 1, 1 ether);
+            additionalFees[i] = bound(additionalFees[i], 1, 0.25 ether);
             totalFees += additionalFees[i];
         }
 
@@ -812,8 +805,9 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         orderbook.acceptOffer(offerId, 1, additionalFees, additionalFeeRecievers);
 
         assertEq(erc721.ownerOf(TOKEN_ID), CURRENCY_OWNER);
-        assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - pricePerToken - totalFees);
-        assertEq(erc20.balanceOf(TOKEN_OWNER), erc20BalTokenOwner + pricePerToken - royalty);
+        assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - pricePerToken);
+        // Fees paid by taker
+        assertEq(erc20.balanceOf(TOKEN_OWNER), erc20BalTokenOwner + pricePerToken - royalty - totalFees);
         assertEq(erc20.balanceOf(FEE_RECEIVER), totalFees); // Assume no starting value
         assertEq(erc20.balanceOf(ROYALTY_RECEIVER), erc20BalRoyal + royalty);
     }
