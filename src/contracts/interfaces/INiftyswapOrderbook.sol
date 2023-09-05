@@ -112,6 +112,13 @@ interface INiftyswapOrderbookFunctions is INiftyswapOrderbookStorage {
     function getOrder(bytes32 orderId) external view returns (Order memory order);
 
     /**
+     * Gets orders.
+     * @param orderIds The IDs of the orders.
+     * @return orders The orders.
+     */
+    function getOrderBatch(bytes32[] memory orderIds) external view returns (Order[] memory orders);
+
+    /**
      * Checks if orders are valid.
      * @param orderIds The IDs of the orders.
      * @return valid The validities of the orders.

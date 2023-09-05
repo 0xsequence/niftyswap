@@ -9,7 +9,7 @@ import {IERC1155} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
 import {TransferHelper} from "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 
 contract NiftyswapOrderbook is INiftyswapOrderbook {
-    mapping(bytes32 => Order) internal orders;
+    mapping(bytes32 => Order) internal _orders;
 
     /**
      * Lists a token for sale.
@@ -124,11 +124,11 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         });
         orderId = hashOrder(order);
 
-        if (orders[orderId].creator != address(0)) {
+        if (_orders[orderId].creator != address(0)) {
             // Collision
             revert InvalidOrderId(orderId);
         }
-        orders[orderId] = order;
+        _orders[orderId] = order;
 
         return orderId;
     }
@@ -147,7 +147,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         uint256[] memory additionalFees,
         address[] memory additionalFeeReceivers
     ) external {
-        Order memory listing = orders[listingId];
+        Order memory listing = _orders[listingId];
         if (!listing.isListing || listing.creator == address(0)) {
             // Is a listing, cancelled, completed or never existed
             revert InvalidListingId(listingId);
@@ -171,7 +171,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         uint256[] memory additionalFees,
         address[] memory additionalFeeReceivers
     ) external {
-        Order memory offer = orders[offerId];
+        Order memory offer = _orders[offerId];
         if (offer.isListing || offer.creator == address(0)) {
             // Is a listing, cancelled, completed or never existed
             revert InvalidOfferId(offerId);
@@ -202,9 +202,9 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         // Update order state
         if (order.quantity == quantity) {
             // Refund some gas
-            delete orders[orderId];
+            delete _orders[orderId];
         } else {
-            orders[orderId].quantity -= quantity;
+            _orders[orderId].quantity -= quantity;
         }
 
         // Calculate payables
@@ -252,14 +252,14 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
      * @param listingId The ID of the listing.
      */
     function cancelListing(bytes32 listingId) external {
-        Order storage listing = orders[listingId];
+        Order storage listing = _orders[listingId];
         if (listing.creator != msg.sender) {
             revert InvalidListingId(listingId);
         }
         address tokenContract = listing.tokenContract;
 
         // Refund some gas
-        delete orders[listingId];
+        delete _orders[listingId];
 
         emit ListingCancelled(listingId, tokenContract);
     }
@@ -269,14 +269,14 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
      * @param offerId The ID of the offer.
      */
     function cancelOffer(bytes32 offerId) external {
-        Order storage offer = orders[offerId];
+        Order storage offer = _orders[offerId];
         if (offer.creator != msg.sender) {
             revert InvalidOfferId(offerId);
         }
         address tokenContract = offer.tokenContract;
 
         // Refund some gas
-        delete orders[offerId];
+        delete _orders[offerId];
 
         emit OfferCancelled(offerId, tokenContract);
     }
@@ -308,7 +308,20 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
      * @return order The order.
      */
     function getOrder(bytes32 orderId) external view returns (Order memory order) {
-        return orders[orderId];
+        return _orders[orderId];
+    }
+
+    /**
+     * Gets orders.
+     * @param orderIds The IDs of the orders.
+     * @return orders The orders.
+     */
+    function getOrderBatch(bytes32[] memory orderIds) external view returns (Order[] memory orders) {
+        orders = new Order[](orderIds.length);
+        for (uint256 i; i < orderIds.length; i++) {
+            orders[i] = _orders[orderIds[i]];
+        }
+        return orders;
     }
 
     /**
@@ -320,7 +333,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
     function isOrderValid(bytes32[] memory orderIds) external view returns (bool[] memory valid) {
         valid = new bool[](orderIds.length);
         for (uint256 i; i < orderIds.length; i++) {
-            Order memory order = orders[orderIds[i]];
+            Order memory order = _orders[orderIds[i]];
             valid[i] = order.creator != address(0) && !_isExpired(order)
                 && _hasApprovedTokens(order.isERC1155, order.tokenContract, order.tokenId, order.quantity, order.creator);
         }
