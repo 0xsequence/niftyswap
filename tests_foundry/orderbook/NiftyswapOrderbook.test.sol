@@ -331,10 +331,10 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
                 mstore(additionalFees, 2)
             }
         }
-        address[] memory additionalFeeRecievers = new address[](additionalFees.length);
+        address[] memory additionalFeeReceivers = new address[](additionalFees.length);
         uint256 totalFees;
         for (uint256 i; i < additionalFees.length; i++) {
-            additionalFeeRecievers[i] = FEE_RECEIVER;
+            additionalFeeReceivers[i] = FEE_RECEIVER;
             additionalFees[i] = bound(additionalFees[i], 1, 0.25 ether);
             totalFees += additionalFees[i];
         }
@@ -349,7 +349,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.expectEmit(true, true, true, true, address(orderbook));
         emit ListingAccepted(listingId, CURRENCY_OWNER, address(erc1155), quantity);
         vm.prank(CURRENCY_OWNER);
-        orderbook.acceptListing(listingId, quantity, additionalFees, additionalFeeRecievers);
+        orderbook.acceptListing(listingId, quantity, additionalFees, additionalFeeReceivers);
 
         assertEq(erc1155.balanceOf(CURRENCY_OWNER, TOKEN_ID), quantity);
         // Fees paid by taker
@@ -369,10 +369,10 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
                 mstore(additionalFees, 2)
             }
         }
-        address[] memory additionalFeeRecievers = new address[](additionalFees.length);
+        address[] memory additionalFeeReceivers = new address[](additionalFees.length);
         uint256 totalFees;
         for (uint256 i; i < additionalFees.length; i++) {
-            additionalFeeRecievers[i] = FEE_RECEIVER;
+            additionalFeeReceivers[i] = FEE_RECEIVER;
             additionalFees[i] = bound(additionalFees[i], 1, 0.25 ether);
             totalFees += additionalFees[i];
         }
@@ -387,7 +387,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.expectEmit(true, true, true, true, address(orderbook));
         emit ListingAccepted(listingId, CURRENCY_OWNER, address(erc721), 1);
         vm.prank(CURRENCY_OWNER);
-        orderbook.acceptListing(listingId, 1, additionalFees, additionalFeeRecievers);
+        orderbook.acceptListing(listingId, 1, additionalFees, additionalFeeReceivers);
 
         assertEq(erc721.ownerOf(TOKEN_ID), CURRENCY_OWNER);
         // Fees paid by taker
@@ -402,26 +402,26 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
 
         // Zero fee
         uint256[] memory additionalFees = new uint256[](1);
-        address[] memory additionalFeeRecievers = new address[](1);
-        additionalFeeRecievers[0] = FEE_RECEIVER;
+        address[] memory additionalFeeReceivers = new address[](1);
+        additionalFeeReceivers[0] = FEE_RECEIVER;
         vm.prank(CURRENCY_OWNER);
         vm.expectRevert(InvalidAdditionalFees.selector);
-        orderbook.acceptListing(listingId, 1, additionalFees, additionalFeeRecievers);
+        orderbook.acceptListing(listingId, 1, additionalFees, additionalFeeReceivers);
 
         // Zero address
         additionalFees[0] = 1 ether;
-        additionalFeeRecievers[0] = address(0);
+        additionalFeeReceivers[0] = address(0);
         vm.prank(CURRENCY_OWNER);
         vm.expectRevert(InvalidAdditionalFees.selector);
-        orderbook.acceptListing(listingId, 1, additionalFees, additionalFeeRecievers);
+        orderbook.acceptListing(listingId, 1, additionalFees, additionalFeeReceivers);
 
         // Invalid length (larger receivers)
-        additionalFeeRecievers = new address[](2);
-        additionalFeeRecievers[0] = FEE_RECEIVER;
-        additionalFeeRecievers[1] = FEE_RECEIVER;
+        additionalFeeReceivers = new address[](2);
+        additionalFeeReceivers[0] = FEE_RECEIVER;
+        additionalFeeReceivers[1] = FEE_RECEIVER;
         vm.prank(CURRENCY_OWNER);
         vm.expectRevert(InvalidAdditionalFees.selector);
-        orderbook.acceptListing(listingId, 1, additionalFees, additionalFeeRecievers);
+        orderbook.acceptListing(listingId, 1, additionalFees, additionalFeeReceivers);
 
         // Invalid length (larger fees)
         additionalFees = new uint256[](3);
@@ -430,7 +430,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         additionalFees[2] = 3;
         vm.prank(CURRENCY_OWNER);
         vm.expectRevert(InvalidAdditionalFees.selector);
-        orderbook.acceptListing(listingId, 1, additionalFees, additionalFeeRecievers);
+        orderbook.acceptListing(listingId, 1, additionalFees, additionalFeeReceivers);
     }
 
     function test_acceptListing_invalidQuantity_zero(
@@ -782,10 +782,10 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
                 mstore(additionalFees, 2)
             }
         }
-        address[] memory additionalFeeRecievers = new address[](additionalFees.length);
+        address[] memory additionalFeeReceivers = new address[](additionalFees.length);
         uint256 totalFees;
         for (uint256 i; i < additionalFees.length; i++) {
-            additionalFeeRecievers[i] = FEE_RECEIVER;
+            additionalFeeReceivers[i] = FEE_RECEIVER;
             additionalFees[i] = bound(additionalFees[i], 1, 0.25 ether);
             totalFees += additionalFees[i];
         }
@@ -800,7 +800,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.expectEmit(true, true, true, true, address(orderbook));
         emit OfferAccepted(offerId, TOKEN_OWNER, address(erc1155), quantity);
         vm.prank(TOKEN_OWNER);
-        orderbook.acceptOffer(offerId, quantity, additionalFees, additionalFeeRecievers);
+        orderbook.acceptOffer(offerId, quantity, additionalFees, additionalFeeReceivers);
 
         assertEq(erc1155.balanceOf(CURRENCY_OWNER, TOKEN_ID), quantity);
         assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - totalPrice);
@@ -820,10 +820,10 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
                 mstore(additionalFees, 2)
             }
         }
-        address[] memory additionalFeeRecievers = new address[](additionalFees.length);
+        address[] memory additionalFeeReceivers = new address[](additionalFees.length);
         uint256 totalFees;
         for (uint256 i; i < additionalFees.length; i++) {
-            additionalFeeRecievers[i] = FEE_RECEIVER;
+            additionalFeeReceivers[i] = FEE_RECEIVER;
             additionalFees[i] = bound(additionalFees[i], 1, 0.25 ether);
             totalFees += additionalFees[i];
         }
@@ -838,7 +838,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.expectEmit(true, true, true, true, address(orderbook));
         emit OfferAccepted(offerId, TOKEN_OWNER, address(erc721), 1);
         vm.prank(TOKEN_OWNER);
-        orderbook.acceptOffer(offerId, 1, additionalFees, additionalFeeRecievers);
+        orderbook.acceptOffer(offerId, 1, additionalFees, additionalFeeReceivers);
 
         assertEq(erc721.ownerOf(TOKEN_ID), CURRENCY_OWNER);
         assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - pricePerToken);
@@ -853,26 +853,26 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
 
         // Zero fee
         uint256[] memory additionalFees = new uint256[](1);
-        address[] memory additionalFeeRecievers = new address[](1);
-        additionalFeeRecievers[0] = FEE_RECEIVER;
+        address[] memory additionalFeeReceivers = new address[](1);
+        additionalFeeReceivers[0] = FEE_RECEIVER;
         vm.prank(TOKEN_OWNER);
         vm.expectRevert(InvalidAdditionalFees.selector);
-        orderbook.acceptOffer(offerId, 1, additionalFees, additionalFeeRecievers);
+        orderbook.acceptOffer(offerId, 1, additionalFees, additionalFeeReceivers);
 
         // Zero address
         additionalFees[0] = 1 ether;
-        additionalFeeRecievers[0] = address(0);
+        additionalFeeReceivers[0] = address(0);
         vm.prank(TOKEN_OWNER);
         vm.expectRevert(InvalidAdditionalFees.selector);
-        orderbook.acceptOffer(offerId, 1, additionalFees, additionalFeeRecievers);
+        orderbook.acceptOffer(offerId, 1, additionalFees, additionalFeeReceivers);
 
         // Invalid length (larger receivers)
-        additionalFeeRecievers = new address[](2);
-        additionalFeeRecievers[0] = FEE_RECEIVER;
-        additionalFeeRecievers[1] = FEE_RECEIVER;
+        additionalFeeReceivers = new address[](2);
+        additionalFeeReceivers[0] = FEE_RECEIVER;
+        additionalFeeReceivers[1] = FEE_RECEIVER;
         vm.prank(TOKEN_OWNER);
         vm.expectRevert(InvalidAdditionalFees.selector);
-        orderbook.acceptOffer(offerId, 1, additionalFees, additionalFeeRecievers);
+        orderbook.acceptOffer(offerId, 1, additionalFees, additionalFeeReceivers);
 
         // Invalid length (larger fees)
         additionalFees = new uint256[](3);
@@ -881,7 +881,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         additionalFees[2] = 3;
         vm.prank(TOKEN_OWNER);
         vm.expectRevert(InvalidAdditionalFees.selector);
-        orderbook.acceptOffer(offerId, 1, additionalFees, additionalFeeRecievers);
+        orderbook.acceptOffer(offerId, 1, additionalFees, additionalFeeReceivers);
     }
 
     function test_acceptOffer_invalidQuantity_zero(

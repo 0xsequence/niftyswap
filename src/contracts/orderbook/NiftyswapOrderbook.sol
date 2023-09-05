@@ -138,14 +138,14 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
      * @param listingId The ID of the listing.
      * @param quantity The quantity of tokens to purchase.
      * @param additionalFees The additional fees to pay.
-     * @param additionalFeeRecievers The addresses to send the additional fees to.
+     * @param additionalFeeReceivers The addresses to send the additional fees to.
      * @dev Royalties are taken from the listing cost.
      */
     function acceptListing(
         bytes32 listingId,
         uint256 quantity,
         uint256[] memory additionalFees,
-        address[] memory additionalFeeRecievers
+        address[] memory additionalFeeReceivers
     ) external {
         Order memory listing = orders[listingId];
         if (!listing.isListing || listing.creator == address(0)) {
@@ -153,7 +153,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
             revert InvalidListingId(listingId);
         }
 
-        _acceptOrder(listingId, listing, quantity, additionalFees, additionalFeeRecievers);
+        _acceptOrder(listingId, listing, quantity, additionalFees, additionalFeeReceivers);
 
         emit ListingAccepted(listingId, msg.sender, listing.tokenContract, quantity);
     }
@@ -163,13 +163,13 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
      * @param offerId The ID of the listing.
      * @param quantity The quantity of tokens to sell.
      * @param additionalFees The additional fees to pay.
-     * @param additionalFeeRecievers The addresses to send the additional fees to.
+     * @param additionalFeeReceivers The addresses to send the additional fees to.
      */
     function acceptOffer(
         bytes32 offerId,
         uint256 quantity,
         uint256[] memory additionalFees,
-        address[] memory additionalFeeRecievers
+        address[] memory additionalFeeReceivers
     ) external {
         Order memory offer = orders[offerId];
         if (offer.isListing || offer.creator == address(0)) {
@@ -177,7 +177,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
             revert InvalidOfferId(offerId);
         }
 
-        _acceptOrder(offerId, offer, quantity, additionalFees, additionalFeeRecievers);
+        _acceptOrder(offerId, offer, quantity, additionalFees, additionalFeeReceivers);
 
         emit OfferAccepted(offerId, msg.sender, offer.tokenContract, quantity);
     }
@@ -187,7 +187,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         Order memory order,
         uint256 quantity,
         uint256[] memory additionalFees,
-        address[] memory additionalFeeRecievers
+        address[] memory additionalFeeReceivers
     ) internal {
         if (quantity == 0 || quantity > order.quantity) {
             revert InvalidQuantity();
@@ -195,7 +195,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         if (_isExpired(order)) {
             revert InvalidExpiry();
         }
-        if (additionalFees.length != additionalFeeRecievers.length) {
+        if (additionalFees.length != additionalFeeReceivers.length) {
             revert InvalidAdditionalFees();
         }
 
@@ -222,13 +222,13 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         }
 
         // Transfer additional fees
-        uint256 feesPaid = 0;
         for (uint256 i; i < additionalFees.length; i++) {
             uint256 fee = additionalFees[i];
-            if (additionalFeeRecievers[i] == address(0) || fee == 0) {
+            address feeReceiver = additionalFeeReceivers[i];
+            if (feeReceiver == address(0) || fee == 0) {
                 revert InvalidAdditionalFees();
             }
-            TransferHelper.safeTransferFrom(order.currency, tokenReceiver, additionalFeeRecievers[i], fee);
+            TransferHelper.safeTransferFrom(order.currency, tokenReceiver, feeReceiver, fee);
             if (!order.isListing) {
                 // Fees are paid by the taker. This reduces the cost for offers.
                 remainingCost -= fee;

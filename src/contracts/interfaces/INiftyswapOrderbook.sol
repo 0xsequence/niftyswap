@@ -69,13 +69,13 @@ interface INiftyswapOrderbookFunctions is INiftyswapOrderbookStorage {
      * @param listingId The ID of the listing.
      * @param quantity The quantity of tokens to purchase.
      * @param additionalFees The additional fees to pay.
-     * @param additionalFeeRecievers The addresses to send the additional fees to.
+     * @param additionalFeeReceivers The addresses to send the additional fees to.
      */
     function acceptListing(
         bytes32 listingId,
         uint256 quantity,
         uint256[] memory additionalFees,
-        address[] memory additionalFeeRecievers
+        address[] memory additionalFeeReceivers
     ) external;
 
     /**
@@ -83,13 +83,13 @@ interface INiftyswapOrderbookFunctions is INiftyswapOrderbookStorage {
      * @param offerId The ID of the listing.
      * @param quantity The quantity of tokens to sell.
      * @param additionalFees The additional fees to pay.
-     * @param additionalFeeRecievers The addresses to send the additional fees to.
+     * @param additionalFeeReceivers The addresses to send the additional fees to.
      */
     function acceptOffer(
         bytes32 offerId,
         uint256 quantity,
         uint256[] memory additionalFees,
-        address[] memory additionalFeeRecievers
+        address[] memory additionalFeeReceivers
     ) external;
 
     /**
