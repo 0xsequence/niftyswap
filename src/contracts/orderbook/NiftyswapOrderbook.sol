@@ -289,6 +289,8 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
     function hashOrder(Order memory order) public pure returns (bytes32 orderId) {
         return keccak256(
             abi.encodePacked(
+                order.isListing,
+                order.isERC1155,
                 order.creator,
                 order.tokenContract,
                 order.tokenId,
