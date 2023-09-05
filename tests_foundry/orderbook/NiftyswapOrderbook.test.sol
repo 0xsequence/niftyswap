@@ -737,8 +737,8 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         orderbook.acceptOffer(offerId, quantity, emptyFees, emptyFeeReceivers);
 
         assertEq(erc1155.balanceOf(CURRENCY_OWNER, TOKEN_ID), quantity);
-        assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - totalPrice);
-        assertEq(erc20.balanceOf(TOKEN_OWNER), erc20BalTokenOwner + totalPrice - royalty);
+        assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - totalPrice - royalty);
+        assertEq(erc20.balanceOf(TOKEN_OWNER), erc20BalTokenOwner + totalPrice);
         assertEq(erc20.balanceOf(ROYALTY_RECEIVER), erc20BalRoyal + royalty);
 
         return offerId;
@@ -761,8 +761,8 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         orderbook.acceptOffer(offerId, 1, emptyFees, emptyFeeReceivers);
 
         assertEq(erc721.ownerOf(TOKEN_ID), CURRENCY_OWNER);
-        assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - pricePerToken);
-        assertEq(erc20.balanceOf(TOKEN_OWNER), erc20BalTokenOwner + pricePerToken - royalty);
+        assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - pricePerToken - royalty);
+        assertEq(erc20.balanceOf(TOKEN_OWNER), erc20BalTokenOwner + pricePerToken);
         assertEq(erc20.balanceOf(ROYALTY_RECEIVER), erc20BalRoyal + royalty);
 
         return offerId;
@@ -803,10 +803,10 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         orderbook.acceptOffer(offerId, quantity, additionalFees, additionalFeeReceivers);
 
         assertEq(erc1155.balanceOf(CURRENCY_OWNER, TOKEN_ID), quantity);
-        assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - totalPrice);
+        assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - totalPrice - royalty);
         assertEq(erc20.balanceOf(FEE_RECEIVER), totalFees); // Assume no starting value
         // Fees paid by taker
-        assertEq(erc20.balanceOf(TOKEN_OWNER), erc20BalTokenOwner + totalPrice - royalty - totalFees);
+        assertEq(erc20.balanceOf(TOKEN_OWNER), erc20BalTokenOwner + totalPrice - totalFees);
         assertEq(erc20.balanceOf(ROYALTY_RECEIVER), erc20BalRoyal + royalty);
     }
 
@@ -841,9 +841,9 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         orderbook.acceptOffer(offerId, 1, additionalFees, additionalFeeReceivers);
 
         assertEq(erc721.ownerOf(TOKEN_ID), CURRENCY_OWNER);
-        assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - pricePerToken);
+        assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - pricePerToken - royalty);
         // Fees paid by taker
-        assertEq(erc20.balanceOf(TOKEN_OWNER), erc20BalTokenOwner + pricePerToken - royalty - totalFees);
+        assertEq(erc20.balanceOf(TOKEN_OWNER), erc20BalTokenOwner + pricePerToken - totalFees);
         assertEq(erc20.balanceOf(FEE_RECEIVER), totalFees); // Assume no starting value
         assertEq(erc20.balanceOf(ROYALTY_RECEIVER), erc20BalRoyal + royalty);
     }
@@ -950,8 +950,8 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.stopPrank();
 
         assertEq(erc1155.balanceOf(CURRENCY_OWNER, TOKEN_ID), quantity);
-        assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - totalPrice);
-        assertEq(erc20.balanceOf(TOKEN_OWNER), erc20BalTokenOwner + totalPrice - royalty);
+        assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - totalPrice - royalty);
+        assertEq(erc20.balanceOf(TOKEN_OWNER), erc20BalTokenOwner + totalPrice);
         assertEq(erc20.balanceOf(ROYALTY_RECEIVER), erc20BalRoyal + royalty);
     }
 

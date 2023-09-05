@@ -218,7 +218,10 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         if (royaltyAmount > 0) {
             // Transfer royalties
             TransferHelper.safeTransferFrom(order.currency, tokenReceiver, royaltyRecipient, royaltyAmount);
-            remainingCost -= royaltyAmount;
+            if (order.isListing) {
+                // Royalties are paid by the maker. This reduces the cost for listings.
+                remainingCost -= royaltyAmount;
+            }
         }
 
         // Transfer additional fees
