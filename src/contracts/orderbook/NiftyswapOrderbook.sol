@@ -5,7 +5,6 @@ import {INiftyswapOrderbook} from "../interfaces/INiftyswapOrderbook.sol";
 import {IERC721} from "../interfaces/IERC721.sol";
 import {IERC2981} from "../interfaces/IERC2981.sol";
 import {IERC20} from "@0xsequence/erc-1155/contracts/interfaces/IERC20.sol";
-import {IERC165} from "@0xsequence/erc-1155/contracts/interfaces/IERC165.sol";
 import {IERC1155} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155.sol";
 import {TransferHelper} from "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 
@@ -14,6 +13,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
 
     /**
      * Lists a token for sale.
+     * @param isERC1155 True if the token is an ERC1155 token, false if it is an ERC721 token.
      * @param tokenContract The address of the token contract.
      * @param tokenId The ID of the token.
      * @param quantity The quantity of tokens to list.
@@ -24,6 +24,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
      * @notice Listings cannot be created for unowned or unapproved tokens.
      */
     function createListing(
+        bool isERC1155,
         address tokenContract,
         uint256 tokenId,
         uint256 quantity,
@@ -32,11 +33,11 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         uint256 expiry
     ) external returns (bytes32 listingId) {
         // Check valid token for listing
-        if (!_hasApprovedTokens(tokenContract, tokenId, quantity, msg.sender)) {
+        if (!_hasApprovedTokens(isERC1155, tokenContract, tokenId, quantity, msg.sender)) {
             revert InvalidTokenApproval(tokenContract, tokenId, quantity, msg.sender);
         }
 
-        listingId = _createOrder(true, tokenContract, tokenId, quantity, currency, pricePerToken, expiry);
+        listingId = _createOrder(true, isERC1155, tokenContract, tokenId, quantity, currency, pricePerToken, expiry);
 
         emit ListingCreated(listingId, tokenContract, tokenId, quantity, currency, pricePerToken, expiry);
 
@@ -45,6 +46,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
 
     /**
      * Offer a price for a token.
+     * @param isERC1155 True if the token is an ERC1155 token, false if it is an ERC721 token.
      * @param tokenContract The address of the token contract.
      * @param tokenId The ID of the token.
      * @param quantity The quantity of tokens to buy.
@@ -54,6 +56,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
      * @return offerId The ID of the offer.
      */
     function createOffer(
+        bool isERC1155,
         address tokenContract,
         uint256 tokenId,
         uint256 quantity,
@@ -67,12 +70,11 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
             revert InvalidCurrencyApproval(currency, total, msg.sender);
         }
         // Check quantity
-        bool isERC1155 = _tokenIsERC1155(tokenContract);
         if ((isERC1155 && quantity == 0) || (!isERC1155 && quantity != 1)) {
             revert InvalidQuantity();
         }
 
-        offerId = _createOrder(false, tokenContract, tokenId, quantity, currency, pricePerToken, expiry);
+        offerId = _createOrder(false, isERC1155, tokenContract, tokenId, quantity, currency, pricePerToken, expiry);
 
         emit OfferCreated(offerId, tokenContract, tokenId, quantity, currency, pricePerToken, expiry);
 
@@ -82,6 +84,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
     /**
      * Create an order, either listing or offer.
      * @param isListing True if the order is a listing, false if it is an offer.
+     * @param isERC1155 True if the token is an ERC1155 token, false if it is an ERC721 token.
      * @param tokenContract The address of the token contract.
      * @param tokenId The ID of the token.
      * @param quantity The quantity of tokens to list.
@@ -92,6 +95,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
      */
     function _createOrder(
         bool isListing,
+        bool isERC1155,
         address tokenContract,
         uint256 tokenId,
         uint256 quantity,
@@ -109,6 +113,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
 
         Order memory order = Order({
             isListing: isListing,
+            isERC1155: isERC1155,
             creator: msg.sender,
             tokenContract: tokenContract,
             tokenId: tokenId,
@@ -235,7 +240,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
 
         // Transfer token
         address tokenContract = order.tokenContract;
-        if (_tokenIsERC1155(tokenContract)) {
+        if (order.isERC1155) {
             IERC1155(tokenContract).safeTransferFrom(currencyReceiver, tokenReceiver, order.tokenId, quantity, "");
         } else {
             IERC721(tokenContract).transferFrom(currencyReceiver, tokenReceiver, order.tokenId);
@@ -315,7 +320,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         for (uint256 i; i < orderIds.length; i++) {
             Order memory order = orders[orderIds[i]];
             valid[i] = order.creator != address(0) && !_isExpired(order)
-                && _hasApprovedTokens(order.tokenContract, order.tokenId, order.quantity, order.creator);
+                && _hasApprovedTokens(order.isERC1155, order.tokenContract, order.tokenId, order.quantity, order.creator);
         }
     }
 
@@ -327,27 +332,6 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
     function _isExpired(Order memory order) internal view returns (bool isExpired) {
         // solhint-disable-next-line not-rely-on-time
         return order.expiry <= block.timestamp;
-    }
-
-    /**
-     * Checks if a token contract is ERC1155 or ERC721.
-     * @param tokenContract The address of the token contract.
-     * @return isERC1155 True if the token contract is ERC1155, false if ERC721.
-     * @dev Throws if the token contract is not ERC1155 or ERC721.
-     */
-    function _tokenIsERC1155(address tokenContract) internal view returns (bool isERC1155) {
-        try IERC165(tokenContract).supportsInterface(type(IERC1155).interfaceId) returns (bool supported) {
-            if (supported) {
-                return true;
-            }
-        } catch {} // solhint-disable-line no-empty-blocks
-        try IERC165(tokenContract).supportsInterface(type(IERC721).interfaceId) returns (bool supported) {
-            if (supported) {
-                return false;
-            }
-        } catch {} // solhint-disable-line no-empty-blocks
-        // Fail out
-        revert InvalidTokenContract(tokenContract);
     }
 
     /**
@@ -386,6 +370,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
 
     /**
      * Checks if a token contract is ERC1155 or ERC721 and if the token is owned and approved for transfer.
+     * @param isERC1155 True if the token is an ERC1155 token, false if it is an ERC721 token.
      * @param tokenContract The address of the token contract.
      * @param tokenId The ID of the token.
      * @param quantity The quantity of tokens to list.
@@ -393,17 +378,19 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
      * @return isValid True if the token is owned and approved for transfer.
      * @dev Returns false if the token contract is not ERC1155 or ERC721.
      */
-    function _hasApprovedTokens(address tokenContract, uint256 tokenId, uint256 quantity, address owner)
+    function _hasApprovedTokens(bool isERC1155, address tokenContract, uint256 tokenId, uint256 quantity, address owner)
         internal
         view
         returns (bool isValid)
     {
         address orderbook = address(this);
 
-        if (_tokenIsERC1155(tokenContract)) {
+        if (isERC1155) {
+            // ERC1155
             return quantity > 0 && IERC1155(tokenContract).balanceOf(owner, tokenId) >= quantity
                 && IERC1155(tokenContract).isApprovedForAll(owner, orderbook);
         }
+
         // ERC721
         address tokenOwner;
         address operator;

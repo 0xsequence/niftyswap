@@ -4,6 +4,7 @@ pragma solidity ^0.8.4;
 interface INiftyswapOrderbookStorage {
     struct Order {
         bool isListing; // True if the order is a listing, false if it is an offer.
+        bool isERC1155; // True if the token is an ERC1155 token, false if it is an ERC721 token.
         address creator;
         address tokenContract;
         uint256 tokenId;
@@ -23,6 +24,7 @@ interface INiftyswapOrderbookStorage {
 interface INiftyswapOrderbookFunctions is INiftyswapOrderbookStorage {
     /**
      * Lists a token for sale.
+     * @param isERC1155 True if the token is an ERC1155 token, false if it is an ERC721 token.
      * @param tokenContract The address of the token contract.
      * @param tokenId The ID of the token.
      * @param quantity The quantity of tokens to list.
@@ -32,6 +34,7 @@ interface INiftyswapOrderbookFunctions is INiftyswapOrderbookStorage {
      * @return listingId The ID of the listing.
      */
     function createListing(
+        bool isERC1155,
         address tokenContract,
         uint256 tokenId,
         uint256 quantity,
@@ -42,6 +45,7 @@ interface INiftyswapOrderbookFunctions is INiftyswapOrderbookStorage {
 
     /**
      * Offer a price for a token.
+     * @param isERC1155 True if the token is an ERC1155 token, false if it is an ERC721 token.
      * @param tokenContract The address of the token contract.
      * @param tokenId The ID of the token.
      * @param quantity The quantity of tokens to buy.
@@ -51,6 +55,7 @@ interface INiftyswapOrderbookFunctions is INiftyswapOrderbookStorage {
      * @return offerId The ID of the offer.
      */
     function createOffer(
+        bool isERC1155,
         address tokenContract,
         uint256 tokenId,
         uint256 quantity,
