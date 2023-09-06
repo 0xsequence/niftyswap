@@ -28,7 +28,7 @@ contract ERC1155ReentryAttacker is IERC1155TokenReceiver {
     function acceptListing(bytes32 orderId, uint256 quantity) external {
         _orderId = orderId;
         _quantity = quantity;
-        NiftyswapOrderbook(_orderbook).acceptListing(_orderId, _quantity, new uint256[](0), new address[](0));
+        NiftyswapOrderbook(_orderbook).acceptOrder(_orderId, _quantity, new uint256[](0), new address[](0));
     }
 
     function onERC1155Received(address _operator, address _from, uint256 _id, uint256 _amount, bytes calldata _data)
@@ -42,7 +42,7 @@ contract ERC1155ReentryAttacker is IERC1155TokenReceiver {
         }
         // Attack the orderbook
         _hasAttacked = true;
-        NiftyswapOrderbook(_orderbook).acceptListing(_orderId, _quantity, new uint256[](0), new address[](0));
+        NiftyswapOrderbook(_orderbook).acceptOrder(_orderId, _quantity, new uint256[](0), new address[](0));
         return IERC1155TokenReceiver.onERC1155Received.selector;
     }
 
@@ -119,7 +119,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
     // This is tested and fuzzed through internal calls
     function test_createListing(bool isERC1155, uint256 quantity, uint256 pricePerToken, uint256 expiry)
         internal
-        returns (bytes32 listingId)
+        returns (bytes32 orderId)
     {
         vm.assume(pricePerToken != 0);
         vm.assume(expiry > block.timestamp);
@@ -143,21 +143,22 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         });
 
         vm.expectEmit(true, true, true, true, address(orderbook));
-        emit ListingCreated(
+        emit OrderCreated(
             orderbook.hashOrder(expected),
             expected.tokenContract,
             expected.tokenId,
+            expected.isListing,
             expected.quantity,
             expected.currency,
             expected.pricePerToken,
             expected.expiry
         );
         vm.prank(TOKEN_OWNER);
-        listingId = orderbook.createListing(
-            isERC1155, address(tokenContract), TOKEN_ID, quantity, address(erc20), pricePerToken, expiry
+        orderId = orderbook.createOrder(
+            true, isERC1155, address(tokenContract), TOKEN_ID, quantity, address(erc20), pricePerToken, expiry
         );
 
-        Order memory listing = orderbook.getOrder(listingId);
+        Order memory listing = orderbook.getOrder(orderId);
         assertEq(listing.creator, expected.creator);
         assertEq(listing.tokenContract, expected.tokenContract);
         assertEq(listing.tokenId, expected.tokenId);
@@ -166,19 +167,19 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         assertEq(listing.pricePerToken, expected.pricePerToken);
         assertEq(listing.expiry, expected.expiry);
 
-        return listingId;
+        return orderId;
     }
 
     function test_createListing_collision(bool isERC1155, uint256 quantity, uint256 pricePerToken, uint256 expiry)
         external
     {
         address tokenContract = isERC1155 ? address(erc1155) : address(erc721);
-        bytes32 listingId = test_createListing(isERC1155, quantity, pricePerToken, expiry);
+        bytes32 orderId = test_createListing(isERC1155, quantity, pricePerToken, expiry);
 
         vm.prank(TOKEN_OWNER);
-        vm.expectRevert(abi.encodeWithSelector(InvalidOrderId.selector, listingId));
-        orderbook.createListing(
-            isERC1155, address(tokenContract), TOKEN_ID, quantity, address(erc20), pricePerToken, expiry
+        vm.expectRevert(abi.encodeWithSelector(InvalidOrderId.selector, orderId));
+        orderbook.createOrder(
+            true, isERC1155, address(tokenContract), TOKEN_ID, quantity, address(erc20), pricePerToken, expiry
         );
     }
 
@@ -187,7 +188,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
 
         vm.prank(TOKEN_OWNER);
         vm.expectRevert();
-        orderbook.createListing(isERC1155, badContract, TOKEN_ID, 1, address(erc20), 1, block.timestamp + 1);
+        orderbook.createOrder(true, isERC1155, badContract, TOKEN_ID, 1, address(erc20), 1, block.timestamp + 1);
     }
 
     function test_createListing_invalidExpiry(bool isERC1155, uint256 expiry) external {
@@ -195,8 +196,8 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
 
         vm.prank(TOKEN_OWNER);
         vm.expectRevert(InvalidExpiry.selector);
-        orderbook.createListing(
-            isERC1155, isERC1155 ? address(erc1155) : address(erc721), TOKEN_ID, 1, address(erc20), 1, expiry
+        orderbook.createOrder(
+            true, isERC1155, isERC1155 ? address(erc1155) : address(erc721), TOKEN_ID, 1, address(erc20), 1, expiry
         );
     }
 
@@ -207,7 +208,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.expectRevert(
             abi.encodeWithSelector(InvalidTokenApproval.selector, address(erc721), TOKEN_ID, quantity, TOKEN_OWNER)
         );
-        orderbook.createListing(false, address(erc721), TOKEN_ID, quantity, address(erc20), 1, block.timestamp + 1);
+        orderbook.createOrder(true, false, address(erc721), TOKEN_ID, quantity, address(erc20), 1, block.timestamp + 1);
     }
 
     function test_createListing_invalidQuantity_erc1155(uint256 quantity) external {
@@ -217,7 +218,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.expectRevert(
             abi.encodeWithSelector(InvalidTokenApproval.selector, address(erc1155), TOKEN_ID, quantity, TOKEN_OWNER)
         );
-        orderbook.createListing(true, address(erc1155), TOKEN_ID, quantity, address(erc20), 1, block.timestamp + 1);
+        orderbook.createOrder(true, true, address(erc1155), TOKEN_ID, quantity, address(erc20), 1, block.timestamp + 1);
     }
 
     function test_createListing_invalidPrice(bool isERC1155) external {
@@ -225,7 +226,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
 
         vm.prank(TOKEN_OWNER);
         vm.expectRevert(InvalidPrice.selector);
-        orderbook.createListing(isERC1155, tokenContract, TOKEN_ID, 1, address(erc20), 0, block.timestamp + 1);
+        orderbook.createOrder(true, isERC1155, tokenContract, TOKEN_ID, 1, address(erc20), 0, block.timestamp + 1);
     }
 
     function test_createListing_erc1155_invalidApproval(uint256 quantity) external {
@@ -238,7 +239,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.expectRevert(
             abi.encodeWithSelector(InvalidTokenApproval.selector, address(erc1155), TOKEN_ID, quantity, TOKEN_OWNER)
         );
-        orderbook.createListing(true, address(erc1155), TOKEN_ID, quantity, address(erc20), 1, block.timestamp + 1);
+        orderbook.createOrder(true, true, address(erc1155), TOKEN_ID, quantity, address(erc20), 1, block.timestamp + 1);
     }
 
     function test_createListing_erc721_noToken(uint256 tokenId) external {
@@ -246,7 +247,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.expectRevert(
             abi.encodeWithSelector(InvalidTokenApproval.selector, address(erc721), tokenId, 1, CURRENCY_OWNER)
         );
-        orderbook.createListing(false, address(erc721), tokenId, 1, address(erc20), 1, block.timestamp + 1);
+        orderbook.createOrder(true, false, address(erc721), tokenId, 1, address(erc20), 1, block.timestamp + 1);
     }
 
     function test_createListing_erc721_invalidApproval() external {
@@ -257,7 +258,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.expectRevert(
             abi.encodeWithSelector(InvalidTokenApproval.selector, address(erc721), TOKEN_ID, 1, TOKEN_OWNER)
         );
-        orderbook.createListing(false, address(erc721), TOKEN_ID, 1, address(erc20), 1, block.timestamp + 1);
+        orderbook.createOrder(true, false, address(erc721), TOKEN_ID, 1, address(erc20), 1, block.timestamp + 1);
     }
 
     //
@@ -265,7 +266,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
     //
     function test_acceptListing_erc1155(uint256 quantity, uint256 pricePerToken, uint256 expiry)
         public
-        returns (bytes32 listingId)
+        returns (bytes32 orderId)
     {
         vm.assume(pricePerToken <= 1 ether && quantity <= TOKEN_QUANTITY); // Prevent overflow
         uint256 totalPrice = pricePerToken * quantity;
@@ -276,22 +277,22 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         uint256 erc20BalTokenOwner = erc20.balanceOf(TOKEN_OWNER);
         uint256 erc20BalRoyal = erc20.balanceOf(ROYALTY_RECEIVER);
 
-        listingId = test_createListing(true, quantity, pricePerToken, expiry);
+        orderId = test_createListing(true, quantity, pricePerToken, expiry);
 
         vm.expectEmit(true, true, true, true, address(orderbook));
-        emit ListingAccepted(listingId, CURRENCY_OWNER, address(erc1155), quantity);
+        emit OrderAccepted(orderId, CURRENCY_OWNER, address(erc1155), quantity);
         vm.prank(CURRENCY_OWNER);
-        orderbook.acceptListing(listingId, quantity, emptyFees, emptyFeeReceivers);
+        orderbook.acceptOrder(orderId, quantity, emptyFees, emptyFeeReceivers);
 
         assertEq(erc1155.balanceOf(CURRENCY_OWNER, TOKEN_ID), quantity);
         assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - totalPrice);
         assertEq(erc20.balanceOf(TOKEN_OWNER), erc20BalTokenOwner + totalPrice - royalty);
         assertEq(erc20.balanceOf(ROYALTY_RECEIVER), erc20BalRoyal + royalty);
 
-        return listingId;
+        return orderId;
     }
 
-    function test_acceptListing_erc721(uint256 pricePerToken, uint256 expiry) public returns (bytes32 listingId) {
+    function test_acceptListing_erc721(uint256 pricePerToken, uint256 expiry) public returns (bytes32 orderId) {
         vm.assume(pricePerToken <= TOKEN_QUANTITY);
         uint256 royalty = (pricePerToken * ROYALTY_FEE) / 10000;
 
@@ -300,19 +301,19 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         uint256 erc20BalTokenOwner = erc20.balanceOf(TOKEN_OWNER);
         uint256 erc20BalRoyal = erc20.balanceOf(ROYALTY_RECEIVER);
 
-        listingId = test_createListing(false, 1, pricePerToken, expiry);
+        orderId = test_createListing(false, 1, pricePerToken, expiry);
 
         vm.expectEmit(true, true, true, true, address(orderbook));
-        emit ListingAccepted(listingId, CURRENCY_OWNER, address(erc721), 1);
+        emit OrderAccepted(orderId, CURRENCY_OWNER, address(erc721), 1);
         vm.prank(CURRENCY_OWNER);
-        orderbook.acceptListing(listingId, 1, emptyFees, emptyFeeReceivers);
+        orderbook.acceptOrder(orderId, 1, emptyFees, emptyFeeReceivers);
 
         assertEq(erc721.ownerOf(TOKEN_ID), CURRENCY_OWNER);
         assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - pricePerToken);
         assertEq(erc20.balanceOf(TOKEN_OWNER), erc20BalTokenOwner + pricePerToken - royalty);
         assertEq(erc20.balanceOf(ROYALTY_RECEIVER), erc20BalRoyal + royalty);
 
-        return listingId;
+        return orderId;
     }
 
     function test_acceptListing_erc1155_additionalFees(
@@ -344,12 +345,12 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         uint256 erc20BalTokenOwner = erc20.balanceOf(TOKEN_OWNER);
         uint256 erc20BalRoyal = erc20.balanceOf(ROYALTY_RECEIVER);
 
-        bytes32 listingId = test_createListing(true, quantity, pricePerToken, expiry);
+        bytes32 orderId = test_createListing(true, quantity, pricePerToken, expiry);
 
         vm.expectEmit(true, true, true, true, address(orderbook));
-        emit ListingAccepted(listingId, CURRENCY_OWNER, address(erc1155), quantity);
+        emit OrderAccepted(orderId, CURRENCY_OWNER, address(erc1155), quantity);
         vm.prank(CURRENCY_OWNER);
-        orderbook.acceptListing(listingId, quantity, additionalFees, additionalFeeReceivers);
+        orderbook.acceptOrder(orderId, quantity, additionalFees, additionalFeeReceivers);
 
         assertEq(erc1155.balanceOf(CURRENCY_OWNER, TOKEN_ID), quantity);
         // Fees paid by taker
@@ -382,12 +383,12 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         uint256 erc20BalTokenOwner = erc20.balanceOf(TOKEN_OWNER);
         uint256 erc20BalRoyal = erc20.balanceOf(ROYALTY_RECEIVER);
 
-        bytes32 listingId = test_createListing(false, 1, pricePerToken, expiry);
+        bytes32 orderId = test_createListing(false, 1, pricePerToken, expiry);
 
         vm.expectEmit(true, true, true, true, address(orderbook));
-        emit ListingAccepted(listingId, CURRENCY_OWNER, address(erc721), 1);
+        emit OrderAccepted(orderId, CURRENCY_OWNER, address(erc721), 1);
         vm.prank(CURRENCY_OWNER);
-        orderbook.acceptListing(listingId, 1, additionalFees, additionalFeeReceivers);
+        orderbook.acceptOrder(orderId, 1, additionalFees, additionalFeeReceivers);
 
         assertEq(erc721.ownerOf(TOKEN_ID), CURRENCY_OWNER);
         // Fees paid by taker
@@ -398,7 +399,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
     }
 
     function test_acceptListing_invalidAdditionalFees(bool isERC1155) public {
-        bytes32 listingId = test_createListing(isERC1155, 1, 1 ether, block.timestamp + 1);
+        bytes32 orderId = test_createListing(isERC1155, 1, 1 ether, block.timestamp + 1);
 
         // Zero fee
         uint256[] memory additionalFees = new uint256[](1);
@@ -406,14 +407,14 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         additionalFeeReceivers[0] = FEE_RECEIVER;
         vm.prank(CURRENCY_OWNER);
         vm.expectRevert(InvalidAdditionalFees.selector);
-        orderbook.acceptListing(listingId, 1, additionalFees, additionalFeeReceivers);
+        orderbook.acceptOrder(orderId, 1, additionalFees, additionalFeeReceivers);
 
         // Zero address
         additionalFees[0] = 1 ether;
         additionalFeeReceivers[0] = address(0);
         vm.prank(CURRENCY_OWNER);
         vm.expectRevert(InvalidAdditionalFees.selector);
-        orderbook.acceptListing(listingId, 1, additionalFees, additionalFeeReceivers);
+        orderbook.acceptOrder(orderId, 1, additionalFees, additionalFeeReceivers);
 
         // Invalid length (larger receivers)
         additionalFeeReceivers = new address[](2);
@@ -421,7 +422,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         additionalFeeReceivers[1] = FEE_RECEIVER;
         vm.prank(CURRENCY_OWNER);
         vm.expectRevert(InvalidAdditionalFees.selector);
-        orderbook.acceptListing(listingId, 1, additionalFees, additionalFeeReceivers);
+        orderbook.acceptOrder(orderId, 1, additionalFees, additionalFeeReceivers);
 
         // Invalid length (larger fees)
         additionalFees = new uint256[](3);
@@ -430,7 +431,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         additionalFees[2] = 3;
         vm.prank(CURRENCY_OWNER);
         vm.expectRevert(InvalidAdditionalFees.selector);
-        orderbook.acceptListing(listingId, 1, additionalFees, additionalFeeReceivers);
+        orderbook.acceptOrder(orderId, 1, additionalFees, additionalFeeReceivers);
     }
 
     function test_acceptListing_invalidQuantity_zero(
@@ -439,11 +440,11 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         uint256 pricePerToken,
         uint256 expiry
     ) external {
-        bytes32 listingId = test_createListing(isERC1155, isERC1155 ? quantity : 1, pricePerToken, expiry);
+        bytes32 orderId = test_createListing(isERC1155, isERC1155 ? quantity : 1, pricePerToken, expiry);
 
         vm.prank(CURRENCY_OWNER);
         vm.expectRevert(InvalidQuantity.selector);
-        orderbook.acceptListing(listingId, 0, emptyFees, emptyFeeReceivers);
+        orderbook.acceptOrder(orderId, 0, emptyFees, emptyFeeReceivers);
     }
 
     function test_acceptListing_invalidQuantity_tooHigh(
@@ -453,11 +454,11 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         uint256 expiry
     ) external {
         quantity = isERC1155 ? quantity : 1;
-        bytes32 listingId = test_createListing(isERC1155, quantity, pricePerToken, expiry);
+        bytes32 orderId = test_createListing(isERC1155, quantity, pricePerToken, expiry);
 
         vm.prank(CURRENCY_OWNER);
         vm.expectRevert(InvalidQuantity.selector);
-        orderbook.acceptListing(listingId, quantity + 1, emptyFees, emptyFeeReceivers);
+        orderbook.acceptOrder(orderId, quantity + 1, emptyFees, emptyFeeReceivers);
     }
 
     function test_acceptListing_invalidExpiry(bool isERC1155, uint256 quantity, uint256 pricePerToken, uint256 expiry)
@@ -468,13 +469,13 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
             expiry = type(uint256).max / 2;
         }
         quantity = isERC1155 ? quantity : 1;
-        bytes32 listingId = test_createListing(isERC1155, quantity, pricePerToken, expiry);
+        bytes32 orderId = test_createListing(isERC1155, quantity, pricePerToken, expiry);
 
         vm.warp(expiry + 1);
 
         vm.prank(CURRENCY_OWNER);
         vm.expectRevert(InvalidExpiry.selector);
-        orderbook.acceptListing(listingId, quantity, emptyFees, emptyFeeReceivers);
+        orderbook.acceptOrder(orderId, quantity, emptyFees, emptyFeeReceivers);
     }
 
     function test_acceptListing_twice(uint256 quantity, uint256 pricePerToken, uint256 expiry) external {
@@ -489,13 +490,13 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         uint256 erc20BalTokenOwner = erc20.balanceOf(TOKEN_OWNER);
         uint256 erc20BalRoyal = erc20.balanceOf(ROYALTY_RECEIVER);
 
-        bytes32 listingId = test_createListing(true, quantity, pricePerToken, expiry);
+        bytes32 orderId = test_createListing(true, quantity, pricePerToken, expiry);
 
         vm.expectEmit(true, true, true, true, address(orderbook));
-        emit ListingAccepted(listingId, CURRENCY_OWNER, address(erc1155), quantity / 2);
+        emit OrderAccepted(orderId, CURRENCY_OWNER, address(erc1155), quantity / 2);
         vm.startPrank(CURRENCY_OWNER);
-        orderbook.acceptListing(listingId, quantity / 2, emptyFees, emptyFeeReceivers);
-        orderbook.acceptListing(listingId, quantity / 2, emptyFees, emptyFeeReceivers);
+        orderbook.acceptOrder(orderId, quantity / 2, emptyFees, emptyFeeReceivers);
+        orderbook.acceptOrder(orderId, quantity / 2, emptyFees, emptyFeeReceivers);
         vm.stopPrank();
 
         assertEq(erc1155.balanceOf(CURRENCY_OWNER, TOKEN_ID), quantity);
@@ -505,11 +506,11 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
     }
 
     function test_acceptListing_twice_overQuantity(uint256 quantity, uint256 pricePerToken, uint256 expiry) external {
-        bytes32 listingId = test_acceptListing_erc1155(quantity, pricePerToken, expiry);
+        bytes32 orderId = test_acceptListing_erc1155(quantity, pricePerToken, expiry);
 
         vm.prank(CURRENCY_OWNER);
-        vm.expectRevert(abi.encodeWithSelector(InvalidListingId.selector, listingId));
-        orderbook.acceptListing(listingId, 1, emptyFees, emptyFeeReceivers);
+        vm.expectRevert(abi.encodeWithSelector(InvalidOrderId.selector, orderId));
+        orderbook.acceptOrder(orderId, 1, emptyFees, emptyFeeReceivers);
     }
 
     function test_acceptListing_noFunds(bool isERC1155, uint256 quantity, uint256 pricePerToken, uint256 expiry)
@@ -522,25 +523,25 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         uint256 erc20BalCurrency = erc20.balanceOf(CURRENCY_OWNER);
         vm.assume(totalPrice > erc20BalCurrency);
 
-        bytes32 listingId = test_createListing(isERC1155, quantity, pricePerToken, expiry);
+        bytes32 orderId = test_createListing(isERC1155, quantity, pricePerToken, expiry);
 
         vm.prank(CURRENCY_OWNER);
         vm.expectRevert("TransferHelper::transferFrom: transferFrom failed");
-        orderbook.acceptListing(listingId, quantity, emptyFees, emptyFeeReceivers);
+        orderbook.acceptOrder(orderId, quantity, emptyFees, emptyFeeReceivers);
     }
 
     function test_acceptListing_invalidERC721Owner(uint256 pricePerToken, uint256 expiry) external {
         uint256 erc20BalCurrency = erc20.balanceOf(CURRENCY_OWNER);
         vm.assume(pricePerToken <= erc20BalCurrency);
 
-        bytes32 listingId = test_createListing(false, 1, pricePerToken, expiry);
+        bytes32 orderId = test_createListing(false, 1, pricePerToken, expiry);
 
         vm.prank(TOKEN_OWNER);
         erc721.transferFrom(TOKEN_OWNER, CURRENCY_OWNER, TOKEN_ID);
 
         vm.prank(CURRENCY_OWNER);
         vm.expectRevert("ERC721: caller is not token owner or approved");
-        orderbook.acceptListing(listingId, 1, emptyFees, emptyFeeReceivers);
+        orderbook.acceptOrder(orderId, 1, emptyFees, emptyFeeReceivers);
     }
 
     function test_acceptListing_reentry() external {
@@ -549,24 +550,24 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.prank(address(attacker));
         erc20.approve(address(orderbook), CURRENCY_QUANTITY);
 
-        bytes32 listingId = test_createListing(true, 1, 1 ether, block.timestamp + 1);
+        bytes32 orderId = test_createListing(true, 1, 1 ether, block.timestamp + 1);
 
-        vm.expectRevert(abi.encodeWithSelector(InvalidListingId.selector, listingId));
-        attacker.acceptListing(listingId, 1);
+        vm.expectRevert(abi.encodeWithSelector(InvalidOrderId.selector, orderId));
+        attacker.acceptListing(orderId, 1);
     }
 
     //
     // Cancel Listing
     //
     function test_cancelListing(bool isERC1155, uint256 quantity, uint256 pricePerToken, uint256 expiry) external {
-        bytes32 listingId = test_createListing(isERC1155, quantity, pricePerToken, expiry);
+        bytes32 orderId = test_createListing(isERC1155, quantity, pricePerToken, expiry);
 
         vm.expectEmit(true, true, true, true, address(orderbook));
-        emit ListingCancelled(listingId, isERC1155 ? address(erc1155) : address(erc721));
+        emit OrderCancelled(orderId, isERC1155 ? address(erc1155) : address(erc721));
         vm.prank(TOKEN_OWNER);
-        orderbook.cancelListing(listingId);
+        orderbook.cancelOrder(orderId);
 
-        Order memory listing = orderbook.getOrder(listingId);
+        Order memory listing = orderbook.getOrder(orderId);
         // Zero'd
         assertEq(listing.creator, address(0));
         assertEq(listing.tokenContract, address(0));
@@ -578,8 +579,8 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
 
         // Accept fails
         vm.prank(CURRENCY_OWNER);
-        vm.expectRevert(abi.encodeWithSelector(InvalidListingId.selector, listingId));
-        orderbook.acceptListing(listingId, 1, emptyFees, emptyFeeReceivers);
+        vm.expectRevert(abi.encodeWithSelector(InvalidOrderId.selector, orderId));
+        orderbook.acceptOrder(orderId, 1, emptyFees, emptyFeeReceivers);
     }
 
     //
@@ -589,7 +590,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
     // This is tested and fuzzed through internal calls
     function test_createOffer(bool isERC1155, uint256 quantity, uint256 pricePerToken, uint256 expiry)
         internal
-        returns (bytes32 offerId)
+        returns (bytes32 orderId)
     {
         vm.assume(expiry > block.timestamp);
         vm.assume(pricePerToken != 0 && pricePerToken <= 1 ether);
@@ -616,21 +617,22 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         });
 
         vm.expectEmit(true, true, true, true, address(orderbook));
-        emit OfferCreated(
+        emit OrderCreated(
             orderbook.hashOrder(expected),
             expected.tokenContract,
             expected.tokenId,
+            expected.isListing,
             expected.quantity,
             expected.currency,
             expected.pricePerToken,
             expected.expiry
         );
         vm.prank(CURRENCY_OWNER);
-        offerId = orderbook.createOffer(
-            isERC1155, address(tokenContract), TOKEN_ID, quantity, address(erc20), pricePerToken, expiry
+        orderId = orderbook.createOrder(
+            false, isERC1155, address(tokenContract), TOKEN_ID, quantity, address(erc20), pricePerToken, expiry
         );
 
-        Order memory offer = orderbook.getOrder(offerId);
+        Order memory offer = orderbook.getOrder(orderId);
         assertEq(offer.isListing, expected.isListing);
         assertEq(offer.isERC1155, expected.isERC1155);
         assertEq(offer.creator, expected.creator);
@@ -641,19 +643,19 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         assertEq(offer.pricePerToken, expected.pricePerToken);
         assertEq(offer.expiry, expected.expiry);
 
-        return offerId;
+        return orderId;
     }
 
     function test_createOffer_collision(bool isERC1155, uint256 quantity, uint256 pricePerToken, uint256 expiry)
         external
     {
         address tokenContract = isERC1155 ? address(erc1155) : address(erc721);
-        bytes32 offerId = test_createOffer(isERC1155, quantity, pricePerToken, expiry);
+        bytes32 orderId = test_createOffer(isERC1155, quantity, pricePerToken, expiry);
 
         vm.prank(CURRENCY_OWNER);
-        vm.expectRevert(abi.encodeWithSelector(InvalidOrderId.selector, offerId));
-        orderbook.createOffer(
-            isERC1155, address(tokenContract), TOKEN_ID, quantity, address(erc20), pricePerToken, expiry
+        vm.expectRevert(abi.encodeWithSelector(InvalidOrderId.selector, orderId));
+        orderbook.createOrder(
+            false, isERC1155, address(tokenContract), TOKEN_ID, quantity, address(erc20), pricePerToken, expiry
         );
     }
 
@@ -662,15 +664,16 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
 
         vm.prank(CURRENCY_OWNER);
         vm.expectRevert(InvalidExpiry.selector);
-        orderbook.createOffer(
-            isERC1155, isERC1155 ? address(erc1155) : address(erc721), TOKEN_ID, 1, address(erc20), 1, expiry
+        orderbook.createOrder(
+            false, isERC1155, isERC1155 ? address(erc1155) : address(erc721), TOKEN_ID, 1, address(erc20), 1, expiry
         );
     }
 
     function test_createOffer_invalidQuantity(bool isERC1155) external {
         vm.prank(CURRENCY_OWNER);
         vm.expectRevert(InvalidQuantity.selector);
-        orderbook.createOffer(
+        orderbook.createOrder(
+            false,
             isERC1155,
             isERC1155 ? address(erc1155) : address(erc721),
             TOKEN_ID,
@@ -684,7 +687,8 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
     function test_createOffer_invalidPrice(bool isERC1155) external {
         vm.prank(CURRENCY_OWNER);
         vm.expectRevert(InvalidPrice.selector);
-        orderbook.createOffer(
+        orderbook.createOrder(
+            false,
             isERC1155,
             isERC1155 ? address(erc1155) : address(erc721),
             TOKEN_ID,
@@ -701,7 +705,8 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
 
         vm.prank(CURRENCY_OWNER);
         vm.expectRevert(abi.encodeWithSelector(InvalidCurrencyApproval.selector, address(erc20), 1, CURRENCY_OWNER));
-        orderbook.createOffer(
+        orderbook.createOrder(
+            false,
             isERC1155,
             isERC1155 ? address(erc1155) : address(erc721),
             TOKEN_ID,
@@ -717,7 +722,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
     //
     function test_acceptOffer_erc1155(uint256 quantity, uint256 pricePerToken, uint256 expiry)
         public
-        returns (bytes32 offerId)
+        returns (bytes32 orderId)
     {
         vm.assume(quantity > 0);
         vm.assume(pricePerToken <= 1 ether && quantity <= TOKEN_QUANTITY); // Prevent overflow
@@ -729,22 +734,22 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         uint256 erc20BalTokenOwner = erc20.balanceOf(TOKEN_OWNER);
         uint256 erc20BalRoyal = erc20.balanceOf(ROYALTY_RECEIVER);
 
-        offerId = test_createOffer(true, quantity, pricePerToken, expiry);
+        orderId = test_createOffer(true, quantity, pricePerToken, expiry);
 
         vm.expectEmit(true, true, true, true, address(orderbook));
-        emit OfferAccepted(offerId, TOKEN_OWNER, address(erc1155), quantity);
+        emit OrderAccepted(orderId, TOKEN_OWNER, address(erc1155), quantity);
         vm.prank(TOKEN_OWNER);
-        orderbook.acceptOffer(offerId, quantity, emptyFees, emptyFeeReceivers);
+        orderbook.acceptOrder(orderId, quantity, emptyFees, emptyFeeReceivers);
 
         assertEq(erc1155.balanceOf(CURRENCY_OWNER, TOKEN_ID), quantity);
         assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - totalPrice - royalty);
         assertEq(erc20.balanceOf(TOKEN_OWNER), erc20BalTokenOwner + totalPrice);
         assertEq(erc20.balanceOf(ROYALTY_RECEIVER), erc20BalRoyal + royalty);
 
-        return offerId;
+        return orderId;
     }
 
-    function test_acceptOffer_erc721(uint256 pricePerToken, uint256 expiry) public returns (bytes32 offerId) {
+    function test_acceptOffer_erc721(uint256 pricePerToken, uint256 expiry) public returns (bytes32 orderId) {
         vm.assume(pricePerToken <= TOKEN_QUANTITY);
         uint256 royalty = (pricePerToken * ROYALTY_FEE) / 10000;
 
@@ -753,19 +758,19 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         uint256 erc20BalTokenOwner = erc20.balanceOf(TOKEN_OWNER);
         uint256 erc20BalRoyal = erc20.balanceOf(ROYALTY_RECEIVER);
 
-        offerId = test_createOffer(false, 1, pricePerToken, expiry);
+        orderId = test_createOffer(false, 1, pricePerToken, expiry);
 
         vm.expectEmit(true, true, true, true, address(orderbook));
-        emit OfferAccepted(offerId, TOKEN_OWNER, address(erc721), 1);
+        emit OrderAccepted(orderId, TOKEN_OWNER, address(erc721), 1);
         vm.prank(TOKEN_OWNER);
-        orderbook.acceptOffer(offerId, 1, emptyFees, emptyFeeReceivers);
+        orderbook.acceptOrder(orderId, 1, emptyFees, emptyFeeReceivers);
 
         assertEq(erc721.ownerOf(TOKEN_ID), CURRENCY_OWNER);
         assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - pricePerToken - royalty);
         assertEq(erc20.balanceOf(TOKEN_OWNER), erc20BalTokenOwner + pricePerToken);
         assertEq(erc20.balanceOf(ROYALTY_RECEIVER), erc20BalRoyal + royalty);
 
-        return offerId;
+        return orderId;
     }
 
     function test_acceptOffer_erc1155_additionalFees(uint256 quantity, uint256 expiry, uint256[] memory additionalFees)
@@ -795,12 +800,12 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         uint256 erc20BalTokenOwner = erc20.balanceOf(TOKEN_OWNER);
         uint256 erc20BalRoyal = erc20.balanceOf(ROYALTY_RECEIVER);
 
-        bytes32 offerId = test_createOffer(true, quantity, pricePerToken, expiry);
+        bytes32 orderId = test_createOffer(true, quantity, pricePerToken, expiry);
 
         vm.expectEmit(true, true, true, true, address(orderbook));
-        emit OfferAccepted(offerId, TOKEN_OWNER, address(erc1155), quantity);
+        emit OrderAccepted(orderId, TOKEN_OWNER, address(erc1155), quantity);
         vm.prank(TOKEN_OWNER);
-        orderbook.acceptOffer(offerId, quantity, additionalFees, additionalFeeReceivers);
+        orderbook.acceptOrder(orderId, quantity, additionalFees, additionalFeeReceivers);
 
         assertEq(erc1155.balanceOf(CURRENCY_OWNER, TOKEN_ID), quantity);
         assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - totalPrice - royalty);
@@ -833,12 +838,12 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         uint256 erc20BalTokenOwner = erc20.balanceOf(TOKEN_OWNER);
         uint256 erc20BalRoyal = erc20.balanceOf(ROYALTY_RECEIVER);
 
-        bytes32 offerId = test_createOffer(false, 1, pricePerToken, expiry);
+        bytes32 orderId = test_createOffer(false, 1, pricePerToken, expiry);
 
         vm.expectEmit(true, true, true, true, address(orderbook));
-        emit OfferAccepted(offerId, TOKEN_OWNER, address(erc721), 1);
+        emit OrderAccepted(orderId, TOKEN_OWNER, address(erc721), 1);
         vm.prank(TOKEN_OWNER);
-        orderbook.acceptOffer(offerId, 1, additionalFees, additionalFeeReceivers);
+        orderbook.acceptOrder(orderId, 1, additionalFees, additionalFeeReceivers);
 
         assertEq(erc721.ownerOf(TOKEN_ID), CURRENCY_OWNER);
         assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - pricePerToken - royalty);
@@ -849,7 +854,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
     }
 
     function test_acceptOffer_invalidAdditionalFees(bool isERC1155) public {
-        bytes32 offerId = test_createOffer(isERC1155, 1, 1 ether, block.timestamp + 1);
+        bytes32 orderId = test_createOffer(isERC1155, 1, 1 ether, block.timestamp + 1);
 
         // Zero fee
         uint256[] memory additionalFees = new uint256[](1);
@@ -857,14 +862,14 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         additionalFeeReceivers[0] = FEE_RECEIVER;
         vm.prank(TOKEN_OWNER);
         vm.expectRevert(InvalidAdditionalFees.selector);
-        orderbook.acceptOffer(offerId, 1, additionalFees, additionalFeeReceivers);
+        orderbook.acceptOrder(orderId, 1, additionalFees, additionalFeeReceivers);
 
         // Zero address
         additionalFees[0] = 1 ether;
         additionalFeeReceivers[0] = address(0);
         vm.prank(TOKEN_OWNER);
         vm.expectRevert(InvalidAdditionalFees.selector);
-        orderbook.acceptOffer(offerId, 1, additionalFees, additionalFeeReceivers);
+        orderbook.acceptOrder(orderId, 1, additionalFees, additionalFeeReceivers);
 
         // Invalid length (larger receivers)
         additionalFeeReceivers = new address[](2);
@@ -872,7 +877,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         additionalFeeReceivers[1] = FEE_RECEIVER;
         vm.prank(TOKEN_OWNER);
         vm.expectRevert(InvalidAdditionalFees.selector);
-        orderbook.acceptOffer(offerId, 1, additionalFees, additionalFeeReceivers);
+        orderbook.acceptOrder(orderId, 1, additionalFees, additionalFeeReceivers);
 
         // Invalid length (larger fees)
         additionalFees = new uint256[](3);
@@ -881,7 +886,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         additionalFees[2] = 3;
         vm.prank(TOKEN_OWNER);
         vm.expectRevert(InvalidAdditionalFees.selector);
-        orderbook.acceptOffer(offerId, 1, additionalFees, additionalFeeReceivers);
+        orderbook.acceptOrder(orderId, 1, additionalFees, additionalFeeReceivers);
     }
 
     function test_acceptOffer_invalidQuantity_zero(
@@ -890,11 +895,11 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         uint256 pricePerToken,
         uint256 expiry
     ) external {
-        bytes32 offerId = test_createOffer(isERC1155, isERC1155 ? quantity : 1, pricePerToken, expiry);
+        bytes32 orderId = test_createOffer(isERC1155, isERC1155 ? quantity : 1, pricePerToken, expiry);
 
         vm.prank(TOKEN_OWNER);
         vm.expectRevert(InvalidQuantity.selector);
-        orderbook.acceptOffer(offerId, 0, emptyFees, emptyFeeReceivers);
+        orderbook.acceptOrder(orderId, 0, emptyFees, emptyFeeReceivers);
     }
 
     function test_acceptOffer_invalidQuantity_tooHigh(
@@ -904,11 +909,11 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         uint256 expiry
     ) external {
         quantity = isERC1155 ? quantity : 1;
-        bytes32 offerId = test_createOffer(isERC1155, quantity, pricePerToken, expiry);
+        bytes32 orderId = test_createOffer(isERC1155, quantity, pricePerToken, expiry);
 
         vm.prank(TOKEN_OWNER);
         vm.expectRevert(InvalidQuantity.selector);
-        orderbook.acceptOffer(offerId, quantity + 1, emptyFees, emptyFeeReceivers);
+        orderbook.acceptOrder(orderId, quantity + 1, emptyFees, emptyFeeReceivers);
     }
 
     function test_acceptOffer_invalidExpiry(bool isERC1155, uint256 quantity, uint256 pricePerToken, uint256 expiry)
@@ -919,13 +924,13 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
             expiry = type(uint256).max / 2;
         }
         quantity = isERC1155 ? quantity : 1;
-        bytes32 offerId = test_createOffer(isERC1155, quantity, pricePerToken, expiry);
+        bytes32 orderId = test_createOffer(isERC1155, quantity, pricePerToken, expiry);
 
         vm.warp(expiry + 1);
 
         vm.prank(TOKEN_OWNER);
         vm.expectRevert(InvalidExpiry.selector);
-        orderbook.acceptOffer(offerId, quantity, emptyFees, emptyFeeReceivers);
+        orderbook.acceptOrder(orderId, quantity, emptyFees, emptyFeeReceivers);
     }
 
     function test_acceptOffer_twice(uint256 quantity, uint256 pricePerToken, uint256 expiry) external {
@@ -940,13 +945,13 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         uint256 erc20BalTokenOwner = erc20.balanceOf(TOKEN_OWNER);
         uint256 erc20BalRoyal = erc20.balanceOf(ROYALTY_RECEIVER);
 
-        bytes32 offerId = test_createOffer(true, quantity, pricePerToken, expiry);
+        bytes32 orderId = test_createOffer(true, quantity, pricePerToken, expiry);
 
         vm.expectEmit(true, true, true, true, address(orderbook));
-        emit OfferAccepted(offerId, TOKEN_OWNER, address(erc1155), quantity / 2);
+        emit OrderAccepted(orderId, TOKEN_OWNER, address(erc1155), quantity / 2);
         vm.startPrank(TOKEN_OWNER);
-        orderbook.acceptOffer(offerId, quantity / 2, emptyFees, emptyFeeReceivers);
-        orderbook.acceptOffer(offerId, quantity / 2, emptyFees, emptyFeeReceivers);
+        orderbook.acceptOrder(orderId, quantity / 2, emptyFees, emptyFeeReceivers);
+        orderbook.acceptOrder(orderId, quantity / 2, emptyFees, emptyFeeReceivers);
         vm.stopPrank();
 
         assertEq(erc1155.balanceOf(CURRENCY_OWNER, TOKEN_ID), quantity);
@@ -956,11 +961,11 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
     }
 
     function test_acceptOffer_twice_overQuantity(uint256 quantity, uint256 pricePerToken, uint256 expiry) external {
-        bytes32 offerId = test_acceptOffer_erc1155(quantity, pricePerToken, expiry);
+        bytes32 orderId = test_acceptOffer_erc1155(quantity, pricePerToken, expiry);
 
         vm.prank(TOKEN_OWNER);
-        vm.expectRevert(abi.encodeWithSelector(InvalidOfferId.selector, offerId));
-        orderbook.acceptOffer(offerId, 1, emptyFees, emptyFeeReceivers);
+        vm.expectRevert(abi.encodeWithSelector(InvalidOrderId.selector, orderId));
+        orderbook.acceptOrder(orderId, 1, emptyFees, emptyFeeReceivers);
     }
 
     function test_acceptOffer_noFunds(bool isERC1155, uint256 quantity, uint256 pricePerToken, uint256 expiry)
@@ -968,7 +973,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
     {
         quantity = isERC1155 ? quantity : 1;
 
-        bytes32 offerId = test_createOffer(isERC1155, quantity, pricePerToken, expiry);
+        bytes32 orderId = test_createOffer(isERC1155, quantity, pricePerToken, expiry);
 
         uint256 bal = erc20.balanceOf(CURRENCY_OWNER);
         vm.prank(CURRENCY_OWNER);
@@ -976,35 +981,35 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
 
         vm.prank(TOKEN_OWNER);
         vm.expectRevert("TransferHelper::transferFrom: transferFrom failed");
-        orderbook.acceptOffer(offerId, quantity, emptyFees, emptyFeeReceivers);
+        orderbook.acceptOrder(orderId, quantity, emptyFees, emptyFeeReceivers);
     }
 
     function test_acceptOffer_invalidERC721Owner(uint256 pricePerToken, uint256 expiry) external {
         uint256 erc20BalCurrency = erc20.balanceOf(CURRENCY_OWNER);
         vm.assume(pricePerToken <= erc20BalCurrency);
 
-        bytes32 offerId = test_createOffer(false, 1, pricePerToken, expiry);
+        bytes32 orderId = test_createOffer(false, 1, pricePerToken, expiry);
 
         vm.prank(TOKEN_OWNER);
         erc721.transferFrom(TOKEN_OWNER, CURRENCY_OWNER, TOKEN_ID);
 
         vm.prank(TOKEN_OWNER);
         vm.expectRevert("ERC721: caller is not token owner or approved");
-        orderbook.acceptOffer(offerId, 1, emptyFees, emptyFeeReceivers);
+        orderbook.acceptOrder(orderId, 1, emptyFees, emptyFeeReceivers);
     }
 
     //
     // Cancel Offer
     //
     function test_cancelOffer(bool isERC1155, uint256 quantity, uint256 pricePerToken, uint256 expiry) external {
-        bytes32 offerId = test_createOffer(isERC1155, quantity, pricePerToken, expiry);
+        bytes32 orderId = test_createOffer(isERC1155, quantity, pricePerToken, expiry);
 
         vm.expectEmit(true, true, true, true, address(orderbook));
-        emit OfferCancelled(offerId, isERC1155 ? address(erc1155) : address(erc721));
+        emit OrderCancelled(orderId, isERC1155 ? address(erc1155) : address(erc721));
         vm.prank(CURRENCY_OWNER);
-        orderbook.cancelOffer(offerId);
+        orderbook.cancelOrder(orderId);
 
-        Order memory offer = orderbook.getOrder(offerId);
+        Order memory offer = orderbook.getOrder(orderId);
         // Zero'd
         assertEq(offer.creator, address(0));
         assertEq(offer.tokenContract, address(0));
@@ -1016,8 +1021,8 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
 
         // Accept fails
         vm.prank(TOKEN_OWNER);
-        vm.expectRevert(abi.encodeWithSelector(InvalidOfferId.selector, offerId));
-        orderbook.acceptOffer(offerId, 1, emptyFees, emptyFeeReceivers);
+        vm.expectRevert(abi.encodeWithSelector(InvalidOrderId.selector, orderId));
+        orderbook.acceptOrder(orderId, 1, emptyFees, emptyFeeReceivers);
     }
 
     //
@@ -1096,14 +1101,14 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
                 if (!expectValid[i]) {
                     // Cancel it
                     vm.prank(TOKEN_OWNER);
-                    orderbook.cancelListing(orderIds[i]);
+                    orderbook.cancelOrder(orderIds[i]);
                 }
             } else {
                 orderIds[i] = test_createOffer(true, 1, 1 ether, block.timestamp + 1 + i); // Add index to prevent collisions
                 if (!expectValid[i]) {
                     // Cancel it
                     vm.prank(CURRENCY_OWNER);
-                    orderbook.cancelOffer(orderIds[i]);
+                    orderbook.cancelOrder(orderIds[i]);
                 }
             }
         }

@@ -12,88 +12,20 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
     mapping(bytes32 => Order) internal _orders;
 
     /**
-     * Lists a token for sale.
+     * Creates an order.
+     * @param isListing True if the token is a listing, false if it is an offer.
      * @param isERC1155 True if the token is an ERC1155 token, false if it is an ERC721 token.
      * @param tokenContract The address of the token contract.
      * @param tokenId The ID of the token.
      * @param quantity The quantity of tokens to list.
-     * @param currency The address of the currency to list the token for.
-     * @param pricePerToken The price per token. Note this includes royalties.
-     * @param expiry The timestamp at which the listing expires.
-     * @return listingId The ID of the listing.
-     * @notice Listings cannot be created for unowned or unapproved tokens.
-     */
-    function createListing(
-        bool isERC1155,
-        address tokenContract,
-        uint256 tokenId,
-        uint256 quantity,
-        address currency,
-        uint256 pricePerToken,
-        uint256 expiry
-    ) external returns (bytes32 listingId) {
-        // Check valid token for listing
-        if (!_hasApprovedTokens(isERC1155, tokenContract, tokenId, quantity, msg.sender)) {
-            revert InvalidTokenApproval(tokenContract, tokenId, quantity, msg.sender);
-        }
-
-        listingId = _createOrder(true, isERC1155, tokenContract, tokenId, quantity, currency, pricePerToken, expiry);
-
-        emit ListingCreated(listingId, tokenContract, tokenId, quantity, currency, pricePerToken, expiry);
-
-        return listingId;
-    }
-
-    /**
-     * Offer a price for a token.
-     * @param isERC1155 True if the token is an ERC1155 token, false if it is an ERC721 token.
-     * @param tokenContract The address of the token contract.
-     * @param tokenId The ID of the token.
-     * @param quantity The quantity of tokens to buy.
-     * @param currency The address of the currency to offer for the token.
+     * @param currency The address of the currency to list.
      * @param pricePerToken The price per token.
-     * @param expiry The timestamp at which the offer expires.
-     * @return offerId The ID of the offer.
-     */
-    function createOffer(
-        bool isERC1155,
-        address tokenContract,
-        uint256 tokenId,
-        uint256 quantity,
-        address currency,
-        uint256 pricePerToken,
-        uint256 expiry
-    ) external returns (bytes32 offerId) {
-        // Check approved currency for offer
-        uint256 total = quantity * pricePerToken;
-        if (!_hasApprovedCurrency(currency, total, msg.sender)) {
-            revert InvalidCurrencyApproval(currency, total, msg.sender);
-        }
-        // Check quantity
-        if ((isERC1155 && quantity == 0) || (!isERC1155 && quantity != 1)) {
-            revert InvalidQuantity();
-        }
-
-        offerId = _createOrder(false, isERC1155, tokenContract, tokenId, quantity, currency, pricePerToken, expiry);
-
-        emit OfferCreated(offerId, tokenContract, tokenId, quantity, currency, pricePerToken, expiry);
-
-        return offerId;
-    }
-
-    /**
-     * Create an order, either listing or offer.
-     * @param isListing True if the order is a listing, false if it is an offer.
-     * @param isERC1155 True if the token is an ERC1155 token, false if it is an ERC721 token.
-     * @param tokenContract The address of the token contract.
-     * @param tokenId The ID of the token.
-     * @param quantity The quantity of tokens to list.
-     * @param currency The address of the currency to list the token for.
-     * @param pricePerToken The price per token. Note this includes royalties.
-     * @param expiry The timestamp at which the listing expires.
+     * @param expiry The timestamp at which the order expires.
      * @return orderId The ID of the order.
+     * @notice A listing is when the maker is selling tokens for currency.
+     * @notice An offer is when the maker is buying tokens with currency.
      */
-    function _createOrder(
+    function createOrder(
         bool isListing,
         bool isERC1155,
         address tokenContract,
@@ -102,7 +34,24 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         address currency,
         uint256 pricePerToken,
         uint256 expiry
-    ) internal returns (bytes32 orderId) {
+    ) external returns (bytes32 orderId) {
+        if (isListing) {
+            // Check valid token for listing
+            if (isListing && !_hasApprovedTokens(isERC1155, tokenContract, tokenId, quantity, msg.sender)) {
+                revert InvalidTokenApproval(tokenContract, tokenId, quantity, msg.sender);
+            }
+        } else {
+            // Check approved currency for offer
+            uint256 total = quantity * pricePerToken;
+            if (!_hasApprovedCurrency(currency, total, msg.sender)) {
+                revert InvalidCurrencyApproval(currency, total, msg.sender);
+            }
+            // Check quantity. Covered by _hasApprovedTokens for listings
+            if ((isERC1155 && quantity == 0) || (!isERC1155 && quantity != 1)) {
+                revert InvalidQuantity();
+            }
+        }
+
         if (pricePerToken == 0) {
             revert InvalidPrice();
         }
@@ -130,65 +79,29 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         }
         _orders[orderId] = order;
 
+        emit OrderCreated(orderId, tokenContract, tokenId, isListing, quantity, currency, pricePerToken, expiry);
+
         return orderId;
     }
 
     /**
-     * Purchases a token.
-     * @param listingId The ID of the listing.
+     * Accepts an order.
+     * @param orderId The ID of the order.
      * @param quantity The quantity of tokens to purchase.
      * @param additionalFees The additional fees to pay.
      * @param additionalFeeReceivers The addresses to send the additional fees to.
-     * @dev Royalties are taken from the listing cost.
      */
-    function acceptListing(
-        bytes32 listingId,
-        uint256 quantity,
-        uint256[] memory additionalFees,
-        address[] memory additionalFeeReceivers
-    ) external {
-        Order memory listing = _orders[listingId];
-        if (!listing.isListing || listing.creator == address(0)) {
-            // Is a listing, cancelled, completed or never existed
-            revert InvalidListingId(listingId);
-        }
-
-        _acceptOrder(listingId, listing, quantity, additionalFees, additionalFeeReceivers);
-
-        emit ListingAccepted(listingId, msg.sender, listing.tokenContract, quantity);
-    }
-
-    /**
-     * Sells a token.
-     * @param offerId The ID of the listing.
-     * @param quantity The quantity of tokens to sell.
-     * @param additionalFees The additional fees to pay.
-     * @param additionalFeeReceivers The addresses to send the additional fees to.
-     */
-    function acceptOffer(
-        bytes32 offerId,
-        uint256 quantity,
-        uint256[] memory additionalFees,
-        address[] memory additionalFeeReceivers
-    ) external {
-        Order memory offer = _orders[offerId];
-        if (offer.isListing || offer.creator == address(0)) {
-            // Is a listing, cancelled, completed or never existed
-            revert InvalidOfferId(offerId);
-        }
-
-        _acceptOrder(offerId, offer, quantity, additionalFees, additionalFeeReceivers);
-
-        emit OfferAccepted(offerId, msg.sender, offer.tokenContract, quantity);
-    }
-
-    function _acceptOrder(
+    function acceptOrder(
         bytes32 orderId,
-        Order memory order,
         uint256 quantity,
         uint256[] memory additionalFees,
         address[] memory additionalFeeReceivers
-    ) internal {
+    ) external {
+        Order memory order = _orders[orderId];
+        if (order.creator == address(0)) {
+            // Order cancelled, completed or never existed
+            revert InvalidOrderId(orderId);
+        }
         if (quantity == 0 || quantity > order.quantity) {
             revert InvalidQuantity();
         }
@@ -206,11 +119,11 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         } else {
             _orders[orderId].quantity -= quantity;
         }
+        address tokenContract = order.tokenContract;
 
         // Calculate payables
         uint256 remainingCost = order.pricePerToken * quantity;
-        (address royaltyRecipient, uint256 royaltyAmount) =
-            getRoyaltyInfo(order.tokenContract, order.tokenId, remainingCost);
+        (address royaltyRecipient, uint256 royaltyAmount) = getRoyaltyInfo(tokenContract, order.tokenId, remainingCost);
 
         address currencyReceiver = order.isListing ? order.creator : msg.sender;
         address tokenReceiver = order.isListing ? msg.sender : order.creator;
@@ -242,46 +155,30 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         TransferHelper.safeTransferFrom(order.currency, tokenReceiver, currencyReceiver, remainingCost);
 
         // Transfer token
-        address tokenContract = order.tokenContract;
         if (order.isERC1155) {
             IERC1155(tokenContract).safeTransferFrom(currencyReceiver, tokenReceiver, order.tokenId, quantity, "");
         } else {
             IERC721(tokenContract).transferFrom(currencyReceiver, tokenReceiver, order.tokenId);
         }
+
+        emit OrderAccepted(orderId, msg.sender, tokenContract, quantity);
     }
 
     /**
-     * Cancels a listing.
-     * @param listingId The ID of the listing.
+     * Cancels an order.
+     * @param orderId The ID of the order.
      */
-    function cancelListing(bytes32 listingId) external {
-        Order storage listing = _orders[listingId];
-        if (listing.creator != msg.sender) {
-            revert InvalidListingId(listingId);
+    function cancelOrder(bytes32 orderId) external {
+        Order storage order = _orders[orderId];
+        if (order.creator != msg.sender) {
+            revert InvalidOrderId(orderId);
         }
-        address tokenContract = listing.tokenContract;
+        address tokenContract = order.tokenContract;
 
         // Refund some gas
-        delete _orders[listingId];
+        delete _orders[orderId];
 
-        emit ListingCancelled(listingId, tokenContract);
-    }
-
-    /**
-     * Cancels an offer.
-     * @param offerId The ID of the offer.
-     */
-    function cancelOffer(bytes32 offerId) external {
-        Order storage offer = _orders[offerId];
-        if (offer.creator != msg.sender) {
-            revert InvalidOfferId(offerId);
-        }
-        address tokenContract = offer.tokenContract;
-
-        // Refund some gas
-        delete _orders[offerId];
-
-        emit OfferCancelled(offerId, tokenContract);
+        emit OrderCancelled(orderId, tokenContract);
     }
 
     /**
@@ -307,7 +204,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
 
     /**
      * Gets an order.
-     * @param orderId The ID of the listing or offer.
+     * @param orderId The ID of the order.
      * @return order The order.
      */
     function getOrder(bytes32 orderId) external view returns (Order memory order) {
