@@ -337,8 +337,17 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         valid = new bool[](orderIds.length);
         for (uint256 i; i < orderIds.length; i++) {
             Order memory order = _orders[orderIds[i]];
-            valid[i] = order.creator != address(0) && !_isExpired(order)
-                && _hasApprovedTokens(order.isERC1155, order.tokenContract, order.tokenId, order.quantity, order.creator);
+            bool isValid = order.creator != address(0) && !_isExpired(order);
+            if (isValid) {
+                if (order.isListing) {
+                    isValid = _hasApprovedTokens(
+                        order.isERC1155, order.tokenContract, order.tokenId, order.quantity, order.creator
+                    );
+                } else {
+                    isValid = _hasApprovedCurrency(order.currency, order.pricePerToken * order.quantity, order.creator);
+                }
+            }
+            valid[i] = isValid;
         }
     }
 
@@ -376,14 +385,14 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
      * @param currency The address of the currency.
      * @param amount The amount of currency.
      * @param owner The address of the owner of the currency.
-     * @return isValid True if the amount of currency is approved for transfer.
+     * @return isValid True if the amount of currency is sufficient and approved for transfer.
      */
     function _hasApprovedCurrency(address currency, uint256 amount, address owner)
         internal
         view
         returns (bool isValid)
     {
-        return IERC20(currency).allowance(owner, address(this)) >= amount;
+        return IERC20(currency).balanceOf(owner) >= amount && IERC20(currency).allowance(owner, address(this)) >= amount;
     }
 
     /**

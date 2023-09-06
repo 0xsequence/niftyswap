@@ -1023,23 +1023,92 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
     //
     // isValid
     //
-    function test_isOrderValid(uint8 count, bool[] memory expectValid) external {
-        // Bound valid size
+    function test_isOrderValid_expired() external {
+        bytes32[] memory orderIds = new bytes32[](4);
+        orderIds[0] = test_createListing(true, 1, 1 ether, block.timestamp + 1);
+        orderIds[1] = test_createListing(false, 1, 1 ether, block.timestamp + 2);
+        orderIds[2] = test_createOffer(true, 1, 1 ether, block.timestamp + 3);
+        orderIds[3] = test_createOffer(false, 1, 1 ether, block.timestamp + 4);
+
+        vm.warp(block.timestamp + 5);
+
+        bool[] memory valid = orderbook.isOrderValid(orderIds);
+        for (uint256 i; i < 4; i++) {
+            assertEq(valid[i], false);
+        }
+    }
+
+    function test_isOrderValid_invalidApproval() external {
+        bytes32[] memory orderIds = new bytes32[](4);
+        orderIds[0] = test_createListing(true, 1, 1 ether, block.timestamp + 1);
+        orderIds[1] = test_createListing(false, 1, 1 ether, block.timestamp + 1);
+        orderIds[2] = test_createOffer(true, 1, 1 ether, block.timestamp + 1);
+        orderIds[3] = test_createOffer(false, 1, 1 ether, block.timestamp + 1);
+
+        vm.startPrank(TOKEN_OWNER);
+        erc1155.setApprovalForAll(address(orderbook), false);
+        erc721.setApprovalForAll(address(orderbook), false);
+        vm.stopPrank();
+        vm.prank(CURRENCY_OWNER);
+        erc20.approve(address(orderbook), 0);
+
+        bool[] memory valid = orderbook.isOrderValid(orderIds);
+        for (uint256 i; i < 4; i++) {
+            assertEq(valid[i], false);
+        }
+    }
+
+    function test_isOrderValid_invalidBalance() external {
+        bytes32[] memory orderIds = new bytes32[](4);
+        orderIds[0] = test_createListing(true, 1, 1 ether, block.timestamp + 1);
+        orderIds[1] = test_createListing(false, 1, 1 ether, block.timestamp + 1);
+        orderIds[2] = test_createOffer(true, 1, 1 ether, block.timestamp + 1);
+        orderIds[3] = test_createOffer(false, 1, 1 ether, block.timestamp + 1);
+
+        // Use fee receiver as a "random" address
+        vm.startPrank(TOKEN_OWNER);
+        erc1155.safeTransferFrom(TOKEN_OWNER, FEE_RECEIVER, TOKEN_ID, erc1155.balanceOf(TOKEN_OWNER, TOKEN_ID), "");
+        assertEq(erc1155.balanceOf(TOKEN_OWNER, TOKEN_ID), 0);
+        erc721.transferFrom(TOKEN_OWNER, FEE_RECEIVER, TOKEN_ID);
+        vm.stopPrank();
+        vm.startPrank(CURRENCY_OWNER);
+        erc20.transfer(FEE_RECEIVER, CURRENCY_QUANTITY);
+        assertEq(erc20.balanceOf(CURRENCY_OWNER), 0);
+        vm.stopPrank();
+
+        bool[] memory valid = orderbook.isOrderValid(orderIds);
+        for (uint256 i; i < 4; i++) {
+            assertEq(valid[i], false);
+        }
+    }
+
+    function test_isOrderValid_bulk(uint8 count, bool[] memory expectValid, bool[] memory isListing) external {
+        // Bound sizes (default to false when smaller)
         assembly {
             mstore(expectValid, count)
+            mstore(isListing, count)
         }
 
-        bytes32[] memory listingIds = new bytes32[](count);
+        bytes32[] memory orderIds = new bytes32[](count);
         for (uint256 i; i < count; i++) {
-            listingIds[i] = test_createListing(true, 1, 1 ether, block.timestamp + 1 + i); // Add index to prevent collisions
-            if (!expectValid[i]) {
-                // Cancel it
-                vm.prank(TOKEN_OWNER);
-                orderbook.cancelListing(listingIds[i]);
+            if (isListing[i]) {
+                orderIds[i] = test_createListing(true, 1, 1 ether, block.timestamp + 1 + i); // Add index to prevent collisions
+                if (!expectValid[i]) {
+                    // Cancel it
+                    vm.prank(TOKEN_OWNER);
+                    orderbook.cancelListing(orderIds[i]);
+                }
+            } else {
+                orderIds[i] = test_createOffer(true, 1, 1 ether, block.timestamp + 1 + i); // Add index to prevent collisions
+                if (!expectValid[i]) {
+                    // Cancel it
+                    vm.prank(CURRENCY_OWNER);
+                    orderbook.cancelOffer(orderIds[i]);
+                }
             }
         }
 
-        bool[] memory valid = orderbook.isOrderValid(listingIds);
+        bool[] memory valid = orderbook.isOrderValid(orderIds);
         assertEq(valid.length, count);
         for (uint256 i; i < count; i++) {
             assertEq(valid[i], expectValid[i]);
