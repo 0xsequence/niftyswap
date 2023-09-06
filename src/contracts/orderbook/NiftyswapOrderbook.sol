@@ -87,7 +87,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
     /**
      * Accepts an order.
      * @param orderId The ID of the order.
-     * @param quantity The quantity of tokens to purchase.
+     * @param quantity The quantity of tokens to accept.
      * @param additionalFees The additional fees to pay.
      * @param additionalFeeReceivers The addresses to send the additional fees to.
      */
@@ -96,7 +96,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         uint256 quantity,
         uint256[] memory additionalFees,
         address[] memory additionalFeeReceivers
-    ) external {
+    ) public {
         Order memory order = _orders[orderId];
         if (order.creator == address(0)) {
             // Order cancelled, completed or never existed
@@ -165,6 +165,29 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
     }
 
     /**
+     * Accepts orders.
+     * @param orderIds The IDs of the orders.
+     * @param quantities The quantities of tokens to accept.
+     * @param additionalFees The additional fees to pay.
+     * @param additionalFeeReceivers The addresses to send the additional fees to.
+     * @dev Additional fees are applied to each order.
+     */
+    function acceptOrderBatch(
+        bytes32[] memory orderIds,
+        uint256[] memory quantities,
+        uint256[] memory additionalFees,
+        address[] memory additionalFeeReceivers
+    ) external {
+        if (orderIds.length != quantities.length) {
+            revert InvalidBatchRequest();
+        }
+
+        for (uint256 i; i < orderIds.length; i++) {
+            acceptOrder(orderIds[i], quantities[i], additionalFees, additionalFeeReceivers);
+        }
+    }
+
+    /**
      * Cancels an order.
      * @param orderId The ID of the order.
      */
@@ -225,26 +248,36 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
     }
 
     /**
+     * Checks if an order is valid.
+     * @param orderId The ID of the order.
+     * @return valid The validity of the order.
+     * @notice An order is valid if it is active, has not expired and tokens (currency for offers, tokens for listings) are transferrable.
+     */
+    function isOrderValid(bytes32 orderId) public view returns (bool valid) {
+        Order memory order = _orders[orderId];
+        valid = order.creator != address(0) && !_isExpired(order);
+        if (valid) {
+            if (order.isListing) {
+                valid = _hasApprovedTokens(
+                    order.isERC1155, order.tokenContract, order.tokenId, order.quantity, order.creator
+                );
+            } else {
+                valid = _hasApprovedCurrency(order.currency, order.pricePerToken * order.quantity, order.creator);
+            }
+        }
+        return valid;
+    }
+
+    /**
      * Checks if orders are valid.
      * @param orderIds The IDs of the orders.
      * @return valid The validities of the orders.
      * @notice An order is valid if it is active, has not expired and tokens (currency for offers, tokens for listings) are transferrable.
      */
-    function isOrderValid(bytes32[] memory orderIds) external view returns (bool[] memory valid) {
+    function isOrderValidBatch(bytes32[] memory orderIds) external view returns (bool[] memory valid) {
         valid = new bool[](orderIds.length);
         for (uint256 i; i < orderIds.length; i++) {
-            Order memory order = _orders[orderIds[i]];
-            bool isValid = order.creator != address(0) && !_isExpired(order);
-            if (isValid) {
-                if (order.isListing) {
-                    isValid = _hasApprovedTokens(
-                        order.isERC1155, order.tokenContract, order.tokenId, order.quantity, order.creator
-                    );
-                } else {
-                    isValid = _hasApprovedCurrency(order.currency, order.pricePerToken * order.quantity, order.creator);
-                }
-            }
-            valid[i] = isValid;
+            valid[i] = isOrderValid(orderIds[i]);
         }
     }
 

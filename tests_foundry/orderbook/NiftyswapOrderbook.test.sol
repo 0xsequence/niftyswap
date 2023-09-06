@@ -31,10 +31,7 @@ contract ERC1155ReentryAttacker is IERC1155TokenReceiver {
         NiftyswapOrderbook(_orderbook).acceptOrder(_orderId, _quantity, new uint256[](0), new address[](0));
     }
 
-    function onERC1155Received(address _operator, address _from, uint256 _id, uint256 _amount, bytes calldata _data)
-        external
-        returns (bytes4)
-    {
+    function onERC1155Received(address, address, uint256, uint256, bytes calldata) external returns (bytes4) {
         if (_hasAttacked) {
             // Done
             _hasAttacked = false;
@@ -46,13 +43,11 @@ contract ERC1155ReentryAttacker is IERC1155TokenReceiver {
         return IERC1155TokenReceiver.onERC1155Received.selector;
     }
 
-    function onERC1155BatchReceived(
-        address _operator,
-        address _from,
-        uint256[] calldata _ids,
-        uint256[] calldata _amounts,
-        bytes calldata _data
-    ) external returns (bytes4) {
+    function onERC1155BatchReceived(address, address, uint256[] calldata, uint256[] calldata, bytes calldata)
+        external
+        pure
+        returns (bytes4)
+    {
         return IERC1155TokenReceiver.onERC1155BatchReceived.selector;
     }
 }
@@ -1026,6 +1021,111 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
     }
 
     //
+    // Accept Order Batch
+    //
+    function test_acceptOrderBatch() external {
+        erc20.mockMint(TOKEN_OWNER, CURRENCY_QUANTITY);
+        vm.startPrank(TOKEN_OWNER);
+        erc20.approve(address(orderbook), CURRENCY_QUANTITY);
+
+        bytes32[] memory orderIds = new bytes32[](4);
+        orderIds[0] = test_createListing(true, 1, 1 ether, block.timestamp + 1);
+        orderIds[1] = test_createListing(false, 1, 1 ether, block.timestamp + 1);
+        orderIds[2] = test_createOffer(true, 1, 1 ether, block.timestamp + 1);
+        orderIds[3] = test_createOffer(false, 1, 1 ether, block.timestamp + 1);
+
+        uint256[] memory quantities = new uint256[](4);
+        quantities[0] = 1;
+        quantities[1] = 1;
+        quantities[2] = 1;
+        quantities[3] = 1;
+
+        vm.expectEmit(true, true, true, true, address(orderbook));
+        emit OrderAccepted(orderIds[0], TOKEN_OWNER, address(erc1155), 1);
+        vm.expectEmit(true, true, true, true, address(orderbook));
+        emit OrderAccepted(orderIds[1], TOKEN_OWNER, address(erc721), 1);
+        vm.expectEmit(true, true, true, true, address(orderbook));
+        emit OrderAccepted(orderIds[2], TOKEN_OWNER, address(erc1155), 1);
+        vm.expectEmit(true, true, true, true, address(orderbook));
+        emit OrderAccepted(orderIds[3], TOKEN_OWNER, address(erc721), 1);
+        vm.prank(TOKEN_OWNER);
+        orderbook.acceptOrderBatch(orderIds, quantities, emptyFees, emptyFeeReceivers);
+    }
+
+    function test_acceptListingBatch(uint256 quantity, uint256 pricePerToken, uint256 expiry) external {
+        // Prevent under/overflow
+        vm.assume(expiry != 0);
+        vm.assume(pricePerToken <= 1 ether && quantity > 1 && quantity <= TOKEN_QUANTITY);
+        quantity = quantity / 2;
+
+        uint256 totalPrice2 = pricePerToken * quantity * 2;
+        uint256 erc20BalCurrency = erc20.balanceOf(CURRENCY_OWNER);
+        vm.assume(totalPrice2 < erc20BalCurrency);
+        uint256 erc20BalTokenOwner = erc20.balanceOf(TOKEN_OWNER);
+        uint256 erc20BalRoyal = erc20.balanceOf(ROYALTY_RECEIVER);
+
+        bytes32[] memory orderIds = new bytes32[](2);
+        orderIds[0] = test_createListing(true, quantity, pricePerToken, expiry - 1);
+        orderIds[1] = test_createListing(true, quantity, pricePerToken, expiry);
+        uint256[] memory quantities = new uint256[](2);
+        quantities[0] = quantity;
+        quantities[1] = quantity;
+
+        vm.expectEmit(true, true, true, true, address(orderbook));
+        emit OrderAccepted(orderIds[0], CURRENCY_OWNER, address(erc1155), quantity);
+        vm.expectEmit(true, true, true, true, address(orderbook));
+        emit OrderAccepted(orderIds[1], CURRENCY_OWNER, address(erc1155), quantity);
+        vm.startPrank(CURRENCY_OWNER);
+        orderbook.acceptOrderBatch(orderIds, quantities, emptyFees, emptyFeeReceivers);
+        vm.stopPrank();
+
+        uint256 royalty2 = (((totalPrice2 / 2) * ROYALTY_FEE) / 10000) * 2; // Cater for rounding error
+
+        assertEq(erc1155.balanceOf(CURRENCY_OWNER, TOKEN_ID), quantity * 2);
+        assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - totalPrice2);
+        assertEq(erc20.balanceOf(TOKEN_OWNER), erc20BalTokenOwner + totalPrice2 - royalty2);
+        assertEq(erc20.balanceOf(ROYALTY_RECEIVER), erc20BalRoyal + royalty2);
+    }
+
+    function test_acceptOfferBatch(uint256 quantity, uint256 pricePerToken, uint256 expiry) external {
+        // Prevent under/overflow
+        vm.assume(expiry != 0);
+        vm.assume(pricePerToken <= 1 ether && quantity > 1 && quantity <= TOKEN_QUANTITY);
+        quantity = quantity / 2;
+
+        uint256 totalPrice2 = pricePerToken * quantity * 2;
+        uint256 erc20BalCurrency = erc20.balanceOf(CURRENCY_OWNER);
+        vm.assume(totalPrice2 < erc20BalCurrency);
+        uint256 erc20BalTokenOwner = erc20.balanceOf(TOKEN_OWNER);
+        uint256 erc20BalRoyal = erc20.balanceOf(ROYALTY_RECEIVER);
+
+        bytes32 orderId1 = test_createOffer(true, quantity, pricePerToken, expiry - 1);
+        bytes32 orderId2 = test_createOffer(true, quantity, pricePerToken, expiry);
+
+        bytes32[] memory orderIds = new bytes32[](2);
+        orderIds[0] = orderId1;
+        orderIds[1] = orderId2;
+        uint256[] memory quantities = new uint256[](2);
+        quantities[0] = quantity;
+        quantities[1] = quantity;
+
+        vm.expectEmit(true, true, true, true, address(orderbook));
+        emit OrderAccepted(orderId1, TOKEN_OWNER, address(erc1155), quantity);
+        vm.expectEmit(true, true, true, true, address(orderbook));
+        emit OrderAccepted(orderId2, TOKEN_OWNER, address(erc1155), quantity);
+        vm.startPrank(TOKEN_OWNER);
+        orderbook.acceptOrderBatch(orderIds, quantities, emptyFees, emptyFeeReceivers);
+        vm.stopPrank();
+
+        uint256 royalty2 = (((totalPrice2 / 2) * ROYALTY_FEE) / 10000) * 2; // Cater for rounding error
+
+        assertEq(erc1155.balanceOf(CURRENCY_OWNER, TOKEN_ID), quantity * 2);
+        assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - totalPrice2 - royalty2);
+        assertEq(erc20.balanceOf(TOKEN_OWNER), erc20BalTokenOwner + totalPrice2);
+        assertEq(erc20.balanceOf(ROYALTY_RECEIVER), erc20BalRoyal + royalty2);
+    }
+
+    //
     // isValid
     //
     function test_isOrderValid_expired() external {
@@ -1037,7 +1137,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
 
         vm.warp(block.timestamp + 5);
 
-        bool[] memory valid = orderbook.isOrderValid(orderIds);
+        bool[] memory valid = orderbook.isOrderValidBatch(orderIds);
         for (uint256 i; i < 4; i++) {
             assertEq(valid[i], false);
         }
@@ -1057,7 +1157,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.prank(CURRENCY_OWNER);
         erc20.approve(address(orderbook), 0);
 
-        bool[] memory valid = orderbook.isOrderValid(orderIds);
+        bool[] memory valid = orderbook.isOrderValidBatch(orderIds);
         for (uint256 i; i < 4; i++) {
             assertEq(valid[i], false);
         }
@@ -1081,7 +1181,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         assertEq(erc20.balanceOf(CURRENCY_OWNER), 0);
         vm.stopPrank();
 
-        bool[] memory valid = orderbook.isOrderValid(orderIds);
+        bool[] memory valid = orderbook.isOrderValidBatch(orderIds);
         for (uint256 i; i < 4; i++) {
             assertEq(valid[i], false);
         }
@@ -1113,7 +1213,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
             }
         }
 
-        bool[] memory valid = orderbook.isOrderValid(orderIds);
+        bool[] memory valid = orderbook.isOrderValidBatch(orderIds);
         assertEq(valid.length, count);
         for (uint256 i; i < count; i++) {
             assertEq(valid[i], expectValid[i]);

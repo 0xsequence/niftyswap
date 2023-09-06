@@ -50,13 +50,27 @@ interface INiftyswapOrderbookFunctions is INiftyswapOrderbookStorage {
     /**
      * Accepts an order.
      * @param orderId The ID of the order.
-     * @param quantity The quantity of tokens to purchase.
+     * @param quantity The quantity of tokens to accept.
      * @param additionalFees The additional fees to pay.
      * @param additionalFeeReceivers The addresses to send the additional fees to.
      */
     function acceptOrder(
         bytes32 orderId,
         uint256 quantity,
+        uint256[] memory additionalFees,
+        address[] memory additionalFeeReceivers
+    ) external;
+
+    /**
+     * Accepts orders.
+     * @param orderIds The IDs of the orders.
+     * @param quantities The quantities of tokens to accept.
+     * @param additionalFees The additional fees to pay.
+     * @param additionalFeeReceivers The addresses to send the additional fees to.
+     */
+    function acceptOrderBatch(
+        bytes32[] memory orderIds,
+        uint256[] memory quantities,
         uint256[] memory additionalFees,
         address[] memory additionalFeeReceivers
     ) external;
@@ -82,12 +96,20 @@ interface INiftyswapOrderbookFunctions is INiftyswapOrderbookStorage {
     function getOrderBatch(bytes32[] memory orderIds) external view returns (Order[] memory orders);
 
     /**
+     * Checks if an order is valid.
+     * @param orderId The ID of the order.
+     * @return valid The validity of the order.
+     * @notice An order is valid if it is active, has not expired and tokens (currency for offers, tokens for listings) are transferrable.
+     */
+    function isOrderValid(bytes32 orderId) external view returns (bool valid);
+
+    /**
      * Checks if orders are valid.
      * @param orderIds The IDs of the orders.
      * @return valid The validities of the orders.
      * @notice An order is valid if it is active, has not expired and tokens (currency for offers, tokens for listings) are transferrable.
      */
-    function isOrderValid(bytes32[] memory orderIds) external view returns (bool[] memory valid);
+    function isOrderValidBatch(bytes32[] memory orderIds) external view returns (bool[] memory valid);
 }
 
 interface INiftyswapOrderbookSignals {
@@ -127,6 +149,9 @@ interface INiftyswapOrderbookSignals {
 
     // Thrown when order id is invalid.
     error InvalidOrderId(bytes32 orderId);
+
+    // Thrown when the parameters of a batch accept request are invalid.
+    error InvalidBatchRequest();
 
     // Thrown when quantity is invalid.
     error InvalidQuantity();
