@@ -13,63 +13,50 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
 
     /**
      * Creates an order.
-     * @param isListing True if the token is a listing, false if it is an offer.
-     * @param isERC1155 True if the token is an ERC1155 token, false if it is an ERC721 token.
-     * @param tokenContract The address of the token contract.
-     * @param tokenId The ID of the token.
-     * @param quantity The quantity of tokens to list.
-     * @param currency The address of the currency to list.
-     * @param pricePerToken The price per token.
-     * @param expiry The timestamp at which the order expires.
+     * @param request The requested order's details.
      * @return orderId The ID of the order.
      * @notice A listing is when the maker is selling tokens for currency.
      * @notice An offer is when the maker is buying tokens with currency.
      */
-    function createOrder(
-        bool isListing,
-        bool isERC1155,
-        address tokenContract,
-        uint256 tokenId,
-        uint256 quantity,
-        address currency,
-        uint256 pricePerToken,
-        uint256 expiry
-    ) external returns (bytes32 orderId) {
-        if (isListing) {
+    function createOrder(OrderRequest memory request) public returns (bytes32 orderId) {
+        uint256 quantity = request.quantity;
+        address tokenContract = request.tokenContract;
+
+        if (request.pricePerToken == 0) {
+            revert InvalidPrice();
+        }
+        // solhint-disable-next-line not-rely-on-time
+        if (request.expiry <= block.timestamp) {
+            revert InvalidExpiry();
+        }
+
+        if (request.isListing) {
             // Check valid token for listing
-            if (isListing && !_hasApprovedTokens(isERC1155, tokenContract, tokenId, quantity, msg.sender)) {
-                revert InvalidTokenApproval(tokenContract, tokenId, quantity, msg.sender);
+            if (!_hasApprovedTokens(request.isERC1155, tokenContract, request.tokenId, quantity, msg.sender)) {
+                revert InvalidTokenApproval(tokenContract, request.tokenId, quantity, msg.sender);
             }
         } else {
             // Check approved currency for offer
-            uint256 total = quantity * pricePerToken;
-            if (!_hasApprovedCurrency(currency, total, msg.sender)) {
-                revert InvalidCurrencyApproval(currency, total, msg.sender);
+            uint256 total = quantity * request.pricePerToken;
+            if (!_hasApprovedCurrency(request.currency, total, msg.sender)) {
+                revert InvalidCurrencyApproval(request.currency, total, msg.sender);
             }
             // Check quantity. Covered by _hasApprovedTokens for listings
-            if ((isERC1155 && quantity == 0) || (!isERC1155 && quantity != 1)) {
+            if ((request.isERC1155 && quantity == 0) || (!request.isERC1155 && quantity != 1)) {
                 revert InvalidQuantity();
             }
         }
 
-        if (pricePerToken == 0) {
-            revert InvalidPrice();
-        }
-        // solhint-disable-next-line not-rely-on-time
-        if (expiry <= block.timestamp) {
-            revert InvalidExpiry();
-        }
-
         Order memory order = Order({
-            isListing: isListing,
-            isERC1155: isERC1155,
+            isListing: request.isListing,
+            isERC1155: request.isERC1155,
             creator: msg.sender,
             tokenContract: tokenContract,
-            tokenId: tokenId,
+            tokenId: request.tokenId,
             quantity: quantity,
-            currency: currency,
-            pricePerToken: pricePerToken,
-            expiry: expiry
+            currency: request.currency,
+            pricePerToken: request.pricePerToken,
+            expiry: request.expiry
         });
         orderId = hashOrder(order);
 
@@ -79,9 +66,31 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         }
         _orders[orderId] = order;
 
-        emit OrderCreated(orderId, tokenContract, tokenId, isListing, quantity, currency, pricePerToken, expiry);
+        emit OrderCreated(
+            orderId,
+            tokenContract,
+            request.tokenId,
+            request.isListing,
+            quantity,
+            request.currency,
+            request.pricePerToken,
+            request.expiry
+        );
 
         return orderId;
+    }
+
+    /**
+     * Creates orders.
+     * @param requests The requested orders' details.
+     * @return orderIds The IDs of the orders.
+     */
+    function createOrderBatch(OrderRequest[] memory requests) external returns (bytes32[] memory orderIds) {
+        orderIds = new bytes32[](requests.length);
+        for (uint256 i; i < requests.length; i++) {
+            orderIds[i] = createOrder(requests[i]);
+        }
+        return orderIds;
     }
 
     /**
@@ -191,7 +200,7 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
      * Cancels an order.
      * @param orderId The ID of the order.
      */
-    function cancelOrder(bytes32 orderId) external {
+    function cancelOrder(bytes32 orderId) public {
         Order storage order = _orders[orderId];
         if (order.creator != msg.sender) {
             revert InvalidOrderId(orderId);
@@ -205,6 +214,16 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
     }
 
     /**
+     * Cancels orders.
+     * @param orderIds The IDs of the orders.
+     */
+    function cancelOrderBatch(bytes32[] memory orderIds) external {
+        for (uint256 i; i < orderIds.length; i++) {
+            cancelOrder(orderIds[i]);
+        }
+    }
+
+    /**
      * Deterministically create the orderId for the given order.
      * @param order The order.
      * @return orderId The ID of the order.
@@ -212,15 +231,15 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
     function hashOrder(Order memory order) public pure returns (bytes32 orderId) {
         return keccak256(
             abi.encodePacked(
+                order.creator,
                 order.isListing,
                 order.isERC1155,
-                order.creator,
                 order.tokenContract,
                 order.tokenId,
                 order.quantity,
+                order.expiry,
                 order.currency,
-                order.pricePerToken,
-                order.expiry
+                order.pricePerToken
             )
         );
     }

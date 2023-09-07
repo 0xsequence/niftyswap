@@ -2,16 +2,28 @@
 pragma solidity ^0.8.4;
 
 interface INiftyswapOrderbookStorage {
-    struct Order {
+    struct OrderRequest {
         bool isListing; // True if the order is a listing, false if it is an offer.
         bool isERC1155; // True if the token is an ERC1155 token, false if it is an ERC721 token.
-        address creator;
         address tokenContract;
         uint256 tokenId;
         uint256 quantity;
+        uint96 expiry;
         address currency;
         uint256 pricePerToken;
-        uint256 expiry;
+    }
+
+    // Same as above with creator
+    struct Order {
+        address creator;
+        bool isListing;
+        bool isERC1155;
+        address tokenContract;
+        uint256 tokenId;
+        uint256 quantity;
+        uint96 expiry;
+        address currency;
+        uint256 pricePerToken;
     }
 
     enum TokenType {
@@ -24,28 +36,19 @@ interface INiftyswapOrderbookStorage {
 interface INiftyswapOrderbookFunctions is INiftyswapOrderbookStorage {
     /**
      * Creates an order.
-     * @param isListing True if the token is a listing, false if it is an offer.
-     * @param isERC1155 True if the token is an ERC1155 token, false if it is an ERC721 token.
-     * @param tokenContract The address of the token contract.
-     * @param tokenId The ID of the token.
-     * @param quantity The quantity of tokens to list.
-     * @param currency The address of the currency to list.
-     * @param pricePerToken The price per token.
-     * @param expiry The timestamp at which the order expires.
+     * @param request The requested order's details.
      * @return orderId The ID of the order.
      * @notice A listing is when the maker is selling tokens for currency.
      * @notice An offer is when the maker is buying tokens with currency.
      */
-    function createOrder(
-        bool isListing,
-        bool isERC1155,
-        address tokenContract,
-        uint256 tokenId,
-        uint256 quantity,
-        address currency,
-        uint256 pricePerToken,
-        uint256 expiry
-    ) external returns (bytes32 orderId);
+    function createOrder(OrderRequest memory request) external returns (bytes32 orderId);
+
+    /**
+     * Creates orders.
+     * @param requests The requested orders' details.
+     * @return orderIds The IDs of the orders.
+     */
+    function createOrderBatch(OrderRequest[] memory requests) external returns (bytes32[] memory orderIds);
 
     /**
      * Accepts an order.
@@ -80,6 +83,12 @@ interface INiftyswapOrderbookFunctions is INiftyswapOrderbookStorage {
      * @param orderId The ID of the order.
      */
     function cancelOrder(bytes32 orderId) external;
+
+    /**
+     * Cancels orders.
+     * @param orderIds The IDs of the orders.
+     */
+    function cancelOrderBatch(bytes32[] memory orderIds) external;
 
     /**
      * Gets an order.
