@@ -5,12 +5,13 @@ import {NiftyswapOrderbook} from "src/contracts/orderbook/NiftyswapOrderbook.sol
 import {
     INiftyswapOrderbookSignals, INiftyswapOrderbookStorage
 } from "src/contracts/interfaces/INiftyswapOrderbook.sol";
+import {ERC721Mock} from "src/contracts/mocks/ERC721Mock.sol";
 import {ERC1155RoyaltyMock} from "src/contracts/mocks/ERC1155RoyaltyMock.sol";
 import {ERC721RoyaltyMock} from "src/contracts/mocks/ERC721RoyaltyMock.sol";
 import {ERC20TokenMock} from "src/contracts/mocks/ERC20TokenMock.sol";
 import {IERC1155TokenReceiver} from "@0xsequence/erc-1155/contracts/interfaces/IERC1155TokenReceiver.sol";
 
-import {Test, console} from "forge-std/Test.sol";
+import {Test, console, stdError} from "forge-std/Test.sol";
 
 // solhint-disable not-rely-on-time
 
@@ -323,6 +324,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
             additionalFees[i] = bound(additionalFees[i], 1, 0.2 ether);
             totalFees += additionalFees[i];
         }
+        vm.assume((totalFees + royalty) < totalPrice);
 
         uint256 erc20BalCurrency = erc20.balanceOf(CURRENCY_OWNER);
         uint256 erc20BalTokenOwner = erc20.balanceOf(TOKEN_OWNER);
@@ -358,6 +360,13 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.expectRevert(InvalidAdditionalFees.selector);
         orderbook.acceptOrder(orderId, 1, additionalFees, additionalFeeReceivers);
 
+        // Fee exceeds cost
+        Order memory order = orderbook.getOrder(orderId);
+        additionalFees[0] = order.pricePerToken * order.quantity + 1;
+        vm.expectRevert(InvalidAdditionalFees.selector);
+        vm.prank(CURRENCY_OWNER);
+        orderbook.acceptOrder(orderId, order.quantity, additionalFees, additionalFeeReceivers);
+
         // Zero address
         additionalFees[0] = 1 ether;
         additionalFeeReceivers[0] = address(0);
@@ -381,6 +390,30 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.prank(CURRENCY_OWNER);
         vm.expectRevert(InvalidAdditionalFees.selector);
         orderbook.acceptOrder(orderId, 1, additionalFees, additionalFeeReceivers);
+    }
+
+    function test_acceptListing_invalidRoyalties(OrderRequest memory request) external {
+        vm.assume(request.pricePerToken > 10000); // Ensure rounding
+        bytes32 orderId = test_createListing(request);
+
+        // >100%
+        if (request.isERC1155) {
+            erc1155.setFee(10001);
+        } else {
+            erc721.setFee(10001);
+        }
+        vm.prank(CURRENCY_OWNER);
+        vm.expectRevert(stdError.arithmeticError);
+        orderbook.acceptOrder(orderId, 1, emptyFees, emptyFeeReceivers);
+
+        // 100% is ok
+        if (request.isERC1155) {
+            erc1155.setFee(10000);
+        } else {
+            erc721.setFee(10000);
+        }
+        vm.prank(CURRENCY_OWNER);
+        orderbook.acceptOrder(orderId, 1, emptyFees, emptyFeeReceivers);
     }
 
     function test_acceptListing_invalidQuantity_zero(OrderRequest memory request) external {
@@ -494,6 +527,12 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
     //
     function test_cancelListing(OrderRequest memory request) public returns (bytes32 orderId) {
         orderId = test_createListing(request);
+
+        // Fails invalid sender
+        vm.expectRevert(abi.encodeWithSelector(InvalidOrderId.selector, orderId));
+        orderbook.cancelOrder(orderId);
+
+        // Succeeds correct sender
 
         vm.expectEmit(true, true, true, true, address(orderbook));
         emit OrderCancelled(orderId, request.tokenContract);
@@ -672,7 +711,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
             additionalFees[i] = bound(additionalFees[i], 1, 0.2 ether);
             totalFees += additionalFees[i];
         }
-        vm.assume(totalFees < totalPrice);
+        vm.assume((totalFees + royalty) < totalPrice);
 
         uint256 erc20BalCurrency = erc20.balanceOf(CURRENCY_OWNER);
         uint256 erc20BalTokenOwner = erc20.balanceOf(TOKEN_OWNER);
@@ -708,6 +747,13 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.expectRevert(InvalidAdditionalFees.selector);
         orderbook.acceptOrder(orderId, 1, additionalFees, additionalFeeReceivers);
 
+        // Fee exceeds cost
+        Order memory order = orderbook.getOrder(orderId);
+        additionalFees[0] = order.pricePerToken * order.quantity + 1;
+        vm.prank(TOKEN_OWNER);
+        vm.expectRevert(stdError.arithmeticError);
+        orderbook.acceptOrder(orderId, order.quantity, additionalFees, additionalFeeReceivers);
+
         // Zero address
         additionalFees[0] = 1 ether;
         additionalFeeReceivers[0] = address(0);
@@ -733,7 +779,29 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         orderbook.acceptOrder(orderId, 1, additionalFees, additionalFeeReceivers);
     }
 
-    //FIXME Add a test where additional fees exceed totalPrice
+    function test_acceptOffer_invalidRoyalties(OrderRequest memory request) external {
+        vm.assume(request.pricePerToken > 10000); // Ensure rounding
+        bytes32 orderId = test_createOffer(request);
+
+        // >100%
+        if (request.isERC1155) {
+            erc1155.setFee(10001);
+        } else {
+            erc721.setFee(10001);
+        }
+        vm.prank(TOKEN_OWNER);
+        vm.expectRevert(InvalidRoyalty.selector);
+        orderbook.acceptOrder(orderId, 1, emptyFees, emptyFeeReceivers);
+
+        // 100% is ok
+        if (request.isERC1155) {
+            erc1155.setFee(10000);
+        } else {
+            erc721.setFee(10000);
+        }
+        vm.prank(TOKEN_OWNER);
+        orderbook.acceptOrder(orderId, 1, emptyFees, emptyFeeReceivers);
+    }
 
     function test_acceptOffer_invalidQuantity_zero(OrderRequest memory request) external {
         bytes32 orderId = test_createOffer(request);
@@ -833,6 +901,11 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
     function test_cancelOffer(OrderRequest memory request) public returns (bytes32 orderId) {
         orderId = test_createOffer(request);
 
+        // Fails invalid sender
+        vm.expectRevert(abi.encodeWithSelector(InvalidOrderId.selector, orderId));
+        orderbook.cancelOrder(orderId);
+
+        // Succeeds correct sender
         vm.expectEmit(true, true, true, true, address(orderbook));
         emit OrderCancelled(orderId, request.tokenContract);
         vm.prank(CURRENCY_OWNER);
@@ -854,6 +927,70 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         orderbook.acceptOrder(orderId, 1, emptyFees, emptyFeeReceivers);
 
         return orderId;
+    }
+
+    //
+    // Create Order Batch
+    //
+    function test_createOrderBatch(uint8 count, OrderRequest[] memory input)
+        public
+        returns (bytes32[] memory orderIds)
+    {
+        count = count > 4 ? 4 : count;
+        vm.assume(input.length >= count);
+        OrderRequest[] memory requests = new OrderRequest[](count);
+
+        for (uint8 i; i < count; i++) {
+            OrderRequest memory request = input[i];
+            _fixRequest(request, request.isListing);
+            request.expiry += i + 10; // Prevent collision
+            requests[i] = request;
+        }
+
+        // Given token holder some currency so it can submit offers too
+        erc20.mockMint(TOKEN_OWNER, CURRENCY_QUANTITY);
+        vm.prank(TOKEN_OWNER);
+        erc20.approve(address(orderbook), CURRENCY_QUANTITY);
+
+        // Emits
+        for (uint256 i; i < count; i++) {
+            vm.expectEmit(true, true, true, true, address(orderbook));
+            OrderRequest memory request = requests[i];
+            emit OrderCreated(
+                _hashOrderRequest(request, TOKEN_OWNER),
+                request.tokenContract,
+                request.tokenId,
+                request.isListing,
+                request.quantity,
+                request.currency,
+                request.pricePerToken,
+                request.expiry
+            );
+        }
+
+        vm.prank(TOKEN_OWNER);
+        orderIds = orderbook.createOrderBatch(requests);
+
+        assertEq(orderIds.length, count);
+
+        // Check orders
+        Order[] memory orders = orderbook.getOrderBatch(orderIds);
+        assertEq(orders.length, count);
+        for (uint256 i; i < count; i++) {
+            Order memory order = orders[i];
+            OrderRequest memory request = requests[i];
+            assertEq(order.creator, TOKEN_OWNER);
+            assertEq(order.isListing, request.isListing);
+            assertEq(order.isERC1155, request.isERC1155);
+            assertEq(order.tokenContract, request.tokenContract);
+            assertEq(order.tokenId, request.tokenId);
+            assertEq(order.quantity, request.quantity);
+            assertEq(order.expiry, request.expiry);
+            assertEq(order.currency, request.currency);
+            assertEq(order.pricePerToken, request.pricePerToken);
+        }
+
+        return orderIds;
     }
 
     //
@@ -978,6 +1115,64 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         assertEq(erc20.balanceOf(CURRENCY_OWNER), erc20BalCurrency - totalPrice2 - royalty2);
         assertEq(erc20.balanceOf(TOKEN_OWNER), erc20BalTokenOwner + totalPrice2);
         assertEq(erc20.balanceOf(ROYALTY_RECEIVER), erc20BalRoyal + royalty2);
+    }
+
+    function test_acceptOrderBatch_invalidLengths(uint8 count, OrderRequest[] memory input, uint256[] memory quantities)
+        external
+    {
+        count = count > 4 ? 4 : count;
+        vm.assume(quantities.length != count);
+        bytes32[] memory orderIds = test_createOrderBatch(count, input);
+        vm.assume(quantities.length != orderIds.length);
+
+        vm.expectRevert(InvalidBatchRequest.selector);
+        orderbook.acceptOrderBatch(orderIds, quantities, emptyFees, emptyFeeReceivers);
+    }
+
+    //
+    // Cancel Order Batch
+    //
+    function test_cancelOrderBatch(uint8 count, OrderRequest[] memory input) external {
+        bytes32[] memory orderIds = test_createOrderBatch(count, input);
+
+        for (uint256 i; i < orderIds.length; i++) {
+            Order memory order = orderbook.getOrder(orderIds[i]);
+            vm.expectEmit(true, true, true, true, address(orderbook));
+            emit OrderCancelled(orderIds[i], order.tokenContract);
+        }
+
+        vm.prank(TOKEN_OWNER);
+        orderbook.cancelOrderBatch(orderIds);
+
+        for (uint256 i; i < orderIds.length; i++) {
+            Order memory order = orderbook.getOrder(orderIds[i]);
+            assertEq(order.creator, address(0));
+            assertEq(order.tokenContract, address(0));
+            assertEq(order.tokenId, 0);
+            assertEq(order.quantity, 0);
+            assertEq(order.currency, address(0));
+            assertEq(order.pricePerToken, 0);
+            assertEq(order.expiry, 0);
+            assertEq(orderbook.isOrderValid(orderIds[i]), false);
+        }
+    }
+
+    function test_cancelOrderBatch_invalidCaller(uint8 count, OrderRequest[] memory input) external {
+        vm.assume(count > 1 && input.length > 1);
+        bytes32[] memory orderIds = test_createOrderBatch(count, input);
+
+        vm.prank(CURRENCY_OWNER);
+        vm.expectRevert(abi.encodeWithSelector(InvalidOrderId.selector, orderIds[0]));
+        orderbook.cancelOrderBatch(orderIds);
+
+        // Created by CURRENCY_OWNER
+        bytes32 currencyOrderId = test_createOffer(input[0]);
+
+        orderIds[1] = currencyOrderId;
+
+        vm.prank(TOKEN_OWNER);
+        vm.expectRevert(abi.encodeWithSelector(InvalidOrderId.selector, currencyOrderId));
+        orderbook.cancelOrderBatch(orderIds);
     }
 
     //
@@ -1126,6 +1321,19 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
     }
 
     //
+    // Royalty
+    //
+    function test_getRoyaltyInfo_defaultZero() external {
+        // New erc721 that doesn't have royalties
+        ERC721Mock erc721Mock = new ERC721Mock();
+
+        (address recipient, uint256 royalty) = orderbook.getRoyaltyInfo(address(erc721Mock), 1, 1 ether);
+
+        assertEq(recipient, address(0));
+        assertEq(royalty, 0);
+    }
+
+    //
     // Helpers
     //
 
@@ -1156,5 +1364,21 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         }
 
         vm.assume((request.quantity * request.pricePerToken) <= CURRENCY_QUANTITY / 10);
+    }
+
+    function _hashOrderRequest(OrderRequest memory request, address creator) private pure returns (bytes32) {
+        return keccak256(
+            abi.encodePacked(
+                creator,
+                request.isListing,
+                request.isERC1155,
+                request.tokenContract,
+                request.tokenId,
+                request.quantity,
+                request.expiry,
+                request.currency,
+                request.pricePerToken
+            )
+        );
     }
 }

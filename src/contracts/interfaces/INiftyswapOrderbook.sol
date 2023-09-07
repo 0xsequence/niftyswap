@@ -168,6 +168,9 @@ interface INiftyswapOrderbookSignals {
     // Thrown when price is invalid.
     error InvalidPrice();
 
+    // Thrown when royalty is invalid.
+    error InvalidRoyalty();
+
     // Thrown when expiry is invalid.
     error InvalidExpiry();
 

@@ -90,7 +90,6 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         for (uint256 i; i < requests.length; i++) {
             orderIds[i] = createOrder(requests[i]);
         }
-        return orderIds;
     }
 
     /**
@@ -138,26 +137,36 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         address tokenReceiver = order.isListing ? msg.sender : order.creator;
 
         if (royaltyAmount > 0) {
-            // Transfer royalties
-            TransferHelper.safeTransferFrom(order.currency, tokenReceiver, royaltyRecipient, royaltyAmount);
             if (order.isListing) {
                 // Royalties are paid by the maker. This reduces the cost for listings.
+                // Underflow prevents fees > cost
                 remainingCost -= royaltyAmount;
+            } else if (royaltyAmount > remainingCost) {
+                // Royalty cannot exceed cost
+                revert InvalidRoyalty();
             }
+            // Transfer royalties
+            TransferHelper.safeTransferFrom(order.currency, tokenReceiver, royaltyRecipient, royaltyAmount);
         }
 
         // Transfer additional fees
+        uint256 totalFees;
         for (uint256 i; i < additionalFees.length; i++) {
             uint256 fee = additionalFees[i];
             address feeReceiver = additionalFeeReceivers[i];
             if (feeReceiver == address(0) || fee == 0) {
                 revert InvalidAdditionalFees();
             }
+            totalFees += fee;
             TransferHelper.safeTransferFrom(order.currency, tokenReceiver, feeReceiver, fee);
-            if (!order.isListing) {
-                // Fees are paid by the taker. This reduces the cost for offers.
-                remainingCost -= fee;
-            }
+        }
+        if (!order.isListing) {
+            // Fees are paid by the taker. This reduces the cost for offers.
+            // Underflow prevents fees > cost
+            remainingCost -= totalFees;
+        } else if (totalFees > remainingCost) {
+            // Fees cannot exceed cost - royalties
+            revert InvalidAdditionalFees();
         }
 
         // Transfer currency
@@ -263,7 +272,6 @@ contract NiftyswapOrderbook is INiftyswapOrderbook {
         for (uint256 i; i < orderIds.length; i++) {
             orders[i] = _orders[orderIds[i]];
         }
-        return orders;
     }
 
     /**

@@ -35,12 +35,10 @@ contract ERC1155RoyaltyMock is ERC1155MintBurnMock {
     }
 
     function setFee(uint256 _fee) public {
-        require(_fee < 10000, "FEE IS TOO HIGH");
         royaltyFee = _fee;
     }
 
     function set666Fee(uint256 _fee) public {
-        require(_fee < 10000, "FEE IS TOO HIGH");
         royaltyFee666 = _fee;
     }
 
