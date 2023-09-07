@@ -940,10 +940,12 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
         vm.assume(input.length >= count);
         OrderRequest[] memory requests = new OrderRequest[](count);
 
+        uint96 baseExpiry = uint96(block.timestamp + 10);
+
         for (uint8 i; i < count; i++) {
             OrderRequest memory request = input[i];
             _fixRequest(request, request.isListing);
-            request.expiry += i + 10; // Prevent collision
+            request.expiry = baseExpiry + i; // Prevent collision
             requests[i] = request;
         }
 
@@ -1301,11 +1303,13 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
             mstore(expectValid, count)
         }
 
+        uint96 baseExpiry = uint96(block.timestamp + 10);
+
         bytes32[] memory orderIds = new bytes32[](count);
         for (uint8 i; i < count; i++) {
             OrderRequest memory request = requests[i];
             _fixRequest(request, request.isListing);
-            request.expiry += i + 10; // Prevent collision
+            request.expiry = baseExpiry + i; // Prevent collision
             if (request.isListing) {
                 orderIds[i] = expectValid[i] ? test_createListing(request) : test_cancelListing(request);
             } else {
