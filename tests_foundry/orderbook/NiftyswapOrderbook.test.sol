@@ -393,6 +393,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
     }
 
     function test_acceptListing_invalidRoyalties(OrderRequest memory request) external {
+        _fixRequest(request, true);
         vm.assume(request.pricePerToken > 10000); // Ensure rounding
         bytes32 orderId = test_createListing(request);
 
@@ -780,6 +781,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
     }
 
     function test_acceptOffer_invalidRoyalties(OrderRequest memory request) external {
+        _fixRequest(request, false);
         vm.assume(request.pricePerToken > 10000); // Ensure rounding
         bytes32 orderId = test_createOffer(request);
 
@@ -1000,7 +1002,7 @@ contract NiftyswapOrderbookTest is INiftyswapOrderbookSignals, INiftyswapOrderbo
     //
     function test_acceptOrderBatch() external {
         erc20.mockMint(TOKEN_OWNER, CURRENCY_QUANTITY);
-        vm.startPrank(TOKEN_OWNER);
+        vm.prank(TOKEN_OWNER);
         erc20.approve(address(orderbook), CURRENCY_QUANTITY);
 
         OrderRequest memory request = OrderRequest({
