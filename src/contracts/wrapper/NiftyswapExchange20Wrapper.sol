@@ -12,7 +12,7 @@ import {TransferHelper} from "@uniswap/lib/contracts/libraries/TransferHelper.so
 error InvalidRecipient();
 
 /**
- * A wrapper for the Niiftyswap exchange contract that when swapping for ERC-1155
+ * A wrapper for the Niftyswap exchange contract that when swapping for ERC-1155
  * allows the ERC-20 refund to be sent to a recipient other than the token recipient.
  */
 contract NiftyswapExchange20Wrapper is INiftyswapExchange20Wrapper, IERC1155TokenReceiver, IERC165 {
