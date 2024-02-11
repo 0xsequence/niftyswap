@@ -8,6 +8,19 @@ import {Constants} from "./Constants.test.sol";
 import {Test} from "forge-std/Test.sol";
 
 abstract contract TestHelperBase is Test, Constants {
+    address internal immutable OPERATOR;
+    address internal immutable USER;
+    address internal immutable RECIPIENT_1;
+    address internal immutable RECIPIENT_2;
+
+    constructor() {
+        // Set up test
+        OPERATOR = makeAddr("OPERATOR");
+        USER = makeAddr("USER");
+        RECIPIENT_1 = makeAddr("RECIPIENT_1");
+        RECIPIENT_2 = makeAddr("RECIPIENT_2");
+    }
+
     /**
      * Get token balances.
      */
@@ -16,10 +29,11 @@ abstract contract TestHelperBase is Test, Constants {
         view
         returns (uint256[] memory balances)
     {
-        balances = new uint256[](types.length);
+        address[] memory owners = new address[](types.length);
         for (uint256 i; i < types.length; i++) {
-            balances[i] = IERC1155(erc1155).balanceOf(owner, types[i]);
+            owners[i] = owner;
         }
+        balances = IERC1155(erc1155).balanceOfBatch(owners, types);
         return balances;
     }
 

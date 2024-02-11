@@ -14,7 +14,4 @@ contract Constants {
     bytes4 internal constant ADDLIQUIDITY20_SIG = 0x82da2b73;
     bytes4 internal constant REMOVELIQUIDITY20_SIG = 0x5c0bf259;
     bytes4 internal constant DEPOSIT20_SIG = 0xc8c323f9;
-
-    address internal constant OPERATOR = address(1);
-    address internal constant USER = address(2);
 }
