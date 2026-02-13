@@ -49,10 +49,10 @@ There are pros and cons to these differences and we welcome you to discuss these
 ## Security Review
 
 Niftyswap has been audited by two independant parties and all issues discovered were addressed. 
-- [Agustín Aguilar**](https://github.com/0xsequence/niftyswap/blob/master/audits/Security_Audit_Nitfyswap_Horizon_Games_1.pdf)
+- [Agustín Aguilar**](https://github.com/0xsequence/niftyswap/blob/master/audits/Security_Audit_Nitfyswap_Sequence_Games_1.pdf)
 - [Consensys Diligence](https://github.com/0xsequence/niftyswap/blob/master/audits/consensys-diligence-audit-2020-02.pdf) 
 
-** Agustín was hired as a full-time employee at Horizon after the audit was completed. Agustín did not take part in the writing of Niftyswap contracts.
+** Agustín was hired as a full-time employee at Sequence after the audit was completed. Agustín did not take part in the writing of Niftyswap contracts.
 
 ## Dev env & release
 
@@ -68,6 +68,6 @@ in their toolchains as our build and contract packages are separated.
 
 ## LICENSE
 
-Copyright (c) 2017-present [Horizon Blockchain Games Inc](https://horizon.io).
+Copyright (c) 2017-present [Sequence Platforms ULC Inc](https://horizon.io).
 
 Licensed under [Apache-2.0](./LICENSE)
